@@ -1,0 +1,484 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Chat Phone UI</title>
+    <style>
+        /* --- 全局样式 --- */
+        :root {
+            --bg-color: #f0f2f5;
+            --phone-bg: #1a1a1a; /* 手机壁纸深色背景 */
+            --widget-bg: rgba(255, 255, 255, 0.15); /* 毛玻璃背景 */
+            --text-color: #ffffff;
+            --accent-color: #00d2ff;
+            --heart-color: #ff4757;
+            --bar-bg: rgba(255, 255, 255, 0.1);
+            --bar-fill: #ffffff;
+        }
+
+        body {
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: var(--bg-color);
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        /* --- 手机外壳框架 --- */
+        .phone-frame {
+            width: 360px;
+            height: 720px;
+            background-color: #000;
+            border-radius: 40px;
+            padding: 12px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            position: relative;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        /* --- 屏幕区域 --- */
+        .screen {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #2b1055, #7597de); /* 默认壁纸 */
+            border-radius: 30px;
+            position: relative;
+            overflow: hidden;
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        /* --- 顶部：时间组件 --- */
+        .header-widget {
+            text-align: center;
+            margin-bottom: 20px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        .date-line {
+            font-size: 14px;
+            opacity: 0.8;
+            margin-bottom: 5px;
+        }
+        .time-line {
+            font-size: 48px;
+            font-weight: 200;
+            line-height: 1;
+            letter-spacing: 2px;
+        }
+
+        /* --- 主体网格布局 --- */
+        .grid-container {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr; /* 左边宽一点，右边窄一点 */
+            grid-template-rows: 1.2fr 1fr;
+            gap: 15px;
+            flex-grow: 1;
+        }
+
+        /* --- 通用组件样式 (毛玻璃) --- */
+        .widget {
+            background: var(--widget-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* --- 左侧：图片/电量组件 --- */
+        .photo-widget {
+            grid-column: 1 / 2;
+            grid-row: 1 / 3; /* 占据两行高度 */
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            background-size: cover;
+            background-position: center;
+            cursor: pointer; /* 提示可点击 */
+            transition: transform 0.2s;
+        }
+        .photo-widget:active {
+            transform: scale(0.98);
+        }
+        
+        /* 细心形图标 */
+        .heart-icon {
+            width: 24px;
+            height: 24px;
+            margin: 15px;
+            fill: none;
+            stroke: var(--heart-color);
+            stroke-width: 2; /* 细线条 */
+        }
+
+        /* 电量条 */
+        .battery-container {
+            margin: 15px;
+            background: rgba(0,0,0,0.3);
+            height: 6px;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .battery-level {
+            height: 100%;
+            width: 80%; /* 默认值，JS会改 */
+            background-color: #4cd137;
+            border-radius: 3px;
+            transition: width 0.5s, background-color 0.5s;
+        }
+
+        /* --- 右上：应用区域 --- */
+        .apps-area {
+            grid-column: 2 / 3;
+            grid-row: 1 / 2;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        .app-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 12px;
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        .app-icon:active { transform: scale(0.9); }
+        
+        .icon-qq { background: linear-gradient(to bottom, #29B6F6, #0288D1); color: white; }
+        .icon-world { background: linear-gradient(to bottom, #66BB6A, #388E3C); color: white; }
+
+        /* --- 右下：竖条时间剩余 --- */
+        .time-bars-area {
+            grid-column: 2 / 3;
+            grid-row: 2 / 3;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            align-items: flex-end; /* 底部对齐 */
+        }
+
+        .vertical-bar-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100%;
+            width: 30%;
+        }
+        
+        .bar-track {
+            width: 100%;
+            flex-grow: 1;
+            background: var(--bar-bg);
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: flex-end; /* 从下往上长 */
+        }
+        
+        .bar-fill {
+            width: 100%;
+            height: 50%; /* JS控制 */
+            background: var(--bar-fill);
+            border-radius: 10px;
+            opacity: 0.8;
+        }
+        
+        .bar-label {
+            font-size: 10px;
+            margin-top: 5px;
+            opacity: 0.8;
+            text-align: center;
+        }
+
+        /* --- 左下：设置按钮区域 --- */
+        /* 根据描述：左边是外观设置和API设置，也就是放在左侧图片组件的下方 */
+        .settings-area {
+            grid-column: 1 / 2; /* 在第一列 */
+            grid-row: 3 / 4; /* 新的一行 */
+            display: flex;
+            gap: 10px;
+        }
+
+        /* 调整Grid使得最下面有一行给设置按钮 */
+        .grid-container {
+            grid-template-rows: 1.2fr 1fr 50px; /* 增加底部一行 */
+        }
+        /* 调整图片组件只占上面两行 */
+        .photo-widget {
+            grid-row: 1 / 3; 
+        }
+        /* 调整竖条占据两行中的第二行 */
+        .time-bars-area {
+            grid-row: 2 / 4; /* 让它长一点延伸到底部 */
+        }
+
+        .setting-btn {
+            flex: 1;
+            background: var(--widget-bg);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 12px;
+            backdrop-filter: blur(5px);
+            transition: background 0.2s;
+        }
+        .setting-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        /* --- 模态框 (API/Settings) --- */
+        .modal {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .modal.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .modal h2 { margin-top: 0; }
+        .modal input, .modal textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            background: #333;
+            border: 1px solid #555;
+            color: white;
+            border-radius: 8px;
+        }
+        .modal button {
+            padding: 8px 20px;
+            background: var(--accent-color);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            color: #000;
+            font-weight: bold;
+        }
+        .close-btn {
+            margin-top: 10px;
+            background: transparent !important;
+            color: #fff !important;
+            border: 1px solid #fff !important;
+        }
+
+        /* 用于上传背景图的隐藏input */
+        #bg-upload { display: none; }
+
+    </style>
+</head>
+<body>
+
+    <div class="phone-frame">
+        <div class="screen">
+            
+            <!-- 顶部时间 -->
+            <div class="header-widget">
+                <div class="date-line" id="date-display">2月14日 星期五</div>
+                <div class="time-line" id="time-display">13:14</div>
+            </div>
+
+            <div class="grid-container">
+                <!-- 左侧：图片/电量组件 (可更换背景) -->
+                <div class="widget photo-widget" id="photo-widget" onclick="document.getElementById('bg-upload').click()">
+                    <!-- 细心形 -->
+                    <svg class="heart-icon" viewBox="0 0 24 24">
+                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                    </svg>
+                    
+                    <!-- 电量 -->
+                    <div class="battery-container">
+                        <div class="battery-level" id="battery-bar"></div>
+                    </div>
+                    
+                    <!-- 隐藏的文件上传 -->
+                    <input type="file" id="bg-upload" accept="image/*">
+                </div>
+
+                <!-- 右上：应用 -->
+                <div class="apps-area">
+                    <div class="app-icon icon-qq">QQ</div>
+                    <div class="app-icon icon-world">世界书</div>
+                </div>
+
+                <!-- 左下：设置按钮 -->
+                <div class="settings-area">
+                    <button class="setting-btn" onclick="openModal('modal-appearance')">外观</button>
+                    <button class="setting-btn" onclick="openModal('modal-api')">API</button>
+                </div>
+
+                <!-- 右下：剩余时间竖条 -->
+                <div class="widget time-bars-area">
+                    <div class="vertical-bar-group">
+                        <div class="bar-track">
+                            <div class="bar-fill" id="year-fill"></div>
+                        </div>
+                        <div class="bar-label">年剩<br><span id="year-text">0%</span></div>
+                    </div>
+                    <div class="vertical-bar-group">
+                        <div class="bar-track">
+                            <div class="bar-fill" id="day-fill"></div>
+                        </div>
+                        <div class="bar-label">日剩<br><span id="day-text">0%</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- API 设置模态框 -->
+            <div class="modal" id="modal-api">
+                <h2>API 设置</h2>
+                <input type="text" placeholder="输入 API Endpoint 地址">
+                <input type="password" placeholder="输入 API Key">
+                <button onclick="closeModal('modal-api')">保存</button>
+                <button class="close-btn" onclick="closeModal('modal-api')">取消</button>
+            </div>
+
+            <!-- 外观 设置模态框 -->
+            <div class="modal" id="modal-appearance">
+                <h2>外观设置</h2>
+                <p>这里可以放置更多主题颜色或字体大小的设置。</p>
+                <button onclick="closeModal('modal-appearance')">确定</button>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // --- 1. 时间日期更新逻辑 ---
+        function updateTime() {
+            const now = new Date();
+            const days = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+            
+            // 日期: X月X日 星期X
+            const month = now.getMonth() + 1;
+            const date = now.getDate();
+            const day = days[now.getDay()];
+            document.getElementById('date-display').innerText = `${month}月${date}日 ${day}`;
+
+            // 时间: HH:MM (大字)
+            let hours = now.getHours();
+            let minutes = now.getMinutes();
+            minutes = minutes < 10 ? '0' + minutes : minutes;
+            hours = hours < 10 ? '0' + hours : hours;
+            document.getElementById('time-display').innerText = `${hours}:${minutes}`;
+
+            // 更新进度条
+            updateProgressBars(now);
+        }
+
+        // --- 2. 剩余时间百分比逻辑 ---
+        function updateProgressBars(now) {
+            // 今日剩余 %
+            // 一天总秒数 86400
+            const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+            const current = now.getTime();
+            const endOfDay = startOfDay + 86400000;
+            
+            const dayRemaining = endOfDay - current;
+            const dayPercent = (dayRemaining / 86400000) * 100;
+
+            // 今年剩余 %
+            const startOfYear = new Date(now.getFullYear(), 0, 1).getTime();
+            const endOfYear = new Date(now.getFullYear() + 1, 0, 1).getTime();
+            const yearTotal = endOfYear - startOfYear;
+            const yearRemaining = endOfYear - current;
+            const yearPercent = (yearRemaining / yearTotal) * 100;
+
+            // 更新 UI
+            document.getElementById('day-fill').style.height = `${dayPercent}%`;
+            document.getElementById('day-text').innerText = `${dayPercent.toFixed(1)}%`;
+
+            document.getElementById('year-fill').style.height = `${yearPercent}%`;
+            document.getElementById('year-text').innerText = `${yearPercent.toFixed(1)}%`;
+        }
+
+        // --- 3. 电量逻辑 ---
+        async function updateBattery() {
+            const batteryBar = document.getElementById('battery-bar');
+            
+            if ('getBattery' in navigator) {
+                try {
+                    const battery = await navigator.getBattery();
+                    
+                    const updateLevel = () => {
+                        const level = battery.level * 100;
+                        batteryBar.style.width = `${level}%`;
+                        
+                        // 颜色变化
+                        if(level < 20) batteryBar.style.backgroundColor = '#ff4757'; // 红
+                        else if(level < 50) batteryBar.style.backgroundColor = '#ffa502'; // 黄
+                        else batteryBar.style.backgroundColor = '#4cd137'; // 绿
+                    };
+
+                    updateLevel();
+                    battery.addEventListener('levelchange', updateLevel);
+                } catch (e) {
+                    batteryBar.style.width = '100%'; // 失败默认满电
+                }
+            } else {
+                batteryBar.style.width = '100%'; // 不支持API默认满电
+            }
+        }
+
+        // --- 4. 背景图更换逻辑 ---
+        const fileInput = document.getElementById('bg-upload');
+        const photoWidget = document.getElementById('photo-widget');
+
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    photoWidget.style.backgroundImage = `url(${e.target.result})`;
+                    // 图片上来后，为了保证文字可见，可以适当加深背景遮罩，或者不做处理保持透明
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // --- 5. 模态框逻辑 ---
+        function openModal(id) {
+            document.getElementById(id).classList.add('active');
+        }
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        // --- 初始化 ---
+        setInterval(updateTime, 1000); // 每秒刷新时间
+        updateTime(); // 立即执行一次
+        updateBattery(); // 获取电量
+
+    </script>
+</body>
+</html>
