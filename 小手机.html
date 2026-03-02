@@ -1,0 +1,312 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 小手机 UI</title>
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Remix Icon 图标库 -->
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <script>
+        // 配置 Tailwind 主题色 (用于美化组件演示)
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        theme: 'var(--theme-color)',
+                        themeHover: 'var(--theme-hover)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            /* 默认主题色：靛蓝 (Indigo) */
+            --theme-color: #6366f1;
+            --theme-hover: #4f46e5;
+        }
+        /* 隐藏滚动条但保留滚动功能 */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="bg-neutral-950 min-h-screen flex items-center justify-center font-sans selection:bg-theme selection:text-white">
+
+    <!-- 📱 手机外壳容器 -->
+    <div class="relative w-[360px] h-[720px] bg-slate-900 rounded-[2.5rem] overflow-hidden shadow-2xl border-[6px] border-slate-800 flex flex-col">
+        
+        <!-- 状态栏 (模拟) -->
+        <div class="h-6 w-full flex justify-between items-center px-5 text-[10px] text-slate-400 absolute top-0 z-50">
+            <span>12:00</span>
+            <div class="flex gap-1">
+                <i class="ri-signal-wifi-fill"></i>
+                <i class="ri-battery-fill"></i>
+            </div>
+        </div>
+
+        <!-- 🚀 内容展示区 -->
+        <div id="app-content" class="flex-1 overflow-y-auto no-scrollbar pt-8 pb-4 relative">
+            
+            <!-- 1. 主页组件 (Home) -->
+            <div id="view-home" class="page-view px-4 h-full flex flex-col gap-6">
+                <div class="mt-4">
+                    <h1 class="text-2xl font-bold text-white">欢迎回来,</h1>
+                    <p class="text-slate-400 mt-1">今天想探索哪个世界？</p>
+                </div>
+
+                <!-- 继续聊天卡片 -->
+                <div class="bg-slate-800/80 backdrop-blur border border-slate-700 rounded-2xl p-4 cursor-pointer hover:bg-slate-800 transition" onclick="switchTab('chat')">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-xs text-theme font-semibold">继续上次对话</span>
+                        <i class="ri-arrow-right-s-line text-slate-400"></i>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center text-xl">🧝‍♀️</div>
+                        <div>
+                            <h3 class="text-white text-sm font-medium">艾莉丝 (迷雾森林)</h3>
+                            <p class="text-slate-400 text-xs truncate w-48">"我们接下来该怎么走？前面有魔兽..."</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 快捷入口 grid -->
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="switchTab('worldbook')" class="bg-slate-800 rounded-xl p-4 text-left hover:bg-slate-700 transition">
+                        <i class="ri-earth-line text-2xl text-green-400 mb-2 block"></i>
+                        <span class="text-sm text-white font-medium block">世界书库</span>
+                        <span class="text-xs text-slate-500">管理设定</span>
+                    </button>
+                    <button onclick="switchTab('theme')" class="bg-slate-800 rounded-xl p-4 text-left hover:bg-slate-700 transition">
+                        <i class="ri-palette-line text-2xl text-pink-400 mb-2 block"></i>
+                        <span class="text-sm text-white font-medium block">个性美化</span>
+                        <span class="text-xs text-slate-500">主题与气泡</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 2. 聊天组件 (Chat) -->
+            <div id="view-chat" class="page-view hidden flex-col h-full">
+                <!-- 聊天顶部 -->
+                <div class="px-4 pb-3 border-b border-slate-800 flex justify-between items-center">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full bg-green-500"></div>
+                        <span class="text-white font-medium">艾莉丝</span>
+                    </div>
+                    <button class="text-slate-400 hover:text-white"><i class="ri-menu-4-line"></i></button>
+                </div>
+                <!-- 消息区 -->
+                <div class="flex-1 overflow-y-auto no-scrollbar p-4 flex flex-col gap-4">
+                    <div class="text-center text-xs text-slate-600">昨天 10:30 PM</div>
+                    
+                    <!-- 用户消息 (右) -->
+                    <div class="flex justify-end">
+                        <div class="bg-theme text-white text-sm px-4 py-2.5 rounded-2xl rounded-tr-sm max-w-[80%]">
+                            我们接下来去哪里？地图上有标记吗？
+                        </div>
+                    </div>
+                    
+                    <!-- AI消息 (左) -->
+                    <div class="flex gap-2">
+                        <div class="w-8 h-8 rounded-full bg-slate-700 flex-shrink-0 flex items-center justify-center text-sm">🧝‍♀️</div>
+                        <div class="bg-slate-800 border border-slate-700 text-slate-200 text-sm px-4 py-2.5 rounded-2xl rounded-tl-sm max-w-[80%]">
+                            根据古地图显示，前面就是迷雾森林的中心区域了。那里的魔力非常紊乱，我们得小心应对。
+                        </div>
+                    </div>
+                </div>
+                <!-- 输入区 -->
+                <div class="p-3 bg-slate-900 border-t border-slate-800 flex gap-2 items-center">
+                    <button class="w-8 h-8 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center hover:bg-slate-700"><i class="ri-add-line"></i></button>
+                    <input type="text" placeholder="输入你想说的话..." class="flex-1 bg-slate-950 border border-slate-700 text-white text-sm rounded-full px-4 py-2 focus:outline-none focus:border-theme">
+                    <button class="w-8 h-8 rounded-full bg-theme text-white flex items-center justify-center hover:bg-themeHover"><i class="ri-send-plane-fill"></i></button>
+                </div>
+            </div>
+
+            <!-- 3. 世界书组件 (Worldbook) -->
+            <div id="view-worldbook" class="page-view hidden px-4 h-full">
+                <div class="flex justify-between items-center mb-4 mt-2">
+                    <h2 class="text-lg font-bold text-white">世界设定集</h2>
+                    <button class="text-theme text-sm"><i class="ri-add-circle-fill mr-1"></i>新建</button>
+                </div>
+                <!-- 搜索框 -->
+                <div class="relative mb-4">
+                    <i class="ri-search-line absolute left-3 top-2.5 text-slate-500"></i>
+                    <input type="text" placeholder="搜索关键词..." class="w-full bg-slate-950 border border-slate-800 text-white text-sm rounded-xl pl-9 pr-4 py-2 focus:outline-none focus:border-theme">
+                </div>
+                <!-- 列表 -->
+                <div class="flex flex-col gap-3">
+                    <!-- 词条卡片 -->
+                    <div class="bg-slate-800 rounded-xl p-3 border border-slate-700">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="text-white text-sm font-medium">📖 迷雾森林</h3>
+                            <span class="bg-green-500/20 text-green-400 text-[10px] px-2 py-0.5 rounded-full">已启用</span>
+                        </div>
+                        <p class="text-xs text-slate-400 mb-2">触发词: 森林, 迷雾, 禁地</p>
+                        <div class="flex justify-end">
+                            <button class="text-xs text-slate-300 bg-slate-700 px-3 py-1 rounded hover:bg-slate-600">编辑</button>
+                        </div>
+                    </div>
+                    <!-- 词条卡片 2 -->
+                    <div class="bg-slate-800/50 rounded-xl p-3 border border-slate-800">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="text-slate-300 text-sm font-medium">📖 魔法公会</h3>
+                            <span class="bg-slate-700 text-slate-400 text-[10px] px-2 py-0.5 rounded-full">未启用</span>
+                        </div>
+                        <p class="text-xs text-slate-500 mb-2">触发词: 公会, 法师, 会长</p>
+                        <div class="flex justify-end">
+                            <button class="text-xs text-slate-300 bg-slate-700 px-3 py-1 rounded hover:bg-slate-600">编辑</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. 设置与API (Settings) -->
+            <div id="view-settings" class="page-view hidden px-4 h-full">
+                <h2 class="text-lg font-bold text-white mb-4 mt-2">系统与 API 配置</h2>
+                
+                <div class="space-y-4">
+                    <!-- API配置块 -->
+                    <div class="bg-slate-800 rounded-xl p-4 border border-slate-700">
+                        <h3 class="text-sm font-medium text-theme mb-3"><i class="ri-plug-line mr-1"></i>接口设置</h3>
+                        
+                        <div class="space-y-3">
+                            <div>
+                                <label class="text-xs text-slate-400 block mb-1">API URL (代理地址)</label>
+                                <input type="text" value="https://api.openai.com/v1" class="w-full bg-slate-950 border border-slate-700 text-slate-200 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-theme">
+                            </div>
+                            <div>
+                                <label class="text-xs text-slate-400 block mb-1">API Key (密钥)</label>
+                                <div class="relative">
+                                    <input type="password" value="sk-xxxxxxxxxxxxxxxx" class="w-full bg-slate-950 border border-slate-700 text-slate-200 text-sm rounded-lg pl-3 pr-10 py-2 focus:outline-none focus:border-theme">
+                                    <i class="ri-eye-off-line absolute right-3 top-2.5 text-slate-500 cursor-pointer"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="text-xs text-slate-400 block mb-1">模型 (Model)</label>
+                                <select class="w-full bg-slate-950 border border-slate-700 text-slate-200 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-theme appearance-none">
+                                    <option>gpt-4-turbo</option>
+                                    <option>gpt-3.5-turbo</option>
+                                    <option>claude-3-opus</option>
+                                    <option>自定义模型...</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-xs text-slate-400 flex justify-between mb-1">
+                                    <span>温度 (Temperature)</span>
+                                    <span class="text-theme">0.8</span>
+                                </label>
+                                <input type="range" min="0" max="2" step="0.1" value="0.8" class="w-full accent-theme h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button class="w-full bg-theme hover:bg-themeHover text-white font-medium py-2.5 rounded-xl transition">保存配置</button>
+                </div>
+            </div>
+
+            <!-- 5. 美化组件 (Theme - 子页面) -->
+            <div id="view-theme" class="page-view hidden px-4 h-full">
+                <div class="flex items-center gap-2 mb-6 mt-2">
+                    <button onclick="switchTab('home')" class="text-slate-400"><i class="ri-arrow-left-s-line text-xl"></i></button>
+                    <h2 class="text-lg font-bold text-white">个性美化</h2>
+                </div>
+
+                <div class="space-y-6">
+                    <!-- 主题色 -->
+                    <div>
+                        <h3 class="text-sm font-medium text-slate-300 mb-3">强调色 (Accent Color)</h3>
+                        <div class="flex gap-3">
+                            <button onclick="changeTheme('#6366f1', '#4f46e5')" class="w-8 h-8 rounded-full bg-indigo-500 ring-2 ring-offset-2 ring-offset-slate-900 ring-indigo-500"></button>
+                            <button onclick="changeTheme('#ec4899', '#db2777')" class="w-8 h-8 rounded-full bg-pink-500"></button>
+                            <button onclick="changeTheme('#10b981', '#059669')" class="w-8 h-8 rounded-full bg-emerald-500"></button>
+                            <button onclick="changeTheme('#f59e0b', '#d97706')" class="w-8 h-8 rounded-full bg-amber-500"></button>
+                        </div>
+                    </div>
+
+                    <!-- 聊天气泡样式 -->
+                    <div>
+                        <h3 class="text-sm font-medium text-slate-300 mb-3">聊天气泡样式</h3>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button class="bg-slate-800 border-2 border-theme text-white text-xs py-2 rounded-lg">现代圆角 (默认)</button>
+                            <button class="bg-slate-800 border-2 border-transparent text-slate-400 text-xs py-2 rounded-lg">极简拟物</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ⚓ 底部导航栏 -->
+        <div id="bottom-nav" class="h-16 bg-slate-900/90 backdrop-blur-md border-t border-slate-800 flex justify-around items-center px-2 z-50 pb-2">
+            <button onclick="switchTab('home')" class="nav-btn text-theme flex flex-col items-center gap-1 w-16" data-target="home">
+                <i class="ri-home-5-fill text-xl"></i>
+                <span class="text-[10px]">主页</span>
+            </button>
+            <button onclick="switchTab('chat')" class="nav-btn text-slate-500 hover:text-slate-300 flex flex-col items-center gap-1 w-16" data-target="chat">
+                <i class="ri-message-3-line text-xl"></i>
+                <span class="text-[10px]">聊天</span>
+            </button>
+            <button onclick="switchTab('worldbook')" class="nav-btn text-slate-500 hover:text-slate-300 flex flex-col items-center gap-1 w-16" data-target="worldbook">
+                <i class="ri-book-3-line text-xl"></i>
+                <span class="text-[10px]">世界书</span>
+            </button>
+            <button onclick="switchTab('settings')" class="nav-btn text-slate-500 hover:text-slate-300 flex flex-col items-center gap-1 w-16" data-target="settings">
+                <i class="ri-settings-4-line text-xl"></i>
+                <span class="text-[10px]">设置</span>
+            </button>
+        </div>
+
+    </div>
+
+    <!-- 交互逻辑 -->
+    <script>
+        function switchTab(targetId) {
+            // 1. 隐藏所有视图
+            document.querySelectorAll('.page-view').forEach(el => {
+                el.classList.add('hidden');
+                el.classList.remove('flex'); // 针对chat视图的特殊处理
+            });
+
+            // 2. 显示目标视图
+            const targetView = document.getElementById('view-' + targetId);
+            if (targetId === 'chat') {
+                targetView.classList.remove('hidden');
+                targetView.classList.add('flex');
+            } else {
+                targetView.classList.remove('hidden');
+            }
+
+            // 3. 更新底部导航状态
+            // 美化页面没有底部导航高亮，属于主页的子页面
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                const icon = btn.querySelector('i');
+                if (btn.dataset.target === targetId) {
+                    btn.classList.remove('text-slate-500');
+                    btn.classList.add('text-theme');
+                    // 切换为实心图标
+                    icon.className = icon.className.replace('-line', '-fill');
+                } else {
+                    btn.classList.add('text-slate-500');
+                    btn.classList.remove('text-theme');
+                    // 切换为空心图标
+                    icon.className = icon.className.replace('-fill', '-line');
+                }
+            });
+        }
+
+        // 切换主题色演示
+        function changeTheme(color, hoverColor) {
+            document.documentElement.style.setProperty('--theme-color', color);
+            document.documentElement.style.setProperty('--theme-hover', hoverColor);
+            alert("主题色已更新！点击底栏按钮或返回查看效果。");
+        }
+    </script>
+</body>
+</html>
