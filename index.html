@@ -163,114 +163,83 @@
 
     </div>
 </div>
-        
-        <!-- ================= 论坛页面 ================= -->
-        <div class="app-page neo-page" id="forum-page">
-    <!-- 顶部导航栏 -->
+       <div class="app-page neo-page" id="forum-page">
+
+    <!-- 1. 顶部通用导航栏 -->
     <div class="nav-header neo-header" id="forum-header">
         <button class="nav-btn" style="color:var(--neo-text);" onclick="closePage('forum-page')">❮</button>
         <span id="forum-title">帖子</span>
         <button class="nav-btn" style="color:var(--neo-text); font-size:24px; font-weight:300;" onclick="openForumActionModal()">+</button>
     </div>
 
-    <!-- 帖子主页 -->
+    <!-- 2. “帖子”标签页内容区 -->
     <div class="scroll-content no-scrollbar" id="forum-tab-posts" style="padding: 15px; display: flex; flex-direction: column; gap: 20px;">
-        <!-- 帖子列表将在这里生成 -->
+        <!-- 帖子列表将由JS动态生成 -->
     </div>
 
-    <!-- 个人页面 (待开发) -->
+    <!-- 3. “个人”标签页内容区 -->
     <div class="scroll-content no-scrollbar" id="forum-tab-personal" style="display: none;">
-    <!-- 新的个人页头部，没有返回和加号 -->
-    <div class="phone-header">
-        <div class="phone-header-title">个人</div>
-    </div>
-      <div class="app-page" id="forum-dm-page" style="display:none;">
-    <!-- 私信页头部 -->
-    <div class="nav-header" style="background-color: #f7f7f7; border-bottom: 1px solid #e5e5e5;">
-        <button class="nav-btn" onclick="closePrivateMessagesPage()">❮</button>
-        <div style="position:relative;">
-            <span>我的私信</span>
-            <span id="dm-unread-badge" class="unread-badge" style="display:none;">0</span>
+        <!-- 个人页独立的头部 -->
+        <div class="phone-header">
+            <div class="phone-header-title">个人</div>
         </div>
-        <button class="nav-btn" style="font-size: 22px;" onclick="generatePrivateMessages()">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6zm-2 0l-8 5-8-5h16zm0 12H4V8l8 5 8-5v10z"/></svg>
-        </button>
+        <!-- 个人页内容 -->
+        <div id="forum-personal-content" class="phone-content" style="padding: 15px;">
+            <p style="text-align: center; color: #888; padding-top: 50px;">正在加载个人信息...</p>
+        </div>
     </div>
 
-    <!-- 私信列表 -->
-    <div class="scroll-content" id="dm-list-container">
-        <!-- 私信列表将由JS生成 -->
-    </div>
-
-    <!-- 聊天详情视图 -->
-    <div class="scroll-content" id="dm-chat-view" style="display:none; padding: 10px; background-color:#f0f2f5;">
-        <!-- 聊天记录将由JS生成 -->
-    </div>
-
-    <!-- 聊天输入框 -->
-    <div class="chat-input-bar" id="dm-chat-input-bar" style="display:none;">
-        <input type="text" id="dm-chat-input" placeholder="输入消息...">
-        <button onclick="sendDmMessage()">发送</button>
-        <button onclick="generateDmReply()">AI</button>
-    </div>
+    <!-- 4. “私信”页面 (作为独立页面，与帖子/个人页同级) -->
+    <div id="forum-dm-page" class="page" style="display: none; flex-direction: column; background-color: #f0f2f5;">
+        <!-- 私信页的头部 -->
+        <div class="phone-header">
+            <button id="dm-back-btn" class="header-btn left">
+                <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"></path></svg>
+            </button>
+            <span>我的私信</span>
+            <button id="dm-generate-btn" class="header-btn right">
+                <div id="dm-unread-badge" class="unread-badge" style="display: none; top:-2px; right:-5px;">0</div>
+                <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"></path></svg>
+            </button>
+        </div>
+        <!-- 私信页的主体内容 -->
+        <div class="content" style="flex-grow: 1; overflow-y: auto;">
+            <div id="dm-list-container"></div>
+            <div id="dm-chat-view" style="display: none; padding: 10px;"></div>
+        </div>
+        <!-- 私信页的输入框 -->
+        <div id="dm-chat-input-bar" class="chat-input-bar" style="display: none;">   
+    <!-- ✅ 顺序调整：输入框现在在最左边 -->
+    <input type="text" id="dm-chat-input" placeholder="输入消息..."> 
+    <!-- ✅ 顺序调整：AI回复按钮现在在中间 -->
+    <button id="dm-ai-reply-btn" class="chat-action-btn">
+        <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"></path></svg>
+    </button> 
+    <!-- ✅ 顺序调整：发送按钮在最右边 -->
+    <button id="dm-send-btn" class="chat-action-btn">
+        <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
+    </button>   
 </div>
-    <div id="forum-dm-page" class="page" style="display: none; flex-direction: column;">
-    
-    <!-- 1. 顶部导航栏 -->
-    <div class="phone-header">
-        <button id="dm-back-btn" class="header-btn left">
-            <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"></path></svg>
-        </button>
-        <span>私信</span>
-        <button id="dm-generate-btn" class="header-btn right">
-            <!-- 未读消息红点 -->
-            <div id="dm-unread-badge" class="unread-badge" style="display: none; top:-2px; right:-5px;">0</div>
-            <!-- 信封图标 -->
-            <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"></path></svg>
-        </button>
-    </div>
-
-    <!-- 2. 页面主体内容 -->
-    <div class="content" style="flex-grow: 1; overflow-y: auto;">
-        <!-- 私信列表将在这里渲染 -->
-        <div id="dm-list-container"></div>
-        <!-- 聊天界面将在这里渲染 (默认隐藏) -->
-        <div id="dm-chat-view" style="display: none;"></div>
-    </div>
-
-    <!-- 3. 聊天输入框 (默认隐藏) -->
-    <div id="dm-chat-input-bar" style="display: none;">
-        <button id="dm-ai-reply-btn" class="chat-action-btn">🪄</button>
-        <input type="text" id="dm-chat-input" placeholder="输入消息...">
-        <button id="dm-send-btn" class="chat-action-btn">发送</button>
-    </div>
 </div>
-
-
-    <!-- 个人页主内容区域 -->
-    <div id="forum-personal-content" class="phone-content" style="padding: 15px;">
-        <!-- 这里的内容将由JS动态生成 -->
-        <p style="text-align: center; color: #888; padding-top: 50px;">正在加载个人信息...</p>
-    </div>
-</div>
-    <!-- 悬浮的发布按钮 -->
+    <!-- 5. 悬浮的发布按钮 -->
     <button class="floating-action-button" onclick="openForumPostCreator()">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" width="28px" height="28px"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
     </button>
     
-    <!-- 底部气泡导航栏 -->
-    <div class="bubble-nav-bar">
+    <!-- 6. 底部气泡导航栏 -->
+    <div class="bubble-nav-bar" id="forum-nav">
         <div class="bubble-nav-item active" id="forum-nav-posts" onclick="switchForumTab('posts')">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
             <span>帖子</span>
         </div>
-        <div class="bubble-nav-item" id="forum-nav-personal" onclick="switchForumTab('personal'); renderForumPersonalPage();">
+        <div class="bubble-nav-item" id="forum-nav-personal" onclick="switchForumTab('personal')">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
             <span>个人</span>
         </div>
     </div>
+
 </div>
-        <!-- ================= 纪念日页面 ================= -->
+              <!-- ================= 纪念日页面 ================= -->
         <div class="app-page page-bg-gray" id="anniversary-page">
             <div class="nav-header">
                 <button class="nav-btn" onclick="closePage('anniversary-page')">❮</button>
@@ -445,49 +414,61 @@
         </div>
 
         <!-- ================= API 设置页面 ================= -->
-        <div class="app-page page-bg-gray" id="api-page">
-            <div class="nav-header">
-                <button class="nav-btn" onclick="closePage('api-page')">❮</button>
-                <span>设置</span>
-                <button class="nav-btn" onclick="saveApiConfig()">保存</button>
+       <div class="app-page page-bg-gray" id="api-page">
+    <div class="nav-header">
+        <button class="nav-btn" onclick="closePage('api-page')">❮</button>
+        <span>设置</span>
+        <button class="nav-btn" onclick="saveApiConfig()">保存</button>
+    </div>
+
+    <div class="scroll-content no-scrollbar">
+        <p style="font-size:12px; color:#666; background:#eee; padding:10px; border-radius:8px;">
+            提示：使用公益站点 Key 时，请确保“反代地址”正确。
+        </p>
+
+        <div class="setting-card">
+            <div class="setting-row">
+                <label>反代地址</label>
+                <input type="text" id="api-url" class="input-clean" placeholder="https://api.openai.com/v1">
             </div>
-            <div class="scroll-content no-scrollbar">
-                <p style="font-size:12px; color:#666; background:#eee; padding:10px; border-radius:8px;">
-                    提示：使用公益站点 Key 时，请确保“反代地址”正确。
-                </p>
-                <div class="setting-card">
-                    <div class="setting-row">
-                        <label>反代地址</label>
-                        <input type="text" id="api-url" class="input-clean" placeholder="https://api.openai.com/v1">
-                    </div>
-                    <div class="setting-row">
-                        <label>API Key</label>
-                        <input type="password" id="api-key" class="input-clean" placeholder="sk-...">
-                    </div>
-                    <div class="setting-row">
-                        <label>模型</label>
-                        <input type="text" id="api-model" class="input-clean" placeholder="gpt-3.5-turbo">
-                        <button class="btn-small" onclick="fetchModels()">拉取</button>
-                    </div>
-                </div>
-                <button class="btn-small" style="width:100%; padding:10px;" onclick="testConnection()">🛠️ 测试连接 (调试)</button>
-                
-                <div class="setting-card">
-                    <h4 style="margin: 10px 0 0 0; padding: 10px 0; border-bottom: 0.5px solid #eee;">数据管理</h4>
-                     <div class="setting-row">
-                        <button class="btn-small" style="width:100%; padding:10px; background-color: var(--heart-color); color:white;" onclick="cleanAllBadData()">🧹 修复/清洗所有异常头像</button>
-                    </div>
-                    <div class="setting-row">
-                         <button class="btn-small" style="width:100%; padding:10px;" onclick="backupAllData()">备份所有数据</button>
-                    </div>
-                    <div class="setting-row">
-                        <button class="btn-small" style="width:100%; padding:10px;" onclick="document.getElementById('import-all-input').click()">导入所有数据</button>
-                    </div>
-                </div>
-                 <input type="file" id="import-all-input" accept=".json,application/json" style="display:none;">
+            <div class="setting-row">
+                <label>API Key</label>
+                <input type="password" id="api-key" class="input-clean" placeholder="sk-...">
+            </div>
+            <div class="setting-row">
+                <label>模型</label>
+                <input type="text" id="api-model" class="input-clean" placeholder="gpt-3.5-turbo">
+                <button class="btn-small" onclick="fetchModels()">拉取</button>
+            </div>
+            <!-- ✅ 新增：温度滑块 -->
+            <div class="setting-row slider-row">
+                <label>温度</label>
+                <input type="range" id="api-temperature" min="0" max="2" step="0.1" class="temp-slider">
+                <span id="temperature-value-display" class="slider-value">0.7</span>
             </div>
         </div>
 
+        <!-- ✅ 按钮改回 btn-small，并用div包裹来控制宽度 -->
+        <div style="padding: 0 15px; margin-bottom: 20px;">
+             <button class="btn-small" style="width:100%; padding:10px;" onclick="testConnection()">🛠️ 测试连接 (调试)</button>
+        </div>
+        
+        <div class="setting-card">
+            <h4 style="margin: 10px 0 0 0; padding: 10px 0; border-bottom: 0.5px solid #eee;">数据管理</h4>
+            <!-- ✅ 所有按钮都使用您原来的 btn-small 样式 -->
+            <div class="setting-row">
+                <button class="btn-small" style="width:100%; padding:10px; background-color: var(--heart-color); color:white;" onclick="cleanAllBadData()">🧹 修复/清洗所有异常头像</button>
+            </div>
+            <div class="setting-row">
+                 <button class="btn-small" style="width:100%; padding:10px;" onclick="backupAllData()">备份所有数据</button>
+            </div>
+            <div class="setting-row">
+                <button class="btn-small" style="width:100%; padding:10px;" onclick="document.getElementById('import-all-input').click()">导入所有数据</button>
+            </div>
+        </div>
+        <input type="file" id="import-all-input" accept=".json,application/json" style="display:none;">
+    </div>
+</div>
         <div class="action-sheet-modal" id="model-picker">
             <div class="picker-content">
                 <div class="picker-header">

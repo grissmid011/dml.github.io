@@ -157,6 +157,7 @@ let currentEditAnniversaryId = null;
 const appIconIds = ['qq', 'worldbook', 'anniversary', 'clock', 'game-center', 'forum', 'appearance', 'settings'];
 const DEFAULT_USER_AVATAR_URL = 'https://i.postimg.cc/nzm1Jg3S/IMG-3886.jpg';
 const DEFAULT_AI_AVATAR_URL = 'https://i.postimg.cc/nzm1Jg3S/IMG-3886.jpg';
+const DEFAULT_FORUM_AVATAR_SVG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23e0e0e0'/%3E%3Ctext x='50' y='55' font-size='65' text-anchor='middle' dominant-baseline='middle' fill='white'%3E👤%3C/text%3E%3C/svg%3E";
 const defaultAvatarSVG = DEFAULT_AI_AVATAR_URL;
 const defaultClockData = {
     profile: { name: "专注者", avatar: defaultAvatarSVG },
@@ -2082,10 +2083,6 @@ persona_directives:
     }
 
 
-    // =========================================================================
-    // ---------------------- X. CHARACTER & USER MANAGEMENT -----------------------
-    // =========================================================================
-
     // --- 10.1. AI 角色管理 ---
     function openAiDrawer(isEdit = false) {
         tempAiAv = '';
@@ -2484,14 +2481,33 @@ persona_directives:
 
     // --- 12.1. API 设置 ---
     function saveApiConfig() {
-        config = {
-            url: document.getElementById('api-url').value.trim(),
-            key: document.getElementById('api-key').value.trim(),
-            model: document.getElementById('api-model').value.trim()
-        };
-        setStorage('ai_phone_config', config);
-        showToast('API 已保存');
-    }
+    config = {
+        url: document.getElementById('api-url').value.trim(),
+        key: document.getElementById('api-key').value.trim(),
+        model: document.getElementById('api-model').value.trim(),
+        // ✅ 新增：保存温度值
+        temperature: parseFloat(document.getElementById('api-temperature').value)
+    };
+    setStorage('ai_phone_config', config);
+    showToast('API 已保存');
+}
+
+function initSettingsPage() {
+    const slider = document.getElementById('api-temperature');
+    const display = document.getElementById('temperature-value-display');
+    
+    if (!slider || !display) return;
+
+    // 1. 加载已保存的温度值，若无则默认为 0.7
+    const savedTemp = config.temperature === undefined ? 0.7 : config.temperature;
+    slider.value = savedTemp;
+    display.textContent = parseFloat(savedTemp).toFixed(1);
+
+    // 2. 监听滑块的输入事件，实时更新显示的数值
+    slider.oninput = (event) => {
+        display.textContent = parseFloat(event.target.value).toFixed(1);
+    };
+}
 
     function getEndpoint(base) {
         base = base.replace(/\/+$/, '');
@@ -2714,115 +2730,7 @@ const FORUM_COMMENT_GENERATION_DIRECTIVES = `
     // -------------------- XIII. GLOBAL FUNCTION EXPOSURE ---------------------
     // =========================================================================
     // 将所有 onclick 等HTML调用的函数暴露到 window 对象
-      window.openAddCharacterModal = openAddCharacterModal;
-    window.closeAddCharacterModal = closeAddCharacterModal;
-    window.saveBulkEmojis = saveBulkEmojis;
-    window.addMomentComment = addMomentComment;
-
-    window.openPage = openPage;
-    window.closePage = closePage;
-    window.openDrawer = openDrawer;
-    window.closeDrawer = closeDrawer;
-    window.showToast = showToast;
-
-    // --- QQ App & 聊天室 ---
-    window.switchQqTab = switchQqTab;
-    window.loadChatList = loadChatList;
-    window.performDeleteCharacter = performDeleteCharacter;
-    window.openAiDrawer = openAiDrawer;
-    window.triggerAiMomentsActivity = triggerAiMomentsActivity;
-    window.openPostCreator = openPostCreator;
-    window.closePostCreator = closePostCreator;
-    window.publishMoment = publishMoment;
-    window.saveMomentsData = saveMomentsData;
-    window.toggleLike = toggleLike;
-    window.showMomentActions = showMomentActions;
-    window.closeMomentActions = closeMomentActions;
-    window.openChatSettingsDrawer = openChatSettingsDrawer;
-    window.sendOnly = sendOnly;
-    window.generateReply = generateReply;
-    window.toggleOfflineSettings = toggleOfflineSettings;
-    window.saveChatSettings = saveChatSettings;
-    window.exportCurrentChat = exportCurrentChat;
-    window.importCurrentChat = importCurrentChat;
-    window.tryClearCurrentChat = tryClearCurrentChat;
-    window.closeThoughtsModal = closeThoughtsModal;
-    window.toggleToolbar = toggleToolbar;
-
-    // --- 新功能：表情包 & T2I ---
-    window.openEmojiManager = openEmojiManager;
-    window.closeEmojiManager = closeEmojiManager;
-    window.switchEmojiTab = switchEmojiTab;
-    window.saveEmoji = saveEmoji;
-    window.deleteEmoji = deleteEmoji;
-    window.openT2IModal = openT2IModal;
-    window.closeT2IModal = closeT2IModal;
-    window.sendDescribedImage = sendDescribedImage;
-
-     // --- 论坛 App ---
-    window.switchForumTab = switchForumTab;
-    window.openForumActionModal = openForumActionModal;
-    window.closeForumActionModal = closeForumActionModal;
-    window.openForumGeneratorModal = openForumGeneratorModal;
-    window.closeForumGeneratorModal = closeForumGeneratorModal;
-    window.generateForumPosts = generateForumPosts;
-    window.openForumPostCreator = openForumPostCreator;
-    window.closeForumPostCreator = closeForumPostCreator;
-    window.saveUserForumPost = saveUserForumPost;
-    window.likeForumPost = likeForumPost;
-    window.deleteForumPost = deleteForumPost;
-    window.addForumComment = addForumComment;
-    window.generateEngagement = generateEngagement;
-    window.generateForumCommentsForPost = generateForumCommentsForPost;
-
-    // --- 世界书 App ---
-    window.openWorldbookPage = () => openPage('worldbook-page');
-    window.openWbDrawer = openWbDrawer;
-    window.addWbEntryForm = addWbEntryForm;
-    window.saveWb = saveWb;
-    window.deleteWb = deleteWb;
-
-    // --- 纪念日 App ---
-    window.openAnniversaryCreator = openAnniversaryCreator;
-    window.saveAnniversary = saveAnniversary;
-    window.deleteAnniversary = deleteAnniversary;
-
-    // --- 自律钟 App ---
-    window.openTaskCreator = openTaskCreator;
-    window.closeTaskCreator = closeTaskCreator;
-    window.saveTask = saveTask;
-    window.deleteTask = deleteTask;
-    window.tryExitFocus = tryExitFocus;
-    window.switchClockTab = switchClockTab;
-    window.saveClockProfile = saveClockProfile;
-    window.deleteClockWallpaper = deleteClockWallpaper;
-    window.deleteClockQuote = deleteClockQuote;
-    window.addClockQuote = addClockQuote;
-
-    // --- 角色与用户管理 ---
-    window.openUserDrawer = openUserDrawer;
-    window.createNewUser = createNewUser;
-    window.saveUser = saveUser;
-    window.deleteUser = deleteUser;
-    window.saveAiCharacter = saveAiCharacter;
-
-    // --- 外观设置 ---
-    window.saveWallpaper = saveWallpaper;
-    window.saveLockWallpaper = saveLockWallpaper;
-    window.saveFont = saveFont;
-    window.saveAppIcons = saveAppIcons;
-    window.openRestoreModal = openRestoreModal;
-    window.closeRestoreModal = closeRestoreModal;
-    window.confirmRestore = confirmRestore;
-
-    // --- 通用设置 ---
-    window.saveApiConfig = saveApiConfig;
-    window.fetchModels = fetchModels;
-    window.testConnection = testConnection;
-    window.closeModelPicker = closeModelPicker;
-    window.cleanAllBadData = cleanAllBadData;
-    window.backupAllData = backupAllData;
-
+     
     function calculateRoleStats(roleName) {
     let totalLikes = 0;
     let totalComments = 0;
@@ -3055,7 +2963,12 @@ function saveForumRole(roleId) {
     const name = document.getElementById('role-name-input').value.trim();
     let avatar = document.getElementById('role-avatar-input').value.trim();
     if (!name) return showToast("昵称不能为空！");
-    if (!avatar) avatar = DEFAULT_USER_AVATAR_URL;
+
+    // ✅ 核心修改：如果头像为空，就使用默认头像
+   if (!avatar) {
+    avatar = DEFAULT_FORUM_AVATAR_SVG;
+}
+
     if (roleId) {
         const role = forumRoles.find(r => r.id === roleId);
         if (role) { role.name = name; role.avatar = avatar; }
@@ -3070,7 +2983,7 @@ function saveForumRole(roleId) {
     closeDrawer('role-editor-modal');
     renderForumPersonalPage();
     if (!roleId) {
-        setTimeout(switchForumRole, 100);
+        setTimeout(openRoleList, 100); // 改为打开列表，让用户可以确认
     }
 }
 
@@ -3109,25 +3022,35 @@ function deregisterActiveRole() {
 let currentOpenDmId = null;
 
 function openPrivateMessagesPage() {
-    // 1. 隐藏所有主界面的公共元素
-    document.getElementById('forum-header').style.display = 'none';
+    // 隐藏主界面元素
+    const header = document.getElementById('forum-header');
+    if (header) header.style.display = 'none';
+
     const bottomNav = document.getElementById('forum-nav');
     if (bottomNav) bottomNav.style.display = 'none';
-    const fab = document.querySelector('.floating-action-button');
-    if(fab) fab.style.display = 'none';
 
-    // 2. 隐藏帖子和个人页内容区
-    document.getElementById('forum-tab-posts').style.display = 'none';
-    document.getElementById('forum-tab-personal').style.display = 'none';
+    const fab = document.querySelector('.floating-action-button');
+    if (fab) fab.style.display = 'none';
+
+    const postsTab = document.getElementById('forum-tab-posts');
+    if (postsTab) postsTab.style.display = 'none';
+
+    const personalTab = document.getElementById('forum-tab-personal');
+    if (personalTab) personalTab.style.display = 'none';
     
-    // 3. 激活私信页
+    // 激活私信页
     const dmPage = document.getElementById('forum-dm-page');
     if (dmPage) {
-        dmPage.classList.add('active'); // 只需加个类，剩下的交给CSS！
-        renderDmList();
+        dmPage.classList.add('active'); 
+        renderDmList(); 
+    }
+
+    // ✅ 新增：确保在进入私信列表页时，聊天输入框总是隐藏的
+    const inputBar = document.getElementById('dm-chat-input-bar');
+    if(inputBar) {
+        inputBar.style.display = 'none';
     }
 }
-
 // --- 【最终简洁版】---
 function closePrivateMessagesPage() {
     // 1. 取消激活私信页
@@ -3155,8 +3078,14 @@ function goBackInDm() {
     // 如果聊天界面是可见的，就返回到列表页
     if (chatView && chatView.style.display !== 'none') {
         document.getElementById('dm-list-container').style.display = 'block';
-        document.getElementById('dm-chat-view').style.display = 'none';
-        document.getElementById('dm-chat-input-bar').style.display = 'none';
+        chatView.style.display = 'none';
+        
+        // ✅ 关键：返回列表时，也强制隐藏输入框
+        const inputBar = document.getElementById('dm-chat-input-bar');
+        if (inputBar) {
+            inputBar.style.display = 'none';
+        }
+        
         currentOpenDmId = null;
     } else {
         // 否则，就关闭整个私信页面
@@ -3174,20 +3103,75 @@ function renderDmList() {
     
     if (forumData.privateMessages.length === 0) {
         container.innerHTML = `<p style="text-align:center; color:#aaa; padding-top:100px;">还没有收到任何私信~<br>点击右上角信封图标生成一些吧！</p>`;
-    } else {
-        container.innerHTML = forumData.privateMessages.map(dm => {
-            const lastMessage = dm.messages[dm.messages.length - 1] || {text: ''};
-            return `<div class="dm-list-item" onclick="openChatView(${dm.id})">
-                <img src="${sanitizeAvatar(dm.fromAvatar)}" class="avatar">
-                <div class="dm-list-item-content">
+        return; // ✅ 增加 return，避免继续执行
+    }
+
+    container.innerHTML = ''; // 先清空
+    forumData.privateMessages.forEach(dm => {
+        const lastMessage = dm.messages[dm.messages.length - 1] || {text: ''};
+        
+        // 创建新的、支持滑动的列表项结构
+        const itemWrapper = document.createElement('div');
+        itemWrapper.className = 'dm-list-item-wrapper';
+        itemWrapper.innerHTML = `
+            <div class="dm-list-item-actions">
+                <button class="delete-btn" onclick="deleteDmConversation(${dm.id})">删除</button>
+            </div>
+            <div class="dm-list-item-content">
+                <!-- ✅ 核心修改：在<img>标签中加入 onerror 事件 -->
+                <img src="${sanitizeAvatar(dm.fromAvatar)}" 
+                     class="avatar" 
+                     onerror="this.onerror=null; this.src='${DEFAULT_USER_AVATAR_URL}';">
+                <div class="dm-list-content-text">
                     <div class="dm-sender-name">${escapeHTML(dm.fromUser)}</div>
                     <div class="dm-message-preview">${escapeHTML(lastMessage.text)}</div>
                 </div>
                 ${!dm.isRead ? '<div class="dm-unread-dot"></div>' : ''}
-            </div>`;
-        }).join('');
-    }
+            </div>
+        `;
+        container.appendChild(itemWrapper);
+
+        // 为内容部分添加滑动事件监听
+        const contentSlider = itemWrapper.querySelector('.dm-list-item-content');
+        addSwipeToDelete(contentSlider, () => openChatView(dm.id));
+    });
+
     updateUnreadBadge();
+}
+function addSwipeToDelete(element, tapCallback) {
+    let startX;
+    element.addEventListener('touchstart', e => {
+        // 关闭其他所有已滑开的项
+        document.querySelectorAll('.swiped').forEach(swipedItem => {
+            if (swipedItem !== element) {
+                swipedItem.classList.remove('swiped');
+            }
+        });
+        startX = e.touches[0].clientX;
+    }, { passive: true });
+
+    element.addEventListener('touchend', e => {
+        if (!startX) return;
+        let deltaX = e.changedTouches[0].clientX - startX;
+        if (deltaX < -60) { // 向左滑了足够距离
+            element.classList.add('swiped');
+        } else if (deltaX > 20) { // 向右滑了
+            element.classList.remove('swiped');
+        } else if (Math.abs(deltaX) < 10) { // 如果只是轻点
+            if (tapCallback) tapCallback();
+        }
+        startX = null;
+    }, { passive: true });
+}
+
+// 新增：删除私信对话的函数
+function deleteDmConversation(dmId) {
+    if (confirm('确定要删除这条会话的所有记录吗？')) {
+        forumData.privateMessages = forumData.privateMessages.filter(dm => dm.id !== dmId);
+        setStorage('forum_data', forumData);
+        renderDmList(); // 重新渲染列表
+        showToast('会话已删除');
+    }
 }
 
 function updateUnreadBadge() {
@@ -3209,7 +3193,7 @@ async function generatePrivateMessages() {
     showToast("正在生成新的私信...");
     const stats = calculateRoleStats(activeRole.name);
     const myPosts = forumData.posts.filter(p => p.authorName === activeRole.name).slice(0, 3).map(p => `- "${p.text.substring(0, 50)}..."`).join('\n');
-    const prompt = `你是一个社区模拟引擎。现在请为名为“${activeRole.name}”的博主生成一个包含7到8个私信对话开头的JSON数组。- 这位博主当前的数据是：粉丝数约 ${stats.fans}，总获赞 ${stats.likes}。- 他/她最近发过这些帖子：\n${myPosts || "（暂无帖子）"}- 请你基于这些信息，模拟不同的人（粉丝、路人、好奇的提问者、商业合作询问者等）发来的私信。- 每条私信必须包含1-2条消息。- 输出的JSON数组结构必须如下，其中fromUser和fromAvatar由你创作，id是当前时间戳加随机数，isRead为false，timestamp为当前时间戳:[{"id": ${Date.now() + Math.random()},"fromUser": "好奇的小明","fromAvatar": "https://i.pravatar.cc/150?u=a042581f4e29026704d","isRead": false,"timestamp": ${Date.now()},"messages": [{"sender": "other", "text": "你好博主！看到你关于投资的帖子，写得真好！" },{"sender": "other", "text": "我也有点兴趣，能多聊聊吗？"}]},...]`;
+    const prompt = `你是一个社区模拟引擎。现在请为名为“${activeRole.name}”的博主生成一个包含7到8个私信对话开头的JSON数组。- 这位博主当前的数据是：粉丝数约 ${stats.fans}，总获赞 ${stats.likes}。- 他/她最近发过这些帖子：\n${myPosts || "（暂无帖子）"}- 请你基于这些信息，模拟不同的人（粉丝、路人、好奇的提问者、商业合作询问者等）发来的私信。- 每条私信必须包含1-2条消息。- 输出的JSON数组结构必须如下，其中fromUser和fromAvatar由你创作，id是当前时间戳加随机数，isRead为false，timestamp为当前时间戳:[{"id": ${Date.now() + Math.random()},"fromUser": "好奇的小明","fromAvatar": "${DEFAULT_FORUM_AVATAR_SVG}","isRead": false,"timestamp": ${Date.now()},"messages": [{"sender": "other", "text": "你好博主！看到你关于投资的帖子，写得真好！" },{"sender": "other", "text": "我也有点兴趣，能多聊聊吗？"}]},...]`;
     try {
         let rawResponse = await getCompletion(prompt, true);
         const jsonString = extractFirstJsonArray(rawResponse);
@@ -3227,19 +3211,26 @@ function openChatView(dmId) {
     currentOpenDmId = dmId;
     const dm = forumData.privateMessages.find(d => d.id === dmId);
     if (!dm) return;
+
+    // 隐藏私信列表，显示聊天窗口
     document.getElementById('dm-list-container').style.display = 'none';
-    const chatView = document.getElementById('dm-chat-view');
-    chatView.style.display = 'flex';
+    document.getElementById('dm-chat-view').style.display = 'block'; // 或者 'flex' 取决于你的CSS
+    
+    // ✅ 关键：只在此时才显示输入框
     document.getElementById('dm-chat-input-bar').style.display = 'flex';
-    chatView.style.flexDirection = 'column';
+
+    const chatView = document.getElementById('dm-chat-view');
     chatView.innerHTML = dm.messages.map(msg => `<div class="dm-bubble ${msg.sender}">${escapeHTML(msg.text)}</div>`).join('');
-    chatView.scrollTop = chatView.scrollHeight;
+    chatView.scrollTop = chatView.scrollHeight; // 滚动到底部
+
+    // 标记为已读
     if (!dm.isRead) {
         dm.isRead = true;
         setStorage('forum_data', forumData);
         updateUnreadBadge();
     }
 }
+
 
 function sendDmMessage() {
     const input = document.getElementById('dm-chat-input');
@@ -3284,28 +3275,56 @@ async function generateDmReply() {
 }
 
 
-  function switchForumTab(tabName) {
+ function switchForumTab(tabName) {
     const isPosts = tabName === 'posts';
 
-    // 统一管理所有内容区的显示/隐藏
-    document.getElementById('forum-tab-posts').style.display = isPosts ? 'flex' : 'none';
-    document.getElementById('forum-tab-personal').style.display = isPosts ? 'none' : 'block';
-    document.getElementById('forum-dm-page').style.display = 'none'; // <-- 新增：确保私信页总是隐藏的
+    // --- 隐藏特殊页面 ---
+    const dmPage = document.getElementById('forum-dm-page');
+    if (dmPage) {
+        dmPage.classList.remove('active');
+    }
 
-    // 帖子的公共头部
-    document.getElementById('forum-header').style.display = isPosts ? 'flex' : 'none';
+    // --- 管理主内容区的显示/隐藏 ---
+    const header = document.getElementById('forum-header');
+    if (header) {
+        header.style.display = isPosts ? 'flex' : 'none';
+    }
+    
+    const postsTab = document.getElementById('forum-tab-posts');
+    if (postsTab) {
+        postsTab.style.display = isPosts ? 'flex' : 'none';
+    }
 
-    // 底部导航栏的显示/隐藏和激活状态
-    const bottomNav = document.getElementById('forum-nav'); // 假设ID是 forum-nav
-    if (bottomNav) bottomNav.style.display = 'flex';
-    document.getElementById('forum-nav-posts').classList.toggle('active', isPosts);
-    document.getElementById('forum-nav-personal').classList.toggle('active', !isPosts);
+    const personalTab = document.getElementById('forum-tab-personal');
+    if (personalTab) {
+        personalTab.style.display = isPosts ? 'none' : 'block';
+    }
+
+    // --- 管理底部导航和悬浮按钮的显示/隐藏 (核心) ---
+    const bottomNav = document.getElementById('forum-nav');
+    if (bottomNav) {
+        bottomNav.style.display = 'flex'; // ✅ 确保导航栏总是被设置为显示
+    }
     
-    // 悬浮按钮
-    document.querySelector('.floating-action-button').style.display = isPosts ? 'flex' : 'none';
+    const fab = document.querySelector('.floating-action-button');
+    if (fab) {
+        fab.style.display = isPosts ? 'flex' : 'none';
+    }
+
+    // --- 更新底部导航的激活状态 ---
+    const navPosts = document.getElementById('forum-nav-posts');
+    if (navPosts) {
+        navPosts.classList.toggle('active', isPosts);
+    }
+
+    const navPersonal = document.getElementById('forum-nav-personal');
+    if (navPersonal) {
+        navPersonal.classList.toggle('active', !isPosts);
+    }
     
+    // --- 按需渲染页面内容 ---
     if (!isPosts) {
-        renderForumPersonalPage();
+        renderForumPersonalPage(); // 总指挥官内部调用，无需在HTML里重复调用
     }
 }
 
@@ -3451,21 +3470,25 @@ function findAuthor(name) {
 function renderForumFeed() {
     const feedContainer = document.getElementById('forum-tab-posts');
     feedContainer.innerHTML = '';
-    if (forumData.posts.length === 0) {
+    if (!forumData.posts || forumData.posts.length === 0) {
         feedContainer.innerHTML = `<div style="text-align:center; padding:50px; color: #aaa; font-size: 14px;">这里空空如也~<br>点击右下方 '+' 智能生成一些帖子吧！</div>`;
         return;
     }
 
-    // 按ID降序排序，让最新的帖子显示在最上面
     const sortedPosts = forumData.posts.sort((a, b) => b.id - a.id);
+
+    // ✅ 核心修正：把 activeRole 的查找移到循环外部，提高效率
+    const activeRole = forumRoles.find(r => r.id === activeForumRoleId);
 
     sortedPosts.forEach(post => {
         const author = findAuthor(post.authorName);
         
+        // ✅ 核心修正：在循环内部，为每个帖子计算 isLikedByMe
+        const isLikedByMe = activeRole && post.likedBy && post.likedBy.includes(activeRole.name);
+
         const postElement = document.createElement('div');
         postElement.className = 'forum-post-item';
 
-        // **修改点**：渲染评论时，检查是否存在 replyToAuthor 字段
         const commentsHTML = (post.comments || []).map(comment => {
             const cAuthor = findAuthor(comment.authorName);
             let replyPrefix = '';
@@ -3483,18 +3506,15 @@ function renderForumFeed() {
             <div class="forum-delete-action">
                 <button class="forum-delete-btn" onclick="deleteForumPost(${post.id})">删除</button>
             </div>
-
             <div class="forum-content-slider">
-                
                 <div class="forum-post-author">
-                    <img src="${sanitizeAvatar(author.avatar)}" class="forum-author-avatar">
+                    <img src="${sanitizeAvatar(author.avatar)}" class="forum-author-avatar" onerror="this.onerror=null; this.src='${DEFAULT_FORUM_AVATAR_SVG}';">
                     <span class="forum-author-name">${escapeHTML(author.name)}</span>
                 </div>
-                
                 <div class="forum-post-text">${escapeHTML(post.text)}</div> 
-
                 <div class="forum-post-stats">
-                    <span class="stat-item" onclick="likeForumPost(${post.id})">
+                    <!-- 现在 isLikedByMe 变量存在了，这里可以安全使用 -->
+                    <span class="stat-item ${isLikedByMe ? 'liked' : ''}" onclick="likeForumPost(${post.id})">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
                         <span>${post.stats.likes}</span>
                     </span>
@@ -3510,41 +3530,21 @@ function renderForumFeed() {
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M12 22v-3"></path><path d="M10 3.34A6.02 6.02 0 0 1 12 3a6.02 6.02 0 0 1 2 .34"></path><path d="m14 2-2-2-2 2"></path><path d="m10 22 2 2 2-2"></path></svg>
                     </span>
                 </div>
-
                 ${(post.comments && post.comments.length > 0) ? `<div class="forum-comment-section">${commentsHTML}</div>` : ''}
-                
                 <div class="forum-comment-form">
                     <input type="text" class="forum-comment-input" placeholder="发表你的看法..." onkeydown="if(event.key==='Enter') addForumComment(${post.id}, this)">
                 </div>
-
             </div>
         `;
         
         feedContainer.appendChild(postElement);
 
+        // 左滑删除帖子的事件绑定
         const contentSlider = postElement.querySelector('.forum-content-slider');
-        let startX;
-        contentSlider.addEventListener('touchstart', e => {
-            document.querySelectorAll('.forum-content-slider.swiped').forEach(swipedItem => {
-                if (swipedItem !== contentSlider) {
-                    swipedItem.classList.remove('swiped');
-                }
-            });
-            startX = e.touches[0].clientX;
-        }, { passive: true });
-        
-        contentSlider.addEventListener('touchend', e => {
-            if (!startX) return;
-            let deltaX = e.changedTouches[0].clientX - startX;
-            if (deltaX < -60) {
-                contentSlider.classList.add('swiped');
-            } else if (deltaX > 20) {
-                contentSlider.classList.remove('swiped');
-            }
-            startX = null;
-        }, { passive: true });
+        addSwipeToDelete(contentSlider, null); // 帖子轻点不触发任何事件
     });
 }
+
 function deleteForumPost(id) {
     if (confirm('确定要删除这条帖子吗？此操作不可恢复。')) {
         forumData.posts = forumData.posts.filter(p => p.id !== id);
@@ -3696,58 +3696,65 @@ ${(post.comments || []).map(c => `${c.authorName}: ${c.text}`).join('\n') || '�
 
 // **重大修改**: 增强此函数，使其可以一次性模拟多次互动
 async function generateEngagement() {
-    const myPosts = forumData.posts.filter(p => p.authorName === userProfiles[0].name);
+    // 查找当前用户的激活角色，因为帖子是发给TA的
+    const activeRole = forumRoles.find(r => r.id === activeForumRoleId);
+    if (!activeRole) return showToast('请先选择一个角色再召唤互动！');
+
+    // 筛选出“我”的帖子
+    const myPosts = forumData.posts.filter(p => p.authorName === activeRole.name);
     if (myPosts.length === 0) return showToast('你还没发过帖子，快去发一个吧！');
     
     closeForumActionModal();
     showToast('正在呼叫朋友们前来互动...');
 
-    // 随机选择一个你的帖子进行互动
     const randomPost = myPosts[Math.floor(Math.random() * myPosts.length)];
     
-    // **修改点**: 互动者可以是AI朋友，也可以是路人
-    const interactorPool = [...aiList.map(a => a.name), "热心网友", "吃瓜路人", "有点意思", "互联网嘴替"];
+    // ✅ 核心修改：创建两个不同的角色池
+    const aiCharacterNames = aiList.map(a => a.name); // 只包含AI角色的名单
+    const allInteractorNames = [...aiCharacterNames, "热心网友", "吃瓜路人", "互联网嘴替"]; // 包含AI和路人的大名单
     
-    // **修改点**: 新的提示词，要求生成一个互动数组
-    const prompt = `你是社交网络上的一个模拟引擎。用户“${userProfiles[0].name}”发了一条动态：“${randomPost.text}”。
+    // ✅ 核心修改：更新提示词，增加严格的规则
+    const prompt = `你是社交网络上的一个模拟引擎。用户“${activeRole.name}”发了一条动态：“${randomPost.text}”。
 
 请你模拟 2 到 4 次社区互动。每次互动从以下行为中随机选择：
 1. 点赞 (like)
 2. 发表一条评论 (comment)
 3. 转发 (share)
 
-请返回一个JSON数组，每个对象代表一次互动，包含 "action", "authorName" 字段。
-- "action": 值为 "like", "comment", 或 "share"。
-- "authorName": 从互动者列表 [${interactorPool.join(', ')}] 中随机选一个作为互动发起者。
+请返回一个JSON数组，每个对象代表一次互动。
+
+【严格规则】
+- 如果 action 是 "like"，那么 "authorName" 必须从【AI角色列表】中随机选择: [${aiCharacterNames.join(', ')}]
+- 如果 action 是 "comment" 或 "share"，那么 "authorName" 可以从【所有互动者列表】中随机选择: [${allInteractorNames.join(', ')}]
 - 如果 action 是 "comment"，还需要一个 "commentText" 字段，内容是20字内的简短评论。
 
 严格按照JSON数组格式返回。
 示例: 
 [
-  {"action": "comment", "authorName": "派蒙", "commentText": "这个太有意思了！"},
-  {"action": "like", "authorName": "钟离"},
-  {"action": "share", "authorName": "热心网友"}
+  {"action": "comment", "authorName": "热心网友", "commentText": "这个太有意思了！"},
+  {"action": "like", "authorName": "${aiCharacterNames[0] || 'AI角色A'}"},
+  {"action": "share", "authorName": "吃瓜路人"}
 ]`;
 
     try {
         let rawResponse = await getCompletion(prompt, true);
-        const jsonString = extractFirstJsonArray(rawResponse); // **修改点**: 解析JSON数组
-
-        if (!jsonString) {
-            throw new Error('AI返回内容中未找到有效的JSON数组结构。');
-        }
+        const jsonString = extractFirstJsonArray(rawResponse);
+        if (!jsonString) throw new Error('AI返回内容中未找到有效的JSON数组结构。');
         
         const interactions = JSON.parse(jsonString);
         const postToUpdate = forumData.posts.find(p => p.id === randomPost.id);
         if (!postToUpdate) return;
         
+        if (!postToUpdate.likedBy) postToUpdate.likedBy = []; // 初始化点赞列表
+
         let notifications = [];
 
-        // **修改点**: 循环处理所有互动
         interactions.forEach(interaction => {
             const interactor = findAuthor(interaction.authorName);
-            if (interaction.action === 'like') {
+            // ✅ 核心修改：点赞时检查是否已赞过，避免AI重复点赞
+            if (interaction.action === 'like' && !postToUpdate.likedBy.includes(interactor.name)) {
                 postToUpdate.stats.likes++;
+                postToUpdate.likedBy.push(interactor.name); // 记录点赞
                 notifications.push(`${interactor.name} 点赞了`);
             } else if (interaction.action === 'comment' && interaction.commentText) {
                 if(!postToUpdate.comments) postToUpdate.comments = [];
@@ -3760,7 +3767,11 @@ async function generateEngagement() {
             }
         });
         
-        showToast(`收到了新互动: ${notifications.slice(0, 2).join('、')}${notifications.length > 2 ? '...' : ''}`);
+        if (notifications.length > 0) {
+            showToast(`收到了新互动: ${notifications.slice(0, 2).join('、')}${notifications.length > 2 ? '...' : ''}`);
+        } else {
+            showToast('朋友们这次没有新的互动...');
+        }
 
         setStorage('forum_data', forumData);
         renderForumFeed();
@@ -3871,51 +3882,43 @@ function setupWorldbookBinderListeners() {
 setupWorldbookBinderListeners();
 
 
-// 5. 在AI生成时使用世界书的辅助函数 (修正版)
-async function getWorldbookContentForContext(context) {
-    const boundIds = worldbookBindings[context] || [];
-    if (boundIds.length === 0) return '';
-    const allWorldbooks = getStorage('ai_worldbooks_v2') || [];
-    let contentParts = [];
-    for (const id of boundIds) {
-        if (String(id).startsWith('cat_')) {
-            const catName = String(id).replace('cat_', '');
-            contentParts.push(`\n# 分类：${catName}\n`);
-            allWorldbooks.filter(wb => wb.category === catName).forEach(wb => {
-                contentParts.push(`## 世界书：${wb.name}\n${wb.content || ''}\n`);
-            });
-        } else {
-            const worldbook = allWorldbooks.find(wb => wb.id == id);
-            if (worldbook && !boundIds.includes(`cat_${worldbook.category}`)) {
-                contentParts.push(`## 世界书：${worldbook.name}\n${worldbook.content || ''}\n`);
-            }
-        }
-    }
-    return contentParts.length > 0 ? `# 参考以下世界书设定进行创作：\n${contentParts.join('')}` : '';
-}
 
 
 // 4. 辅助函数：关闭抽屉（如果您的通用函数有问题，可以用这个）
 function closeDrawer(modalId) {
-    const modal = document.getElementById(modalId);
-    if(modal) {
-        if(modal.classList.contains('active')) {
-            modal.classList.remove('active');
-        } else if (modal.id.endsWith('-container')) {
-            // 兼容 openDrawerWithContent 创建的弹窗
-            const overlay = document.getElementById(modalId.replace('-container', '-overlay'));
-            if(overlay) {
-                overlay.classList.remove('active');
-                overlay.addEventListener('transitionend', () => overlay.remove(), { once: true });
-            }
-            modal.classList.remove('active');
-            modal.addEventListener('transitionend', () => modal.remove(), { once: true });
-        }
-        else {
-            modal.style.display = 'none';
+    // 优先尝试关闭新版、动态创建的弹窗 (比如角色管理弹窗)
+    // 它会主动拿'role-editor-modal'这样的基础ID去拼接成 '...-container' 和 '...-overlay'
+    const newStyleContainer = document.getElementById(modalId + '-container');
+    const newStyleOverlay = document.getElementById(modalId + '-overlay');
+
+    if (newStyleContainer && newStyleOverlay) {
+        newStyleContainer.classList.remove('active');
+        newStyleOverlay.classList.remove('active');
+
+        // 在动画结束后，从DOM中彻底移除这些临时元素，保持页面干净
+        const cleanup = () => {
+            if(newStyleOverlay) newStyleOverlay.remove();
+            if(newStyleContainer) newStyleContainer.remove();
+            // 确保只执行一次，避免潜在问题
+            newStyleContainer.removeEventListener('transitionend', cleanup);
+        };
+        newStyleContainer.addEventListener('transitionend', cleanup, { once: true });
+        return; // 处理完毕，直接返回
+    }
+
+    // 如果上面没找到新式弹窗，就按老方法把 modalId 当作一个完整的ID来处理
+    // 这能兼容所有旧的弹窗，比如世界书、QQ设置等
+    const oldStyleModal = document.getElementById(modalId);
+    if (oldStyleModal) {
+        if (oldStyleModal.classList.contains('active')) {
+            oldStyleModal.classList.remove('active');
+        } else {
+            // 备用方案，处理那些用 display:none 控制的非常老的弹窗
+            oldStyleModal.style.display = 'none';
         }
     }
 }
+
 async function getWorldbookContentForContext(context) {
     const boundIds = worldbookBindings[context] || [];
     if (boundIds.length === 0) return '';
@@ -3961,9 +3964,21 @@ function saveUserForumPost() {
     const text = document.getElementById('forum-post-input').value.trim();
     if (!text) return showToast('内容不能为空');
     
+    // ✅ 1. 查找当前激活的论坛角色
+    const activeRole = forumRoles.find(r => r.id === activeForumRoleId);
+
+    // ✅ 2. 如果找不到激活角色，就报错并提示用户去创建
+    if (!activeRole) {
+        closeForumPostCreator(); // 先关掉发帖窗口
+        return showToast('错误：找不到发帖角色！请先在“个人”页创建一个角色。');
+    }
+
+    // ✅ 3. 从激活的角色中获取名字
+    const authorName = activeRole.name;
+    
     const newPost = {
         id: Date.now(),
-        authorName: userProfiles[0].name,
+        authorName: authorName, // ✅ 核心：使用激活角色的名字
         text,
         stats: { likes: 0, comments: 0, shares: 0 },
         comments: []
@@ -3971,18 +3986,45 @@ function saveUserForumPost() {
     
     forumData.posts.unshift(newPost);
     setStorage('forum_data', forumData);
-    renderForumFeed();
+    renderForumFeed(); // 刷新帖子列表，新帖子会由 findAuthor 函数找到正确的头像
     closeForumPostCreator();
     showToast('发布成功！');
 }
-
 function likeForumPost(postId) {
     const post = forumData.posts.find(p => p.id === postId);
-    if (post) {
-        post.stats.likes++;
-        setStorage('forum_data', forumData);
-        renderForumFeed();
+    if (!post) return;
+
+    // 1. 找到当前操作者（点赞的人）
+    const activeRole = forumRoles.find(r => r.id === activeForumRoleId);
+    if (!activeRole) return showToast("请先在“个人”页创建并选择一个角色！");
+    const likerName = activeRole.name;
+
+    // 2. 检查是否点赞自己的帖子
+    if (post.authorName === likerName) {
+        return showToast("不能给自己的帖子点赞哦！");
     }
+
+    // 3. 初始化点赞列表（兼容旧数据）
+    if (!post.likedBy) {
+        post.likedBy = [];
+    }
+
+    // 4. 判断是“点赞”还是“取消点赞”
+    const likeIndex = post.likedBy.indexOf(likerName);
+
+    if (likeIndex > -1) {
+        // 如果已经赞过，就取消点赞
+        post.likedBy.splice(likeIndex, 1); // 从名单中移除
+        post.stats.likes--;
+    } else {
+        // 如果没赞过，就添加点赞
+        post.likedBy.push(likerName); // 加入点赞名单
+        post.stats.likes++;
+    }
+
+    // 5. 保存数据并刷新界面
+    setStorage('forum_data', forumData);
+    renderForumFeed();
 }
 
 function addForumComment(postId, inputElement) {
@@ -3999,7 +4041,43 @@ function addForumComment(postId, inputElement) {
         inputElement.value = '';
     }
 }
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. 绑定私信页的“返回”按钮
+    const dmBackBtn = document.getElementById('dm-back-btn');
+    if (dmBackBtn) {
+        dmBackBtn.addEventListener('click', goBackInDm);
+    }
 
+    // 2. 绑定私信页的“生成私信”按钮（信封图标）
+    const dmGenerateBtn = document.getElementById('dm-generate-btn');
+    if (dmGenerateBtn) {
+        dmGenerateBtn.addEventListener('click', generatePrivateMessages);
+    }
+
+    // 3. 绑定聊天输入框的“发送”按钮
+    const dmSendBtn = document.getElementById('dm-send-btn');
+    if (dmSendBtn) {
+        dmSendBtn.addEventListener('click', sendDmMessage);
+    }
+
+    // 4. 绑定聊天输入框的“AI回复”按钮
+    const dmAiReplyBtn = document.getElementById('dm-ai-reply-btn');
+    if (dmAiReplyBtn) {
+        dmAiReplyBtn.addEventListener('click', generateDmReply);
+    }
+
+    // 5. 让输入框支持按回车键发送
+    const dmInput = document.getElementById('dm-chat-input');
+    if(dmInput) {
+        dmInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                // 阻止回车换行，并触发发送
+                event.preventDefault(); 
+                sendDmMessage();
+            }
+        });
+    }
+});
 // 辅助函数: 从AI返回的文本中提取第一个有效的JSON数组
 function extractFirstJsonArray(text) {
     const startIndex = text.indexOf('[');
@@ -4081,23 +4159,6 @@ function openDrawerWithContent(modalId, content, isDrawer = false) {
     }, 10);
 }
 
-// 替换你的 closeDrawer 函数
-function closeDrawer(modalId) {
-    const overlay = document.getElementById(modalId + '-overlay');
-    const container = document.getElementById(modalId + '-container');
-
-    if (overlay) {
-        overlay.classList.remove('active');
-        // 在动画结束后移除元素
-        overlay.addEventListener('transitionend', () => overlay.remove(), { once: true });
-    }
-    if (container) {
-        container.classList.remove('active');
-        container.addEventListener('transitionend', () => container.remove(), { once: true });
-    }
-}
-
-
 // --- 1. 角色系统 ---
 
 
@@ -4116,6 +4177,117 @@ window.openChatView = openChatView;
 window.sendDmMessage = sendDmMessage;
 window.generateDmReply = generateDmReply;
 window.openWorldbookBinder = openWorldbookBinder;
+
+ window.openAddCharacterModal = openAddCharacterModal;
+    window.closeAddCharacterModal = closeAddCharacterModal;
+    window.saveBulkEmojis = saveBulkEmojis;
+    window.addMomentComment = addMomentComment;
+
+    window.openPage = openPage;
+    window.closePage = closePage;
+    window.openDrawer = openDrawer;
+    window.closeDrawer = closeDrawer;
+    window.showToast = showToast;
+
+    // --- QQ App & 聊天室 ---
+    window.switchQqTab = switchQqTab;
+    window.loadChatList = loadChatList;
+    window.performDeleteCharacter = performDeleteCharacter;
+    window.openAiDrawer = openAiDrawer;
+    window.triggerAiMomentsActivity = triggerAiMomentsActivity;
+    window.openPostCreator = openPostCreator;
+    window.closePostCreator = closePostCreator;
+    window.publishMoment = publishMoment;
+    window.saveMomentsData = saveMomentsData;
+    window.toggleLike = toggleLike;
+    window.showMomentActions = showMomentActions;
+    window.closeMomentActions = closeMomentActions;
+    window.openChatSettingsDrawer = openChatSettingsDrawer;
+    window.sendOnly = sendOnly;
+    window.generateReply = generateReply;
+    window.toggleOfflineSettings = toggleOfflineSettings;
+    window.saveChatSettings = saveChatSettings;
+    window.exportCurrentChat = exportCurrentChat;
+    window.importCurrentChat = importCurrentChat;
+    window.tryClearCurrentChat = tryClearCurrentChat;
+    window.closeThoughtsModal = closeThoughtsModal;
+    window.toggleToolbar = toggleToolbar;
+
+    // --- 新功能：表情包 & T2I ---
+    window.openEmojiManager = openEmojiManager;
+    window.closeEmojiManager = closeEmojiManager;
+    window.switchEmojiTab = switchEmojiTab;
+    window.saveEmoji = saveEmoji;
+    window.deleteEmoji = deleteEmoji;
+    window.openT2IModal = openT2IModal;
+    window.closeT2IModal = closeT2IModal;
+    window.sendDescribedImage = sendDescribedImage;
+
+     // --- 论坛 App ---
+    window.switchForumTab = switchForumTab;
+    window.openForumActionModal = openForumActionModal;
+    window.closeForumActionModal = closeForumActionModal;
+    window.openForumGeneratorModal = openForumGeneratorModal;
+    window.closeForumGeneratorModal = closeForumGeneratorModal;
+    window.generateForumPosts = generateForumPosts;
+    window.openForumPostCreator = openForumPostCreator;
+    window.closeForumPostCreator = closeForumPostCreator;
+    window.saveUserForumPost = saveUserForumPost;
+    window.likeForumPost = likeForumPost;
+    window.deleteForumPost = deleteForumPost;
+    window.addForumComment = addForumComment;
+    window.generateEngagement = generateEngagement;
+    window.generateForumCommentsForPost = generateForumCommentsForPost;
+    window.deleteDmConversation = deleteDmConversation;
+
+    // --- 世界书 App ---
+    window.openWorldbookPage = () => openPage('worldbook-page');
+    window.openWbDrawer = openWbDrawer;
+    window.addWbEntryForm = addWbEntryForm;
+    window.saveWb = saveWb;
+    window.deleteWb = deleteWb;
+
+    // --- 纪念日 App ---
+    window.openAnniversaryCreator = openAnniversaryCreator;
+    window.saveAnniversary = saveAnniversary;
+    window.deleteAnniversary = deleteAnniversary;
+
+    // --- 自律钟 App ---
+    window.openTaskCreator = openTaskCreator;
+    window.closeTaskCreator = closeTaskCreator;
+    window.saveTask = saveTask;
+    window.deleteTask = deleteTask;
+    window.tryExitFocus = tryExitFocus;
+    window.switchClockTab = switchClockTab;
+    window.saveClockProfile = saveClockProfile;
+    window.deleteClockWallpaper = deleteClockWallpaper;
+    window.deleteClockQuote = deleteClockQuote;
+    window.addClockQuote = addClockQuote;
+
+    // --- 角色与用户管理 ---
+    window.openUserDrawer = openUserDrawer;
+    window.createNewUser = createNewUser;
+    window.saveUser = saveUser;
+    window.deleteUser = deleteUser;
+    window.saveAiCharacter = saveAiCharacter;
+
+    // --- 外观设置 ---
+    window.saveWallpaper = saveWallpaper;
+    window.saveLockWallpaper = saveLockWallpaper;
+    window.saveFont = saveFont;
+    window.saveAppIcons = saveAppIcons;
+    window.openRestoreModal = openRestoreModal;
+    window.closeRestoreModal = closeRestoreModal;
+    window.confirmRestore = confirmRestore;
+
+    // --- 通用设置 ---
+    window.saveApiConfig = saveApiConfig;
+    window.fetchModels = fetchModels;
+    window.testConnection = testConnection;
+    window.closeModelPicker = closeModelPicker;
+    window.cleanAllBadData = cleanAllBadData;
+    window.backupAllData = backupAllData;
+
 
 })();
 
