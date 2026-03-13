@@ -2800,9 +2800,212 @@ html, body {
     flex-grow: 1; /* 占据所有剩余空间 */
     overflow-y: auto; /* 内容超出时可以滚动 */
 }
+.chat-action-btn {
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 40px;  /* 稍微增大一点，更容易点击 */
+    height: 40px;
+    flex-shrink: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
 
-/* 强制显示输入框 */
-#forum-dm-page.active .chat-input-bar {
-    display: flex !important;
-    flex-shrink: 0; /* 防止输入框被压缩 */
+.chat-action-btn:active {
+    background-color: #0056b3;
+}
+
+.chat-action-btn svg {
+    width: 22px;
+    height: 22px;
+    fill: currentColor;
+}
+
+/* AI回复按钮的特殊颜色 */
+#dm-ai-reply-btn {
+    background-color: #ffc107;
+}
+#dm-ai-reply-btn:active {
+    background-color: #e0a800;
+}
+.dm-list-item-wrapper {
+    position: relative;
+    overflow: hidden;
+    background-color: #fff;
+}
+
+.dm-list-item-actions {
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.dm-list-item-actions .delete-btn {
+    background-color: #e53935;
+    color: white;
+    border: none;
+    height: 100%;
+    padding: 0 25px;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+.dm-list-item-content {
+    position: relative; /* 让它能盖住下面的按钮 */
+    background-color: #fff; /* 确保有背景色 */
+    display: flex;
+    padding: 15px;
+    align-items: center;
+    gap: 15px;
+    border-bottom: 1px solid #f0f0f0;
+    transition: transform 0.3s ease;
+}
+
+.dm-list-item-content.swiped {
+    transform: translateX(-90px); /* 滑动距离，和删除按钮宽度相关 */
+}
+
+/* 之前dm-list-item的样式现在给content */
+.dm-list-item-content .avatar { width: 50px; height: 50px; }
+.dm-list-content-text { flex-grow: 1; overflow: hidden; }
+.stat-item.liked svg {
+    fill: #e53935; /* 变成红色 */
+    stroke: #e53935; /* 边框也变红 */
+}
+.btn-text-black {
+    background: none;
+    border: none;
+    color: #000;
+    font-size: 16px;
+    font-weight: 500;
+    padding: 8px;
+    cursor: pointer;
+}
+
+/* 拉取模型按钮的样式 */
+.btn-fetch-models {
+    background: #e0e0e0;
+    border: none;
+    color: #333;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+/* 全宽黑色按钮新样式 */
+.btn-setting-action {
+    display: block;
+    width: 100%;
+    background-color: #1a1a1a;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 13px; /* 较大的内边距，适合全宽 */
+    margin-top: 12px;
+    font-size: 15px;
+    font-weight: 500;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+/* ✅ 新增：“紧凑版”按钮的样式 */
+.btn-setting-action.compact {
+    display: inline-block; /* 改为行内块，宽度由内容决定 */
+    width: auto;          /* 宽度自动 */
+    padding: 8px 16px;    /* 减小垂直内边距，让按钮变矮 */
+    font-size: 14px;      /* 可以适当减小字体 */
+}
+/* --- 温度滑块样式 --- */
+.slider-row {
+    align-items: center;
+}
+.slider-value {
+    font-weight: 500;
+    color: #007bff;
+    min-width: 30px;
+    text-align: right;
+}
+.temp-slider {
+    /* 为 WebKit 浏览器（Chrome, Safari）添加 */
+    -webkit-appearance: none;
+    /* 为 Firefox 添加 */
+    -moz-appearance: none; /* 建议也为火狐浏览器添加 */
+    /* 标准属性，这会让VSCode的警告消失 */
+    appearance: none;
+    width: 100%;
+    height: 6px;
+    background: #e9ecef;
+    border-radius: 3px;
+    outline: none;
+    margin: 0 10px;
+}
+/* 滑块的圆点 (Thumb) */
+.temp-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    background: #007bff;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid white;
+    box-shadow: 0 0 5px rgba(0,0,0,0.2);
+}
+.temp-slider::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    background: #007bff;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid white;
+    box-shadow: 0 0 5px rgba(0,0,0,0.2);
+}
+.slider-row {
+    align-items: center;
+}
+.slider-value {
+    font-weight: 500;
+    color: #555; /* 改为和输入框一样的颜色 */
+    min-width: 30px;
+    text-align: right;
+    font-size: 14px;
+}
+.temp-slider {
+     /* stylelint-disable-next-line property-no-vendor-prefix */
+    -webkit-appearance: none;
+    width: 100%;
+    height: 6px;
+    background: #e9ecef;
+    border-radius: 3px;
+    outline: none;
+    margin: 0 10px;
+}
+.temp-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    /* 标准属性 */
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    background: #555;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.temp-slider::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    background: #555;
+    border-radius: 50%;
+    cursor: pointer;
 }
