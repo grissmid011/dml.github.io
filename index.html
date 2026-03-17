@@ -535,10 +535,14 @@
 
         <!-- ================= 聊天对话页面 ================= -->
         <div class="app-page qq-page-bg" id="chat-page">
-            <div class="nav-header qq-header">
-                <button class="nav-btn" style="color:#000;" onclick="closePage('chat-page')">❮</button>
-                <img id="chat-header-avatar" src="" alt="聊天对象头像" style="width: 34px; height: 34px; border-radius: 9px; margin: 0 5px 0 10px; cursor: pointer; object-fit: cover; border: 1px solid #eee;">
-                <div class="nav-title" id="chat-title" style="font-weight:800; text-align: left;">聊天中</div>
+           <div class="nav-header qq-header">
+    <button class="nav-btn" style="color:#000;" onclick="closePage('chat-page')">❮</button>
+    
+    <!-- ▼ 新增的标题容器 ▼ -->
+    <div class="nav-title-container">
+        <div id="chat-title" class="nav-title">聊天中</div>
+        <div id="typing-indicator" class="nav-subtitle"></div>
+    </div>
                 <button class="nav-btn" style="font-size:20px; color:#000;" onclick="openChatSettingsDrawer()">🖤</button>
             </div>
             <div class="message-area no-scrollbar" id="msg-area"></div>
@@ -554,6 +558,24 @@
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
         </button>
     </div>
+    <div class="toolbar-item">
+    <button class="toolbar-btn" onclick="openVoiceModal()">
+        <!-- 语音图标 -->
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg>
+    </button>
+</div>
+<div class="toolbar-item">
+    <button class="toolbar-btn" onclick="openTransferModal() ">
+        <!-- 转账图标 -->
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm-8 3.5a3.5 3.5 0 1 1 0 7 3.5 3.5 0 0 1 0-7zM4 18V6h16v12H4z"/></svg>
+    </button>
+</div>
+<div class="toolbar-item">
+    <button class="toolbar-btn" onclick="openLocationModal()">
+        <!-- 位置图标 -->
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+    </button>
+</div>
 </div>
     <div class="chat-main-input-row">
         <button class="icon-btn-chat btn-toggle-toolbar" id="toggle-toolbar-btn" onclick="toggleToolbar()">
@@ -562,16 +584,25 @@
             </svg>
         </button>
         <input type="text" class="chat-input" id="chat-input" placeholder="发消息...">
-        <button class="icon-btn-chat btn-send small-icon" id="send-btn" onclick="sendOnly()" title="仅发送">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
-            </svg>
-        </button>
+       <button class="icon-btn-chat btn-send small-icon" id="send-btn" onclick="sendOnly()" title="仅发送">
+
+    <!-- 确保 SVG 是这个版本，特别是 stroke="currentColor" -->
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M5 12.5L20 5L13.5 19L10.5 13.5L5 12.5Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+
+</button>
+
         <button class="icon-btn-chat btn-gen small-icon" id="generate-btn" onclick="generateReply()" title="AI回复">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M19 8l1.5 3.5L24 12l-3.5 1.5L19 17l-1.5-3.5L14 12l3.5-1.5L19 8zM9.5 8L11 4.5 12.5 8 16 9.5 12.5 11 11 14.5 9.5 11 6 9.5 9.5 8z"/>
-            </svg>
-        </button>
+    
+    <!-- 用这段新的 SVG 代码替换原来的 SVG -->
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M18 8C18 6.4087 17.3679 4.88258 16.2426 3.75736C15.1174 2.63214 13.5913 2 12 2C10.4087 2 8.88258 2.63214 7.75736 3.75736C6.63214 4.88258 6 6.4087 6 8C6 15 3 17 3 17H21C21 17 18 15 18 8Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M13.73 21C13.5542 21.3031 13.3019 21.5547 12.9982 21.7295C12.6946 21.9044 12.3504 22 12 22C11.6496 22 11.3054 21.9044 11.0018 21.7295C10.6982 21.5547 10.4458 21.3031 10.27 21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+
+</button>
+
     </div>
 </div>
         </div>
@@ -812,58 +843,58 @@
     </div>
     
     <!-- <!-- ================= 表情包管理弹窗 ================= -->
-<div class="action-sheet-modal" id="emoji-manager-modal">
-    <div class="picker-content dark-modal">
-        <div class="picker-header">
-            <span onclick="closeEmojiManager()" style="color:#999; font-weight:normal; cursor:pointer;">关闭</span>
-            <span>表情包管理</span>
-            <span style="width:30px;"></span>
-        </div>
-        <div class="modal-tab-header">
-            <button class="modal-tab-btn active" id="emoji-tab-view" onclick="switchEmojiTab('view')">我的表情</button>
-            <button class="modal-tab-btn" id="emoji-tab-add" onclick="switchEmojiTab('add')">添加表情</button>
-            <button class="modal-tab-btn" id="emoji-tab-bulk" onclick="switchEmojiTab('bulk')">批量添加</button>
-        </div>
-        <div class="modal-scroll-content no-scrollbar">
-            <!-- 查看/管理表情 -->
-            <div id="emoji-view-content">
-                <div id="emoji-display-area">
-                    <p>还没有添加任何表情包哦~</p>
+<div class="modal-overlay" id="emoji-modal-overlay"></div>
+<div class="modal-container" id="emoji-modal-container">
+    <div class="modal-content">
+        <div class="modal-header">表情包管理</div>
+        <div class="modal-body" style="padding: 0;">
+            <div class="modal-tab-header">
+                <button class="modal-tab-btn active" id="emoji-tab-view" onclick="switchEmojiTab('view')">我的表情</button>
+                <button class="modal-tab-btn" id="emoji-tab-add" onclick="switchEmojiTab('add')">添加表情</button>
+            </div>
+            
+            <div class="modal-scroll-content no-scrollbar" style="height: 400px; padding: 15px;">
+                <!-- 查看/管理表情 -->
+                <div id="emoji-view-content">
+                    <div style="text-align: right; margin-bottom: 15px;">
+        <button class="btn-small" onclick="openCategoryEditor()">管理分类</button>
+    </div>
+                    <div id="emoji-display-area">
+                        <!-- JS动态生成分类和表情 -->
+                    </div>
+                </div>
+
+                <!-- 添加表情 (原批量添加) -->
+                <div id="emoji-add-content" style="display:none;">
+                     <textarea id="emoji-bulk-input" class="drawer-input drawer-textarea" style="height: 250px;" placeholder="请在此处粘贴一个或多个表情链接，每个链接占一行。"></textarea>
+                     <button class="btn-primary" style="width:100%; margin-top:15px;" onclick="saveBulkEmojis()">确认导入</button>
                 </div>
             </div>
-            <!-- 添加新表情 -->
-            <div id="emoji-add-content" style="display:none;">
-                <div class="setting-card dark">
-                    <div class="setting-row"><label>表情链接</label><input type="text" id="emoji-url-input" class="input-clean" placeholder="http://... .gif/png/jpg"></div>
-                    <div class="setting-row"><label>所属分类</label><input type="text" id="emoji-category-input" class="input-clean" placeholder="如：开心, 难过 (可选)"></div>
-                    <div class="setting-row"><label>绑定角色</label><select id="emoji-char-select" class="input-clean"></select></div>
-                </div>
-                <button class="btn-small" style="width:100%; padding:12px; margin-top:10px; background:#fff; color:#000; font-size: 15px;" onclick="saveEmoji()">确认添加</button>
-            </div>
-            <!-- 批量添加表情 -->
-            <div id="emoji-bulk-content" style="display:none; padding: 15px;">
-                 <textarea id="emoji-bulk-input" class="drawer-input drawer-textarea" style="background: #222; color: #eee; height: 180px;" placeholder="请在此处粘贴多个表情链接，每个链接占一行。"></textarea>
-                 <button class="btn-small" style="width:100%; padding:12px; margin-top:20px; background:#fff; color:#000; font-size: 15px;" onclick="saveBulkEmojis()">批量导入</button>
+            
+            <div style="padding: 0 16px 16px 16px;">
+                 <button onclick="closeEmojiManager()" class="drawer-button-cancel" style="width: 100%;">关闭</button>
             </div>
         </div>
     </div>
 </div>
+
 
 
 <!-- ================= 文字生图弹窗 ================= -->
-<div class="action-sheet-modal" id="text-to-image-modal">
-    <div class="picker-content dark-modal" style="height: 60%;">
-        <div class="picker-header">
-            <span onclick="closeT2IModal()" style="color:#999; font-weight:normal; cursor:pointer;">取消</span>
-            <span>想象画廊</span>
-            <span style="width:30px;"></span>
+<div class="modal-overlay" id="t2i-modal-overlay"></div>
+<div class="modal-container" id="t2i-modal-container">
+    <div class="modal-content">
+        <div class="modal-header">想象画廊</div>
+        <div class="modal-body">
+            <textarea id="t2i-prompt-input" class="drawer-input drawer-textarea" placeholder="请在这里用文字描述你想象中的画面..."></textarea>
         </div>
-        <div class="modal-scroll-content no-scrollbar" style="padding: 15px;">
-            <textarea id="t2i-prompt-input" class="drawer-input drawer-textarea" style="background: #222; color: #eee; height: 120px;" placeholder="请在这里用文字描述你想象中的画面..."></textarea>
-            <button class="btn-small" style="width:100%; padding:12px; margin-top:20px; background:#fff; color:#000; font-size: 15px;" onclick="sendDescribedImage()">生成并发送</button>
+        <div style="display: flex; gap: 10px; padding: 16px; border-top: 1px solid #e5e5e5;">
+            <button onclick="closeT2IModal()" class="drawer-button-cancel" style="flex: 1;">取消</button>
+            <button onclick="sendDescribedImage()" class="btn-primary" style="flex: 1;">生成并发送</button>
         </div>
     </div>
 </div>
+
 <!-- ================= 新增：添加角色方式选择弹窗 ================= -->
 <div class="action-sheet-modal" id="add-character-modal">
     <div class="picker-content">
@@ -881,9 +912,9 @@
     <div class="picker-content">
         <!-- 把所有选项都放在一个列表里 -->
         <ul class="picker-list" style="padding-top:10px; padding-bottom:10px;">
-            <li class="picker-item" onclick="openForumGeneratorModal()">✨ 智能生成新帖子</li>
-            <li class="picker-item" onclick="openWorldbookBinder()">📚 绑定世界书</li> <!-- 修正了这里的标签 -->
-            <li class="picker-item" onclick="generateEngagement()">🤖 模拟社区互动 (点赞/评论)</li>
+            <li class="picker-item" onclick="openForumGeneratorModal()"> 智能生成新帖子</li>
+            <li class="picker-item" onclick="openWorldbookBinder()"> 绑定世界书</li> <!-- 修正了这里的标签 -->
+            <li class="picker-item" onclick="generateEngagement()"> 模拟社区互动 (点赞/评论)</li>
         </ul>
         
         <!-- 取消按钮也作为列表的一部分，但用一个单独的容器隔开以实现样式 -->
@@ -965,8 +996,61 @@
     </div>
 </div>
 
+<div class="modal-overlay" id="voice-modal-overlay"></div>
+<div class="modal-container" id="voice-modal-container">
+    <div class="modal-content">
+        <div class="modal-header">发送语音</div>
+        <div class="modal-body" style="display: flex; flex-direction: column; gap: 15px;">
+            <input type="text" id="voice-tone-input" class="drawer-input" placeholder="想要的语气 (选填，如：开心的)">
+            <textarea id="voice-text-input" class="drawer-input drawer-textarea" placeholder="在这里输入想说的话..."></textarea>
+        </div>
+        <div style="display: flex; gap: 10px; padding: 16px; border-top: 1px solid #e5e5e5;">
+            <button onclick="closeVoiceModal()" class="drawer-button-cancel" style="flex: 1;">取消</button>
+            <button onclick="sendVoiceMessage()" class="btn-primary" style="flex: 1;">生成语音</button>
+        </div>
+    </div>
+</div>
 
-
+<div class="modal-overlay" id="transfer-modal-overlay"></div>
+<div class="modal-container" id="transfer-modal-container">
+    <div class="modal-content">
+        <div class="modal-header">发起转账</div>
+        <div class="modal-body" style="display: flex; flex-direction: column; gap: 15px;">
+            <input type="number" id="transfer-amount-input" class="drawer-input" placeholder="输入转账金额">
+            <input type="text" id="transfer-remark-input" class="drawer-input" placeholder="留言 (选填)">
+        </div>
+        <div style="display: flex; gap: 10px; padding: 16px; border-top: 1px solid #e5e5e5;">
+            <button onclick="closeTransferModal()" class="drawer-button-cancel" style="flex: 1;">取消</button>
+            <button onclick="sendTransferMessage()" class="btn-primary" style="flex: 1;">发起转账</button>
+        </div>
+    </div>
+</div>
+<div class="action-sheet-modal" id="transfer-action-sheet" onclick="closeTransferActionSheet()">
+    <div class="picker-content" onclick="event.stopPropagation()">
+        <ul class="picker-list" style="padding:10px 0;">
+            <li class="picker-item" onclick="acceptTransfer()">确认收款</li>
+            <li class="picker-item danger" onclick="rejectTransfer()">拒绝收款</li>
+        </ul>
+        <div class="picker-content" style="border-radius:0; margin-top: 8px;">
+             <ul class="picker-list"><li class="picker-item" onclick="closeTransferActionSheet()">取消</li></ul>
+        </div>
+    </div>
+    <!-- 隐藏一个输入框来存储当前操作的消息ID -->
+    <input type="hidden" id="current-transfer-message-id">
+</div>
+<div class="modal-overlay" id="location-modal-overlay"></div>
+<div class="modal-container" id="location-modal-container">
+    <div class="modal-content">
+        <div class="modal-header">发送位置</div>
+        <div class="modal-body" style="display: flex; flex-direction: column; gap: 15px;">
+            <input type="text" id="location-place-input" class="drawer-input" placeholder="输入你所在的地点">
+        </div>
+        <div style="display: flex; gap: 10px; padding: 16px; border-top: 1px solid #e5e5e5;">
+            <button onclick="closeLocationModal()" class="drawer-button-cancel" style="flex: 1;">取消</button>
+            <button onclick="sendLocationMessage()" class="btn-primary" style="flex: 1;">发送</button>
+        </div>
+    </div>
+</div>
 <!-- 3. 私信列表模态框 -->
 
 

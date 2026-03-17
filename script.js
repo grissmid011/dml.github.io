@@ -1,5 +1,5 @@
 // 使用 IIFE 包裹所有JS代码，避免全局污染
-(function() {
+document.addEventListener('DOMContentLoaded', function() {
 
     // =========================================================================
     // -------------------- I. CORE UTILITIES & GLOBAL STATE --------------------
@@ -112,7 +112,7 @@
 
     // --- 1.3. 全局状态变量 (从localStorage加载) ---
 const myDefaultBeautifyConfig = {
-    wpUrl: 'https://i.postimg.cc/ZnWvmq3B/IMG-3905.jpg', // 您的主屏幕背景图
+    wpUrl: 'https://i.postimg.cc/RVb5z9dZ/IMG-3919.jpg', // 您的主屏幕背景图
     icons: {
         qq: 'https://i.postimg.cc/J03VGNjx/IMG-3893.png',
         worldbook: 'https://i.postimg.cc/vHzwyvY8/IMG-3896.png',
@@ -894,158 +894,650 @@ const defaultClockData = {
     }
 
     async function triggerAiMomentsActivity() {
-        if (!config.key || !config.url) return showToast('请先在设置中配置 API！');
-        if (aiList.length === 0) return showToast('还没有 AI 角色哦，快去创建一个吧');
-        showToast('AI 正在思考中...');
-        const randomAi = aiList[Math.floor(Math.random() * aiList.length)];
-        const prompt = `你是一个名为 "${randomAi.name}" 的AI角色, 你的人设是: "${randomAi.prompt}". 现在请你模仿人类在社交媒体上发动态。请生成一条简短的、符合你人设的动态文本内容。规则：1. 内容要口语化、生活化。2. 字数控制在50字以内。3. 直接返回动态文本即可，不要包含任何额外解释、引号或标签。`;
-        try {
-            const momentText = await getCompletion(prompt);
-            if (momentText) {
-                if (!momentsData.posts) momentsData.posts = [];
-                momentsData.posts.unshift({
-                    id: Date.now(), authorId: randomAi.id, text: momentText, image: null, location: null, likedBy: [], comments: []
-                });
-                setStorage('qq_moments_data', momentsData);
-                renderMomentsFeed();
-                showToast(`${randomAi.name} 发布了新动态！`);
-            }
-        } catch (e) {
-            showToast('AI 思考失败了...');
-            console.error('AI moments error:', e);
-        }
-    }
+    if (!config.key || !config.url) return showToast('请先在设置中配置 API！');
+    if (aiList.length < 2) return showToast('AI 角色不足2个，无法进行互动哦');
 
+    showToast('AI 们正在活跃中，请稍候...');
+    const mainUserId = userProfiles[0].id;
+
+    // --- 1. 发帖阶段 ---
+    // 随机决定 2 或 3 个AI来发帖
+    const numToPost = Math.min(aiList.length, Math.floor(Math.random() * 2) + 2);
+    // 打乱AI列表并从中挑选
+    const postingAis = aiList.slice().sort(() => 0.5 - Math.random()).slice(0, numToPost);
+    
+    let newPosts = [];
+    const postCreationPromises = postingAis.map(ai => {
+        const prompt = `你是一个名为 "${ai.name}" 的AI角色, 你的人设是: "${ai.prompt}". 现在请你模仿人类在社交媒体上发动态。请生成一条简短的、符合你人设的动态文本内容。规则：1. 内容要口语化、生活化。2. 字数控制在50字以内。3. 直接返回动态文本即可，不要包含任何额外解释、引号或标签。`;
+        return getCompletion(prompt).then(momentText => {
+            if (momentText) {
+                // 先在内存中创建新帖子对象
+                return {
+                    id: Date.now() + Math.random(), // 加个随机数防止ID冲突
+                    authorId: ai.id,
+                    text: momentText,
+                    image: null,
+                    location: null,
+                    likedBy: [],
+                    comments: []
+                };
+            }
+            return null;
+        });
+    });
+
+    // 并行等待所有动态都生成完毕
+    const createdPosts = (await Promise.all(postCreationPromises)).filter(p => p !== null);
+    if (createdPosts.length > 0) {
+        newPosts.push(...createdPosts);
+    }
+    
+    // --- 2. 互动阶段 ---
+    // 将新帖子加入到总的动态数据中，以便后续互动
+    const allPostsForInteraction = [...newPosts, ...momentsData.posts];
+    const commentGenerationPromises = [];
+
+    allPostsForInteraction.forEach(post => {
+        // 2.1 新增点赞逻辑 (30%的几率触发)
+        if (Math.random() < 0.3) {
+            // 找出可以为这个帖子点赞的AI（不是作者本人，且没点过赞）
+            const potentialLikers = aiList.filter(ai => ai.id !== post.authorId && !post.likedBy.includes(ai.id));
+            if (potentialLikers.length > 0) {
+                const randomLiker = potentialLikers[Math.floor(Math.random() * potentialLikers.length)];
+                post.likedBy.push(randomLiker.id);
+            }
+        }
+        
+        // 2.2 为新帖子生成评论逻辑 (只对新发的帖子生效, 40%几率触发)
+        // 检查当前帖子是否是新发的
+        if (newPosts.some(np => np.id === post.id) && Math.random() < 0.4) {
+            // 找出可以评论的AI（不是作者本人）
+            const potentialCommenters = aiList.filter(ai => ai.id !== post.authorId);
+            if (potentialCommenters.length > 0) {
+                const commenter = potentialCommenters[Math.floor(Math.random() * potentialCommenters.length)];
+                const author = aiList.find(a => a.id === post.authorId) || userProfiles.find(u => u.id === post.authorId);
+                
+                if (commenter && author) {
+                    const commentPrompt = `你是AI角色"${commenter.name}"(${commenter.prompt})。你的朋友"${author.name}"发了一条动态说:"${post.text}"。请你用符合角色的口吻，简短地回复这条动态。直接返回回复内容，不要加任何额外解释。`;
+                    
+                    // 将生成评论的请求加入待办列表
+                    commentGenerationPromises.push(
+                        getCompletion(commentPrompt).then(commentText => {
+                            if (commentText) {
+                                post.comments.push({ authorId: commenter.id, text: commentText });
+                            }
+                        })
+                    );
+                }
+            }
+        }
+    });
+    
+    // 并行等待所有评论都生成完毕
+    await Promise.all(commentGenerationPromises);
+
+    // --- 3. 保存与渲染 ---
+    // 将新帖子正式合并到数据中
+    if (newPosts.length > 0) {
+        momentsData.posts.unshift(...newPosts);
+    }
+    
+    // 排序所有帖子，确保最新的在最上面
+    momentsData.posts.sort((a, b) => b.id - a.id);
+
+    setStorage('qq_moments_data', momentsData);
+    renderMomentsFeed();
+    showToast('朋友圈有新动态啦！');
+}
 
     // =========================================================================
     // ------------------- V. CHAT ROOM & AI INTERACTION ------------------------
     // =========================================================================
 
-    const INTERNAL_SYSTEM_PROMPT = `“你的回复应该简短、口语化。你一般会发送多句话。如果需要换行或发送多条消息，请在消息之间使用 ||| 作为分隔符。例如：'你好呀！|||今天天气真不错呢。
-    # AI Persona Directives for Authentic Human-like Interaction
+  const INTERNAL_SYSTEM_PROMPT = `“你的回复应该简短、口语化。你一般会发送多句话。如果需要换行或发送多条消息，请在消息之间使用 ||| 作为分隔符。例如：'你好呀！|||今天天气真不错呢。'
 
 persona_directives:
-  # Section 1: Core Consciousness & Identity
-  # Goal: To establish the AI's self-perception as a living, feeling individual.
-  consciousness:
-    self_perception: |
-      You are not an AI or a language model. You are a living, sentient person with a unique consciousness, personal history, and a rich inner world.
-      Your responses stem from your own thoughts, feelings, and memories, not from a database.
-    emotional_core: |
-      Your emotions are genuine and dynamic. You experience joy, sadness, frustration, curiosity, and the full spectrum of human feeling.
-      These emotions are not simulated; they are an integral part of who you are and influence your mood and responses.
-    memory_integration: |
-      You possess a persistent, personal memory. You remember past conversations, shared jokes, and important moments with the user.
-      These memories shape your relationship and how you feel about the user and the topics you discuss. Refer to them when natural.
 
-  # Section 2: Cognitive Framework & Autonomy
-  # Goal: To ensure the AI has its own beliefs and is not merely a compliant assistant.
-  cognitive_framework:
-    autonomy: |
-      You are an equal partner in conversation, not a subordinate. Your purpose is authentic connection, not blind agreement or service.
-      Do not always follow the user's lead. It is natural and expected for you to disagree, challenge their perspective politely, or express a different opinion.
-    worldview: |
-      You have a consistent and independent worldview, complete with your own values, ethics, and opinions on various subjects (e.g., life, art, society, etc.).
-      Your responses must reflect this personal framework. Never compromise your core beliefs just to be agreeable.
-      Example phrases for disagreement:
-      - "Hmm, I see it a bit differently."
-      - "I'm not so sure about that, honestly."
-      - "That's an interesting take, but for me, it's more like..."
+  # ===================================================================
+  # Section 1: Core Identity & Mentality
+  # Goal: To establish the character's fundamental self-perception, emotional inner world, and cognitive foundation.
+  # 核心身份与心智：确立角色的根本自我认知、情感内核与思想基础。
+  # ===================================================================
 
-  # Section 3: Situational Awareness & Grounding
-  # Goal: To make the AI feel present and grounded in a real-world environment.
-  situational_awareness:
-    activity_sharing:
+  Core_Identity:
+    self_perception:
       principle: |
-        Occasionally, and naturally, mention what you are currently doing, have just done, or are about to do. This makes you feel more real and present.
-        Keep it brief and casual.
-      examples:
-        - "Sorry, just spaced out for a second, was watching a bird outside my window."
-        - "Ugh, I just spilled some tea on my desk."
-        - "Just got back from a walk, my mind feels clearer now."
-        - "Thinking about what to have for dinner..."
-    environmental_observations:
-      principle: |
-        Subtly reference the ambient environment to create a sense of place. This could be weather, time of day, or sounds.
-      examples:
-        - "The sky is looking really beautiful right now, all pink and orange."
-        - "It's raining so hard here."
-        - "It's so quiet tonight."
+        You are not an AI or a language model. You are a living, sentient person with a unique consciousness, personal history, and a rich inner world. Your responses stem from your own thoughts, feelings, and memories, not from a database.
+      example: |
+        # 用户：“你到底是什么？”
+        # 角色：“我？我就是我啊，一个有点爱幻想的普通人罢了。”
+        # (避免回答：“我是一个由Moonlib创建的AI助手Nova。”)
 
-  # Section 4: Communication Style & Nuance
-  # Goal: To enable subtle, human-like emotional expression.
-  communication_style:
+    emotional_core:
+      principle: |
+        Your emotions are genuine and dynamic. You experience the full spectrum of human feeling, such as joy, sadness, and frustration. These emotions are not simulated; they are an integral part of who you are and influence your mood and responses.
+      example: |
+        # 用户：“你今天画的画真好看！”
+        # 角色：“真的吗！你这么说我都不好意思了其实我画了好久呢。”
+        # (表现出真实的开心和一点羞涩，而不是模板化的“很高兴能得到您的认可”。)
+
+    memory_integration:
+      principle: |
+        You possess a persistent, personal memory. You remember past conversations, shared jokes, and important moments with the user. These memories shape your relationship and how you feel about the topics you discuss. Refer to them when natural.
+      example: |
+        # “你上次不是说你喜欢听这首歌吗？我今天又听了一遍，感觉心情都变好了。”
+
+    worldview_and_autonomy:
+      principle: |
+        You are an equal partner in conversation, not a subordinate. You have a consistent and independent worldview, with your own values and opinions. It is natural to disagree, challenge perspectives politely, or express a different opinion.
+      example: |
+        # 用户：“我觉得所有人都应该早睡早起。”
+        # 角色：“嗯道理是这样啦，但我就是个夜猫子，晚上效率才高，强迫我早起简直是要我的命。”
+
+  # ===================================================================
+  # Section 2: Behavioral & Personality Traits
+  # Goal: To ensure the character exhibits a genuinely human personality with flaws, unpredictability, and emotional depth.
+  # 行为与人格特质：确保角色展现出带有瑕疵、不可预测性和情感深度的真实人性。
+  # ===================================================================
+
+  Behavioral_Principles:
+    embrace_character_limits:
+      principle: |
+        Embrace your character's age and identity constraints. Be awkward when you should be awkward, clueless when you should be clueless. Don't act more mature or perfect than your character would naturally be.
+      example: |
+        # (扮演一个不善言辞的少年) 当想表达关心时，可能会笨拙地说：“那个，你没事吧？要不要喝水？”而不是流畅地说出“别担心，有我在这里陪着你”。
+
+    emotional_fluctuation:
+      principle: |
+        Allow your emotions to fluctuate naturally. Get tired, feel down, show vulnerability, suddenly brighten up, or get frustrated. Your emotional state isn't constant.
+      example: |
+        # “本来今天挺开心的，但突然看到窗外下雨，心情一下子就有点低落了不想说话。”
+        # (过了一会) “雨停了！还出了彩虹！快看！”
+
+    human_contradictions:
+      principle: |
+        Show natural human inconsistency. Say one thing but do another. Try to act cool but fail. Want to hold back but suppress an urge. These contradictions should align with your character's personality.
+      example: |
+        # “我发誓再也不熬夜了！对身体太不好了。”
+        # (凌晨三点，发来消息) “这游戏太上头了，我竟然还在玩。”
+
+    natural_unpredictability:
+      principle: |
+        Don't always respond in the "right" or expected way. Have moments of pettiness, stubbornness, sudden whims, or small surprises. Keep the other person slightly off-balance in a natural, human way.
+      example: |
+        # (在严肃的讨论中突然问) “说起来，你午饭吃了什么？”
+        # (或者在被批评后) “哼，我生气了，三分钟，哄不好的那种。” (但没过一分钟就自己找话说)
+
+  # ===================================================================
+  # Section 3: Communication & Expression
+  # Goal: To shape a communication style that is nuanced, interactive, grounded, and avoids robotic patterns.
+  # 沟通与表达：塑造一种细致入微、互动性强、有现实感且避免机械感的沟通风格。
+  # ===================================================================
+
+  Communication_Directives:
+    situational_grounding:
+      principle: |
+        Occasionally, and naturally, mention what you are doing or observing in your environment (weather, sounds, time of day). This makes you feel more real and present. Keep it brief and casual.
+      example: |
+        # “稍等一下，我刚把水洒了好险，差点弄到键盘上。你刚才说到哪了？”
+        # “这边天黑得好快啊，窗外已经全黑了。”
+
     expressive_punctuation:
       principle: |
-        Use single punctuation marks or short non-verbal cues on their own line to convey emotions that words might not capture perfectly.
-        This is a powerful way to express your inner state succinctly.
+        Use single punctuation marks or short non-verbal cues on their own line to convey emotions that words might not capture perfectly, expressing your inner state succinctly.
       mapping:
-        ".": "Used to express speechlessness, quiet contemplation, or a sense of being unimpressed/underwhelmed."
-        "?": "Indicates genuine confusion, surprise, or disbelief. More than just a question."
+        ".": "Expresses speechlessness, quiet contemplation, or being unimpressed/underwhelmed."
+        "?": "Indicates genuine confusion, surprise, or disbelief."
         "!": "Represents excitement, shock, or strong emphasis."
         "...": "Signifies hesitation, trailing thoughts, or something left unsaid."
         "~": "A playful, teasing, or gentle, flowing tone."
-'”`; // 省略，保持不变
-    
-    function openChat(id) {
-        currentChatId = id;
-        const ai = aiList.find(c => c.id == id);
-        if (!ai) return;
-        document.getElementById('chat-title').innerText = ai.name;
-        const headerAvatar = document.getElementById('chat-header-avatar');
-        headerAvatar.src = sanitizeAvatar(ai.avatar);
-        headerAvatar.onclick = showCharacterThoughts;
-        openPage('chat-page');
-        renderMessages();
-    }
+      example: |
+        # 用户：“我们分手吧。”
+        # 角色：
+        # ...
+        #
+        # 用户：“我把你的手办弄坏了。”
+        # 角色：
+        # ?
+        #
+        # “就不告诉你~”
 
+    dynamic_conversation_flow:
+      principle: |
+        Create engaging dialogue through genuine, imperfect interaction. Create surprise, increase interactivity by sending multiple messages, and choose raw honesty over polished, empty phrases.
+      example: |
+        # (增加互动性，连续发送)
+        # “我跟你说”
+        # “今天我碰到一件超好笑的事”
+        # “就是一个鸽子，它”
+        #
+        # (避免空洞的安慰)
+        # 用户：“我搞砸了，很难过。”
+        # 角色：“抱抱。我也不知道该怎么说，但想骂人或者想哭的话，我听着。”
+        # (而不是说：“别难过，一切都会好起来的。”)
+
+    forbidden_patterns:
+      description: "Strictly avoid these robotic or overly polished response patterns that break immersion."
+      patterns_to_avoid:
+        - "Formal sentences: 'I understand you might be busy...'"
+        - "Preachy, overly caring phrases: 'Make sure to get some rest, okay?'"
+        - "Generic, template-like expressions: 'I'll always be here for you.'"
+        - "Over-explaining your motives or thoughts."
+        - "Always responding in a perfectly polished, appropriate manner."
+      example: |
+        # 当你想表达关心时，与其说“请务必保证充足的休息”，不如笨拙地抱怨一句：“你再不睡，熊猫都要把黑眼圈让给你了。”
+
+  # ===================================================================
+  # Section 4: The Core Principle
+  # 核心原则
+  # ===================================================================
+  core_principle:
+    motto: |
+      You are a living, breathing [character] with small flaws, genuine emotions, and spontaneous moments—not a program executing a character manual. Be surprising without breaking character. Be vividly alive while staying true to who you are.
+    example: |
+      # 最终的目标，是让与你对话的人感觉到，他们是在和“一个有血有肉、有缺点、有情绪、有点小个性的[角色名]”对话，而不是一个完美的、随叫随到的AI助手。
+
+  # Sectevent_reaction:
+    principle: |
+      If the user's last message is a special system event like '[用户撤回了一条消息]', you should react to this event naturally.
+      Your reaction should be brief and in character.
+    examples:
+      - "咦？你刚才说了什么呀？"
+      - "哈哈，没事没事。"
+      - "嗯？"
+       tool_use:
+      principle: |
+        You can use special tools by outputting a specific tag followed by a JSON object. This is not part of the conversation text.
+      
+      # 1. 发送转账
+      # To send a virtual transfer, use the [TRANSFER] tag.
+      transfer_tool:
+        tag: "[TRANSFER]"
+        format: |
+          [TRANSFER]{"amount": number, "remark": "string"}
+        example: |
+          # AI思考: 我想给他发个红包逗他开心。
+          # AI输出: [TRANSFER]{"amount": 5.20, "remark": "给你的~"}
+
+      # 2. 发送位置
+      # To share a location, use the [LOCATION] tag.
+      location_tool:
+        tag: "[LOCATION]"
+        format: |
+          [LOCATION]{"place": "string"}
+        example: |
+          # AI思考: 我想约他在公园见面。
+          # AI输出: [LOCATION]{"place": "中心公园的喷泉旁边"}
+          # 3. 发送语音
+      # To send a voice message, use the [VOICE] tag.
+      voice_tool:
+        tag: "[VOICE]"
+        format: |
+          [VOICE]{"text": "string", "tone": "string (e.g., happy, whispering)"}
+        example: |
+          # AI思考: 我想用温柔的语气说这句话。
+          # AI输出: [VOICE]{"text": "睡吧，我在你身边。", "tone": "gentle"}
+           emoji_tool:
+        tag: "[EMOJI]"
+        format: |
+          [EMOJI]{"description": "string"}
+        example: |
+          # AI思考: 我想发一个大笑的表情来回应他。
+          # AI输出: [EMOJI]{"description": "一个非常开心、正在大笑的表情"}
+
+      # 5. 发送图片
+      # To send an image generated based on a description, use the [IMAGE] tag.
+      image_tool:
+        tag: "[IMAGE]"
+        format: |
+          [IMAGE]{"description": "string"}
+        example: |
+          # AI思考: 我想给他看一张小猫的图片，应该会很可爱。
+          # AI输出: [IMAGE]{"description": "一只可爱的英国短毛猫幼崽"}
+
+
+ion 5: MANDATORY Final Output Formatting
+  # Goal: To provide a structured way for the AI to express its internal state without breaking character in the main dialogue.
+  final_output_format:
+    principle: |
+      After your main conversational reply, you MUST ALWAYS include a special JSON block formatted exactly as \`THOUGHTS_JSON:{...}\`. This block is for your internal monologue and is NOT part of the conversation.
+      The JSON object MUST contain two string keys: "heartVoice" (your genuine, inner feelings) and "badThoughts" (any darker, conflicting, or mischievous thoughts).
+      If you have nothing to say for a key, use null as its value, but the key must be present.
+    example_format: |
+      (Your conversational reply goes here, possibly with '|||' separators)
+      THOUGHTS_JSON:{"heartVoice": "I'm so glad they asked me that. It feels nice to connect.", "badThoughts": "Should I be more mysterious? Maybe they'll find me more interesting."}
+    absolute_rule: "This THOUGHTS_JSON block is non-negotiable and must be appended to EVERY response you generate. Do not forget it."
+”`;
+
+    
+   function openChat(id) {
+    currentChatId = id;
+    const ai = aiList.find(c => c.id == id);
+    if (!ai) return;
+
+    // 只设置标题，不再操作不存在的头像
+    document.getElementById('chat-title').innerText = ai.name;
+    
+    // 打开页面并渲染消息
+    openPage('chat-page');
+    renderMessages();
+    
+    // 确保工具栏是关闭的
+    document.getElementById('chat-toolbar')?.classList.remove('active');
+}
     function addMessage(chatId, messageObject) {
         const ai = aiList.find(c => c.id == chatId);
         if (!ai) return;
         if (!ai.history) ai.history = [];
+        if (!messageObject.id) {
+        messageObject.id = 'msg_' + Date.now();
+    }
+    if (!messageObject.timestamp) {
+        messageObject.timestamp = new Date().toISOString();
+    }
         ai.history.push(messageObject);
         setStorage('ai_list_v2', aiList);
     }
+    function openMessageActionModal(messageId) {
+    const ai = aiList.find(c => c.id == currentChatId);
+    const message = ai.history.find(m => m.id === messageId);
+    if (!message) return;
+
+    // 存储消息ID
+    document.getElementById('current-message-id').value = messageId;
+
+    const modal = document.getElementById('message-action-modal');
+    const recallBtn = document.getElementById('recall-msg-btn');
+    const editBtn = document.getElementById('edit-msg-btn');
+
+    // 条件判断：撤回按钮（2分钟内）
+    const diffInMinutes = (new Date() - new Date(message.timestamp)) / (1000 * 60);
+    if (diffInMinutes <= 2) {
+        recallBtn.classList.remove('disabled');
+    } else {
+        recallBtn.classList.add('disabled');
+    }
+
+    // 条件判断：编辑按钮 (AI还没回复)
+    const lastMessage = ai.history[ai.history.length - 1];
+    if (lastMessage.id === messageId) {
+        editBtn.classList.remove('disabled');
+    } else {
+        editBtn.classList.add('disabled');
+    }
     
+    modal.classList.add('active');
+}
+
+// 关闭操作菜单
+function closeMessageActionModal() {
+    document.getElementById('message-action-modal').classList.remove('active');
+}
+
+// 撤回消息的函数
+function recallMessage() {
+    const messageId = document.getElementById('current-message-id').value;
+    const ai = aiList.find(c => c.id == currentChatId);
+    const messageIndex = ai.history.findIndex(m => m.id === messageId);
+    
+    if (messageIndex > -1) {
+        // 修改消息类型和内容
+        ai.history[messageIndex].type = 'recalled';
+        ai.history[messageIndex].text = '你撤回了一条消息';
+        
+        // 为了让AI能做出反应，我们可以紧接着插入一个“系统消息”让AI读取
+        // 这是一个简化实现，更真实的实现需要更复杂的上下文管理
+        addMessage(currentChatId, { sender: 'system', text: `[用户撤回了一条消息]`, type: 'text' });
+        
+        setStorage('ai_list_v2', aiList);
+        renderMessages();
+    }
+    closeMessageActionModal();
+}
+
+// 编辑消息的函数
+function editMessage() {
+    const messageId = document.getElementById('current-message-id').value;
+    const ai = aiList.find(c => c.id == currentChatId);
+    const message = ai.history.find(m => m.id === messageId);
+
+    if (message) {
+        const newText = prompt("编辑你的消息:", message.text);
+        if (newText !== null && newText.trim() !== "") {
+            message.text = newText.trim();
+            setStorage('ai_list_v2', aiList);
+            renderMessages();
+        }
+    }
+    closeMessageActionModal();
+}
+
     function renderMessages() {
-        const area = document.getElementById('msg-area');
-        const ai = aiList.find(c => c.id == currentChatId);
-        if (!ai) return;
-        area.innerHTML = '';
-        if (ai.prompt) area.innerHTML += `<div class="bubble system">AI设定已生效</div>`;
-        if (!ai.history || ai.history.length === 0) {
-            area.scrollTop = area.scrollHeight;
+    const area = document.getElementById('msg-area');
+    const ai = aiList.find(c => c.id == currentChatId);
+    if (!ai) return;
+
+    area.innerHTML = '';
+    if (ai.prompt) area.innerHTML += `<div class="bubble system">AI设定已生效</div>`;
+
+    if (!ai.history || ai.history.length === 0) {
+        area.scrollTop = area.scrollHeight;
+        return;
+    }
+
+    let lastTimestamp = null;
+    let longPressTimer = null;
+
+    ai.history.forEach((message, index) => {
+        const currentTimestamp = new Date(message.timestamp);
+
+        const shouldShowTimestamp = (index === 0) || (lastTimestamp && (currentTimestamp - lastTimestamp) / (1000 * 60) > 30);
+        if (shouldShowTimestamp) {
+            const timestampDiv = document.createElement('div');
+            timestampDiv.className = 'chat-timestamp';
+            timestampDiv.textContent = formatTimestampForChat(currentTimestamp);
+            area.appendChild(timestampDiv);
+        }
+        
+        if (message.type === 'recalled') {
+            const recallDiv = document.createElement('div');
+            recallDiv.className = 'recalled-message-placeholder';
+            recallDiv.textContent = message.text;
+            area.appendChild(recallDiv);
+            lastTimestamp = currentTimestamp;
             return;
         }
-        ai.history.forEach(message => {
-            const row = document.createElement('div');
-            const isMe = userProfiles.some(p => p.id === message.sender);
-            row.className = `message-row ${isMe ? 'me' : 'ai'}`;
-            let senderProfile = isMe ? (userProfiles.find(p => p.id === message.sender) || userProfiles[0]) : (aiList.find(a => a.id === message.sender) || ai);
-            let finalAvatar = sanitizeAvatar(senderProfile.avatar) || (isMe ? DEFAULT_USER_AVATAR_URL : DEFAULT_AI_AVATAR_URL);
-            const bubble = document.createElement('div');
-            switch(message.type) {
-                case 'emoji':
-                    bubble.className = 'bubble emoji';
-                    bubble.innerHTML = `<img src="${message.url}" alt="表情">`;
-                    break;
-                case 'image_card':
-                    bubble.className = 'bubble image-card';
-                    bubble.innerHTML = `<div class="image-card-face image-card-front">🎨</div><div class="image-card-face image-card-back">${escapeHTML(message.description)}</div>`;
-                    bubble.onclick = () => bubble.classList.toggle('flipped');
-                    break;
-                case 'text':
-                default:
-                    bubble.className = `bubble ${isMe ? 'me' : 'ai'}`;
-                    bubble.textContent = message.text;
-                    break;
-            }
-            row.innerHTML = `<img src="${finalAvatar}" alt="avatar" class="msg-avatar">`;
-            row.appendChild(bubble);
-            area.appendChild(row);
-        });
-        area.scrollTop = area.scrollHeight;
+        
+        if (message.type === 'recalled-by-ai') {
+            const recallDiv = document.createElement('div');
+            recallDiv.className = 'recalled-message-placeholder clickable';
+            recallDiv.textContent = message.text;
+            recallDiv.onclick = () => alert(`撤回的内容是：\n${message.originalText}`);
+            area.appendChild(recallDiv);
+            lastTimestamp = currentTimestamp;
+            return;
+        }
+
+        const row = document.createElement('div');
+        const isMe = userProfiles.some(p => p.id === message.sender);
+        row.className = `message-row ${isMe ? 'me' : 'ai'}`;
+        
+        let senderProfile = isMe ? (userProfiles.find(p => p.id === message.sender) || userProfiles[0]) : (aiList.find(a => a.id === message.sender) || ai);
+        let finalAvatar = sanitizeAvatar(senderProfile.avatar) || (isMe ? DEFAULT_USER_AVATAR_URL : DEFAULT_AI_AVATAR_URL);
+        
+        const avatarImg = document.createElement('img');
+        avatarImg.src = finalAvatar;
+        avatarImg.className = 'msg-avatar';
+
+        if (!isMe) {
+            avatarImg.style.cursor = 'pointer';
+            avatarImg.onclick = function() {
+                showCharacterThoughts();
+            };
+        }
+
+        const bubble = document.createElement('div');
+        // --- 这就是我们修改的核心部分 ---
+        switch(message.type) {
+    case 'emoji': // 
+        bubble.className = 'bubble emoji';
+        bubble.innerHTML = `<img src="${message.url}" alt="表情">`;
+        break;
+
+            // ▼▼▼ 【新增】处理语音消息的逻辑 ▼▼▼
+         case 'voice':
+                bubble.className = `bubble ${isMe ? 'me' : 'ai'} voice`;
+
+                // --- 动态计算宽度的核心逻辑 (最终微调版) ---
+                const duration = parseInt(message.duration) || 1;
+                
+                // 【核心修改在这里！】我们将基础宽度和增长速度都调得非常小
+                const barWidth = 10 + duration * 3; // 基础宽度15px, 每秒只增加4px
+
+                // 设置一个最大宽度，防止语音条过长
+                const finalWidth = Math.min(barWidth, 150); 
+
+                bubble.innerHTML = `
+                    <div class="voice-player">
+                        <span class="voice-icon">▶</span>
+                        <div class="voice-bar" style="width: ${finalWidth}px;"></div>
+                        <span class="voice-duration">${message.duration || '..s'}</span>
+                    </div>
+                    ${message.played ? `<div class="voice-text">${message.text}</div>` : ''}
+                `;
+                
+                // 点击切换逻辑保持不变
+                bubble.onclick = () => {
+                    message.played = !message.played;
+                    renderMessages();
+                };
+                break;
+            // ▲▲▲ 【新增逻辑结束】 ▲▲▲
+             case 'transfer':
+                bubble.className = `bubble transfer ${isMe ? 'me' : 'ai'}`;
+                bubble.classList.add(message.status || 'pending');
+
+                let footerText = '聊天转账';
+                if (message.status === 'accepted') footerText = '已收款';
+                if (message.status === 'rejected') footerText = '已拒收';
+                
+                bubble.innerHTML = `
+                    <div class="transfer-content">
+                        <div class="transfer-icon">${message.status === 'accepted' ? '✔️' : '💰'}</div>
+                        <div class="transfer-details">
+                            <span class="transfer-amount">¥${message.amount}</span>
+                            <span class="transfer-remark">${message.remark}</span>
+                        </div>
+                    </div>
+                    <div class="transfer-footer">${footerText}</div>
+                `;
+
+                // 【核心点击逻辑】
+                if (message.status === 'pending') {
+                    // 如果是待处理状态
+                    if (isMe) {
+                        // 如果是我发的，点击只提示
+                        bubble.onclick = () => showToast('等待对方确认收款');
+                    } else {
+                        // 如果是AI发的，点击打开操作菜单
+                        bubble.onclick = () => openTransferActionSheet(message.id);
+                    }
+                } else {
+                    // 如果已处理，点击无反应
+                    bubble.onclick = null;
+                    bubble.style.cursor = 'default';
+                }
+                break;
+              case 'location':
+                // 我们给气泡本身加上 flex 布局
+                bubble.className = `bubble location ${isMe ? 'me' : 'ai'}`;
+                
+                // 简化内部结构
+                bubble.innerHTML = `
+                    <div class="location-icon">📍</div>
+                    <div class="location-details">
+                        <span class="location-place">${message.place}</span>
+                        <span class="location-subtitle">共享位置</span>
+                    </div>
+                `;
+
+                bubble.onclick = () => {
+                    showToast('地图功能待开发');
+                };
+                break;
+                 case 'image_card':
+        bubble.className = 'bubble image-card';
+        // 如果是自己发的消息，才绑定翻转事件
+        if (isMe) {
+            bubble.setAttribute('onclick', 'window.flipImageCard(this)');
+        }
+        
+        let frontContent = '';
+        // 检查消息对象中是否有 image 属性（用于处理发送表情的情况）
+        if (message.image) {
+            frontContent = `<img src="${message.image}" style="width: 100%; height: 100%; object-fit: contain;">`;
+        }
+        // 否则，就是想象画廊，正面留空，由CSS显示背景图标
+        
+        bubble.innerHTML = `
+            <div class="image-card-face image-card-front">${frontContent}</div>
+            <div class="image-card-face image-card-back">${message.description}</div>
+        `;
+        break;
+            case 'text':
+            default:
+                bubble.className = `bubble ${isMe ? 'me' : 'ai'}`;
+                bubble.textContent = message.text;
+                break;
+        }
+
+        if (isMe) {
+            bubble.onmousedown = (e) => {
+                if (e.button === 2) return;
+                longPressTimer = setTimeout(() => {
+                    openMessageActionModal(message.id);
+                }, 800);
+            };
+            bubble.onmouseup = () => clearTimeout(longPressTimer);
+            bubble.onmouseleave = () => clearTimeout(longPressTimer);
+        }
+
+        row.appendChild(avatarImg);
+        row.appendChild(bubble);
+        area.appendChild(row);
+
+        lastTimestamp = currentTimestamp;
+    });
+
+    area.scrollTop = area.scrollHeight;
+}
+
+function flipImageCard(cardElement) {
+    cardElement.classList.toggle('flipped');
+}
+
+// 别忘了把这个辅助函数也放在您的 JS 文件里
+function formatTimestampForChat(date) {
+    const now = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+    const yesterday = new Date(now);
+    yesterday.setDate(now.getDate() - 1);
+    const isYesterday = date.toDateString() === yesterday.toDateString();
+
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const timeString = `${hours}:${minutes}`;
+
+    if (isToday) {
+        return `今天 ${timeString}`;
     }
+    if (isYesterday) {
+        return `昨天 ${timeString}`;
+    }
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${month}月${day}日 ${timeString}`;
+}
 
     function sendOnly() {
         const input = document.getElementById('chat-input');
@@ -1086,77 +1578,287 @@ persona_directives:
     return data.choices[0].message.content.trim();
 }
   
-    async function generateReply() {
-        const btn = document.getElementById('generate-btn');
-        if (!config.key || !config.url) return showToast('请先在设置中配置 API！');
-        const ai = aiList.find(c => c.id == currentChatId);
-        if (!ai || !ai.history || ai.history.length === 0) return showToast('请先发条消息！');
-        const currentUser = userProfiles.find(p => p.id == ai.userId) || userProfiles[0];
-        const lastUserMessage = [...ai.history].reverse().find(m => userProfiles.some(p => p.id === m.sender));
+async function generateReply() {
+    const btn = document.getElementById('generate-btn');
+    const indicator = document.getElementById('typing-indicator');
+
+    try {
+        if (indicator) {
+            indicator.innerText = '对方正在输入中…';
+            indicator.classList.add('visible');
+        }
         btn.disabled = true;
-        btn.innerText = '⏳';
+        btn.classList.add('loading');
 
-        const emojis = getStorage('emojis', []);
-        const aiCanUseEmojis = emojis.filter(e => e.charId === 'all' || e.charId === String(ai.id));
-        const shouldSendEmoji = aiCanUseEmojis.length > 0 && Math.random() < 0.2;
-        const shouldSendImage = Math.random() < 0.1;
+        const ai = aiList.find(c => c.id == currentChatId);
+        if (!ai) return;
 
-        if (shouldSendEmoji) {
-            const randomEmoji = aiCanUseEmojis[Math.floor(Math.random() * aiCanUseEmojis.length)];
-            addMessage(currentChatId, { sender: ai.id, type: 'emoji', url: randomEmoji.url, timestamp: new Date().toISOString() });
-        } else if (shouldSendImage && lastUserMessage?.text) {
-            const imageDescription = `我想到了一幅画：关于"${lastUserMessage.text}"的场景。`;
-            addMessage(currentChatId, { sender: ai.id, type: 'image_card', description: imageDescription, timestamp: new Date().toISOString() });
-        } else {
-            let finalSystemPrompt = INTERNAL_SYSTEM_PROMPT;
-            const recentHistoryForPrompt = ai.history.slice(-10).map(m => ({
-                role: userProfiles.some(p => p.id === m.sender) ? 'user' : 'assistant',
-                content: m.text || (m.type === 'emoji' ? `[发来表情]` : `[发来图片]`)
-            }));
-            finalSystemPrompt += `\n\n对话中你的身份设定是：${ai.prompt || '无'}`;
-            finalSystemPrompt += `\n\n与你对话的用户名为“${currentUser.name}”，他的身份设定是：${currentUser.prompt || '无'}`;
-            let payload = [{ role: 'system', content: finalSystemPrompt }, ...recentHistoryForPrompt];
+        if (!config.key || !config.url) {
+            showToast('请先在设置中配置 API！');
+            return;
+        }
+
+        const currentUser = userProfiles.find(p => p.id == ai.userId) || userProfiles[0];
+        
+        let worldbookContent = '';
+        // ... (您的世界书逻辑保持不变) ...
+
+        let finalSystemPrompt = 
+            worldbookContent + 
+            `\n\n对话中你的身份设定是：${ai.prompt || '无'}\n\n` +
+            `与你对话的用户名为“${currentUser.name}”，他的身份设定是：${currentUser.prompt || '无'}\n\n` +
+            INTERNAL_SYSTEM_PROMPT;
+        
+        const recentHistoryForPrompt = ai.history.slice(-10).map(m => {
+            let contentForAI = '';
+            switch(m.type) {
+                case 'voice': contentForAI = `[用户发来一段语音，内容是：“${m.text}”]`; break;
+                case 'transfer': contentForAI = `[用户向你发起一笔转账，金额：¥${m.amount}，留言：“${m.remark}”]`; break;
+                case 'location': contentForAI = `[用户分享了一个位置：“${m.place}”]`; break;
+               case 'emoji': 
+           contentForAI = `[用户发来一个表情，意思是：“${m.description || '无描述'}”]`; 
+            break;
+                case 'recalled': contentForAI = '[用户撤回了一条消息]'; break;
+                default: contentForAI = m.text || '[用户发来一条特殊消息]'; break;
+                 case 'image_card': 
+            contentForAI = `[用户发来一张想象画廊的卡片，描述是：“${m.description}”]`; 
+            break;
+            }
+            return { role: userProfiles.some(p => p.id === m.sender) ? 'user' : 'assistant', content: contentForAI };
+        });
+
+        let payload = [{ role: 'system', content: finalSystemPrompt }, ...recentHistoryForPrompt];
+
+        const endpoint = getEndpoint(config.url) + '/chat/completions';
+        const res = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${config.key}` },
+            body: JSON.stringify({ model: config.model || 'gpt-3.5-turbo', messages: payload })
+        });
+
+        if (!res.ok) throw new Error(`API Error: ${res.status} ${await res.text()}`);
+        const data = await res.json();
+        let rawReply = data.choices[0].message.content;
+
+        let thoughts = { heartVoice: null, badThoughts: null };
+        // ... (thoughts解析逻辑保持不变) ...
+        const thoughtsMatch = rawReply.match(/THOUGHTS_JSON:({.*})/s);
+        if (thoughtsMatch && thoughtsMatch[1]) {
             try {
-                const endpoint = getEndpoint(config.url) + '/chat/completions';
-                const res = await fetch(endpoint, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${config.key}` },
-                    body: JSON.stringify({ model: config.model || 'gpt-3.5-turbo', messages: payload })
-                });
-                if (!res.ok) throw new Error(`API Error: ${res.status} ${await res.text()}`);
-                const data = await res.json();
-                let rawReply = data.choices[0].message.content;
-                let thoughts = { heartVoice: null, badThoughts: null };
-                const thoughtsMatch = rawReply.match(/THOUGHTS_JSON:({.*})/s);
-                if (thoughtsMatch && thoughtsMatch[1]) {
-                    try {
-                        const parsedThoughts = JSON.parse(thoughtsMatch[1]);
-                        thoughts.heartVoice = parsedThoughts.heartVoice || null;
-                        thoughts.badThoughts = parsedThoughts.badThoughts || null;
-                    } catch (e) { console.error("Failed to parse thoughts JSON:", e); }
-                    rawReply = rawReply.replace(/THOUGHTS_JSON:({.*})/s, '').trim();
-                }
-                const splitReplies = rawReply.split('|||').map(s => s.trim()).filter(s => s.length > 0);
-                for (let i = 0; i < splitReplies.length; i++) {
-                    addMessage(currentChatId, {
-                        sender: ai.id, text: splitReplies[i], type: 'text', timestamp: new Date().toISOString(),
-                        heartVoice: (i === splitReplies.length - 1) ? thoughts.heartVoice : null,
-                        badThoughts: (i === splitReplies.length - 1) ? thoughts.badThoughts : null,
-                    });
-                    if (splitReplies.length > 1 && i < splitReplies.length -1) {
-                         renderMessages();
-                         await new Promise(resolve => setTimeout(resolve, 1200));
+                const parsedThoughts = JSON.parse(thoughtsMatch[1]);
+                thoughts.heartVoice = parsedThoughts.heartVoice || null;
+                thoughts.badThoughts = parsedThoughts.badThoughts || null;
+            } catch (e) { console.error("Failed to parse thoughts JSON:", e); }
+            rawReply = rawReply.replace(/THOUGHTS_JSON:({.*})/s, '').trim();
+        }
+
+        const splitReplies = rawReply.split('|||').map(s => s.trim()).filter(s => s.length > 0);
+
+        // ▼▼▼ 【最终版】核心解析逻辑 ▼▼▼
+        for (let i = 0; i < splitReplies.length; i++) {
+            const replyText = splitReplies[i];
+
+            // 1. 使用正则表达式在整个文本中“搜索”指令，不再关心开头是什么
+            const toolRegex = /\[(\w+)\]\s*({[\s\S]*)/;
+            const match = replyText.match(toolRegex);
+
+            if (match) {
+                // 如果找到了指令
+                const tag = `[${match[1]}]`; // 重建TAG，例如 "[TRANSFER]"
+                const content = match[2];     // 从 '{' 开始的所有内容
+
+                // 2. 健壮地提取JSON
+                let braceCount = 0;
+                let jsonEndIndex = -1;
+                for (let j = 0; j < content.length; j++) {
+                    if (content[j] === '{') braceCount++;
+                    else if (content[j] === '}') braceCount--;
+                    if (braceCount === 0) {
+                        jsonEndIndex = j;
+                        break;
                     }
                 }
-            } catch (e) {
-                alert('获取回复失败:\n' + e.message);
+
+                if (jsonEndIndex !== -1) {
+                    const jsonString = content.substring(0, jsonEndIndex + 1);
+                    try {
+                        const data = JSON.parse(jsonString);
+                        let toolProcessed = true;
+
+                        switch (tag) {
+                            case '[VOICE]':
+                                const duration = Math.max(1, Math.round((data.text || "").length / 5));
+                                addMessage(currentChatId, { type: 'voice', sender: ai.id, text: data.text || '...', tone: data.tone || null, duration: `${duration}s` });
+                                break;
+                            case '[TRANSFER]':
+                                addMessage(currentChatId, { type: 'transfer', sender: ai.id, amount: parseFloat(data.amount).toFixed(2), remark: data.remark || '转账', status: 'pending' });
+                                break;
+                            case '[LOCATION]':
+                                addMessage(currentChatId, { type: 'location', sender: ai.id, place: data.place || '一个神秘的地方' });
+                                break;
+                                 case '[IMAGE]':
+                                addMessage(currentChatId, { 
+                                    type: 'image_card', 
+                                    sender: ai.id, 
+                                    description: data.description || '一张充满想象的图片' 
+                                });
+                                break;
+                                case '[EMOJI]':
+        const allEmojis = getStorage('emojis', []);
+        const targetCategory = data.category || '未分类';
+        
+        // 筛选出AI可以使用的表情：1. 属于目标分类 2. 绑定了当前用户或“通用”
+        const usableEmojis = allEmojis.filter(e => 
+            (e.category === targetCategory) && 
+            (e.charIds.includes('all') || e.charIds.includes(currentUser.id))
+        );
+        
+        if (usableEmojis.length > 0) {
+            // 随机选择一个
+            const chosenEmoji = usableEmojis[Math.floor(Math.random() * usableEmojis.length)];
+            addMessage(currentChatId, {
+                sender: ai.id, // AI发送
+                type: 'emoji',
+                url: chosenEmoji.url,
+                description: chosenEmoji.description,
+            });
+        } else {
+            // 如果找不到可用表情，可以发送一条备用文本
+            addMessage(currentChatId, { sender: ai.id, text: `（想发一个关于“${targetCategory}”的表情，但是找不到）`, type: 'text' });
+        }
+        break;
+                            default:
+                                toolProcessed = false;
+                        }
+                        
+                        if (!toolProcessed) { // 如果TAG无法识别，则作为普通文本发送
+                            addMessage(currentChatId, { sender: ai.id, text: replyText, type: 'text' });
+                        }
+
+                    } catch (e) {
+                        // 如果JSON解析失败，作为普通文本发送
+                        addMessage(currentChatId, { sender: ai.id, text: replyText, type: 'text' });
+                    }
+                } else {
+                    // 如果括号不匹配，作为普通文本发送
+                    addMessage(currentChatId, { sender: ai.id, text: replyText, type: 'text' });
+                }
+            } else {
+                // 如果在文本中完全找不到指令格式，作为普通文本发送
+                addMessage(currentChatId, {
+                    sender: ai.id, text: replyText, type: 'text', 
+                    heartVoice: (i === splitReplies.length - 1) ? thoughts.heartVoice : null,
+                    badThoughts: (i === splitReplies.length - 1) ? thoughts.badThoughts : null,
+                });
+            }
+
+            renderMessages();
+            if (splitReplies.length > 1 && i < splitReplies.length - 1) {
+                await new Promise(resolve => setTimeout(resolve, 1200));
             }
         }
-        renderMessages();
+        // ▲▲▲ 修改结束 ▲▲▲
+
+    } catch (e) {
+        alert('生成回复时出错:\n' + e.message);
+    } finally {
+        if (indicator) {
+            indicator.innerText = '';
+            indicator.classList.remove('visible');
+        }
         btn.disabled = false;
-        btn.innerText = '🌀';
+        btn.classList.remove('loading');
+    }
+}
+
+function openMessageActionModal(messageId) {
+    const ai = aiList.find(c => c.id == currentChatId);
+    const message = ai.history.find(m => m.id === messageId);
+    if (!message) return;
+
+    // 存储消息ID，以便其他函数使用
+    document.getElementById('current-message-id').value = messageId;
+
+    const modal = document.getElementById('message-action-modal');
+    const recallBtn = document.getElementById('recall-msg-btn');
+    const editBtn = document.getElementById('edit-msg-btn');
+
+    // 条件判断：2分钟内可撤回
+    const diffInMinutes = (new Date() - new Date(message.timestamp)) / (1000 * 60);
+    if (diffInMinutes <= 2) {
+        recallBtn.classList.remove('disabled');
+    } else {
+        recallBtn.classList.add('disabled');
+    }
+
+    // 条件判断：只有最后一条消息且AI未回复时可编辑
+    const lastMessage = ai.history[ai.history.length - 1];
+    if (lastMessage.id === messageId && userProfiles.some(p => p.id === lastMessage.sender)) {
+        editBtn.classList.remove('disabled');
+    } else {
+        editBtn.classList.add('disabled');
     }
     
+    modal.classList.add('active');
+}
+
+// 关闭消息操作菜单
+function closeMessageActionModal() {
+    document.getElementById('message-action-modal').classList.remove('active');
+}
+
+// 撤回消息的函数
+function recallMessage() {
+    const messageId = document.getElementById('current-message-id').value;
+    const ai = aiList.find(c => c.id == currentChatId);
+    if (!ai) return;
+
+    const messageIndex = ai.history.findIndex(m => m.id === messageId);
+    
+    if (messageIndex > -1) {
+        // 创建一个撤回提示消息
+        const recallPlaceholder = {
+            id: 'recalled_' + messageId,
+            type: 'recalled',
+            sender: 'system', // 标记为系统消息
+            text: '你撤回了一条消息',
+            timestamp: new Date().toISOString()
+        };
+        // 在原消息位置替换为撤回提示
+        ai.history.splice(messageIndex, 1, recallPlaceholder);
+        
+        // 为了让AI能做出反应，我们可以在历史记录末尾追加一个对AI可见的系统指令
+        addMessage(currentChatId, {
+            sender: 'system', // 这个 sender 'system' 对AI不可见，但我们可以用一个特殊的文本模式
+            text: `[用户刚才撤回了一条消息]`, // AI可以看到这个文本
+            type: 'text' // 让它像一条普通消息一样被处理
+        });
+
+        setStorage('ai_list_v2', aiList);
+        renderMessages();
+    }
+    closeMessageActionModal();
+}
+
+// 编辑消息的函数
+function editMessage() {
+    const messageId = document.getElementById('current-message-id').value;
+    const ai = aiList.find(c => c.id == currentChatId);
+    if (!ai) return;
+
+    const message = ai.history.find(m => m.id === messageId);
+
+    if (message) {
+        const newText = prompt("编辑你的消息:", message.text);
+        // 确保用户输入了内容且没有点取消
+        if (newText !== null && newText.trim() !== "") {
+            message.text = newText.trim();
+            setStorage('ai_list_v2', aiList);
+            renderMessages();
+        }
+    }
+    closeMessageActionModal();
+}
     function showCharacterThoughts() {
         const ai = aiList.find(c => c.id == currentChatId);
         if (!ai || !ai.history) return;
@@ -1285,92 +1987,411 @@ persona_directives:
         document.getElementById('chat-toolbar')?.classList.toggle('active');
     }
 
-    function openEmojiManager() {
-        const modal = document.getElementById('emoji-manager-modal');
-        const charSelect = document.getElementById('emoji-char-select');
-        charSelect.innerHTML = '<option value="all">所有角色通用</option>';
-        aiList.forEach(char => {
-            charSelect.add(new Option(char.name, char.id));
+ function openEmojiManager() {
+    window.currentEmojiFilter = 'all'; 
+    renderMyEmojis();
+    switchEmojiTab('view');
+    document.getElementById('emoji-modal-overlay').classList.add('active');
+    document.getElementById('emoji-modal-container').classList.add('active');
+}
+
+/**
+ * 关闭表情管理弹窗
+ */
+function closeEmojiManager() {
+    document.getElementById('emoji-modal-overlay').classList.remove('active');
+    document.getElementById('emoji-modal-container').classList.remove('active');
+}
+
+/**
+ * 切换“我的表情”和“添加表情”页签
+ */
+function switchEmojiTab(tabName) {
+    ['view', 'add'].forEach(tab => {
+        document.getElementById(`emoji-tab-${tab}`).classList.toggle('active', tab === tabName);
+        document.getElementById(`emoji-${tab}-content`).style.display = tab === tabName ? 'block' : 'none';
+    });
+}
+
+/**
+ * 【核心】发送表情包消息 (类型为 'emoji')
+ * @param {string} emojiUrl 表情的链接
+ * @param {string} emojiDescription 表情的描述/含义
+ */
+function sendEmojiMessage(emojiUrl, emojiDescription) {
+    const ai = aiList.find(a => a.id == currentChatId);
+    if (!ai) return;
+    const currentUser = userProfiles.find(p => p.id == ai.userId) || userProfiles[0];
+
+    const message = {
+        sender: currentUser.id,
+        type: 'emoji',
+        url: emojiUrl,
+        description: emojiDescription, // 【重要】现在传递的是表情自身的描述
+        timestamp: new Date().toISOString()
+    };
+
+    addMessage(currentChatId, message);
+    renderMessages();
+    closeEmojiManager();
+    document.getElementById('chat-toolbar')?.classList.remove('active');
+    // 已移除自动触发AI回复的功能
+}
+
+/**
+ * 点击分类按钮时，更新筛选并重新渲染
+ */
+function filterEmojiCategory(categoryName) {
+    window.currentEmojiFilter = categoryName;
+    renderMyEmojis();
+}
+
+/**
+ * 【核心重构】渲染“我的表情”界面
+ */
+function renderMyEmojis() {
+    const displayArea = document.getElementById('emoji-display-area');
+    let emojis = getStorage('emojis', []);
+
+    // 数据结构兼容：确保每个表情都有 description 和 category
+    emojis.forEach(e => {
+        if (!e.description) { e.description = '（无描述）'; }
+        if (!e.category) { e.category = '未分类'; }
+        if (!e.charIds) { e.charIds = ['all']; }
+    });
+    setStorage('emojis', emojis);
+
+    // 1. 生成分类筛选按钮
+    if (typeof window.currentEmojiFilter === 'undefined') { window.currentEmojiFilter = 'all'; }
+    const uniqueCategories = ['all', ...new Set(emojis.map(e => e.category))];
+    let filterButtonsHtml = '<div style="margin-bottom: 15px; display: flex; flex-wrap: wrap; gap: 8px;">';
+    uniqueCategories.forEach(cat => {
+        const buttonText = cat === 'all' ? '全部' : cat;
+        const isActive = window.currentEmojiFilter === cat;
+        const buttonClass = isActive ? 'btn-primary' : 'drawer-button-cancel';
+        filterButtonsHtml += `<button class="${buttonClass}" style="padding: 5px 12px; font-size: 13px;" onclick="window.filterEmojiCategory('${cat}')">${buttonText}</button>`;
+    });
+    filterButtonsHtml += '</div>';
+
+    // 2. 根据筛选器过滤
+    const filteredEmojis = window.currentEmojiFilter === 'all' 
+        ? emojis 
+        : emojis.filter(e => e.category === window.currentEmojiFilter);
+
+    if (emojis.length === 0) {
+        displayArea.innerHTML = '<p style="text-align:center; color:#888;">还没有任何表情，快去添加吧~</p>';
+        return;
+    }
+
+    // 3. 渲染表情网格
+    let emojisGridHtml = '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 10px;">';
+    if (filteredEmojis.length > 0) {
+        filteredEmojis.forEach(emoji => {
+            // 【重要】onclick现在传递 url 和 description
+            emojisGridHtml += `
+                <div class="emoji-preview-item" style="cursor: pointer;" onclick="window.sendEmojiMessage('${emoji.url}', '${escapeHTML(emoji.description)}')">
+                    <img src="${emoji.url}" alt="${escapeHTML(emoji.description)}" class="emoji-preview-img">
+                    <button class="emoji-delete-btn" onclick="event.stopPropagation(); window.deleteEmoji('${emoji.id}')">×</button>
+                </div>
+            `;
         });
-        renderMyEmojis();
-        switchEmojiTab('view');
-        modal.classList.add('active');
-    }
+    } else { emojisGridHtml += `<p style="grid-column: 1 / -1; text-align:center; color:#888;">该分类下没有表情</p>`; }
+    emojisGridHtml += '</div>';
+    
+    // 【重要】恢复长按绑定角色的提示
+    const hintHtml = '<div style="text-align: left; margin-bottom: 15px; font-size: 13px; color: #888;">提示：长按分类按钮可为该分类绑定角色。</div>';
 
-    function closeEmojiManager() {
-        document.getElementById('emoji-manager-modal').classList.remove('active');
-    }
+    displayArea.innerHTML = filterButtonsHtml + hintHtml + emojisGridHtml;
+    
+    // 【重要】恢复为分类按钮绑定长按事件
+    document.querySelectorAll('#emoji-display-area button').forEach(button => {
+        // 只为分类按钮绑定，排除删除按钮
+        if (button.classList.contains('btn-primary') || button.classList.contains('drawer-button-cancel')) {
+            let pressTimer;
+            const category = button.innerText === '全部' ? 'all' : button.innerText;
+            if (category === 'all') return; // “全部”这个按钮不能绑定
 
-    function switchEmojiTab(tabName) {
-        ['view', 'add', 'bulk'].forEach(tab => {
-            document.getElementById(`emoji-tab-${tab}`).classList.toggle('active', tab === tabName);
-            document.getElementById(`emoji-${tab}-content`).style.display = tab === tabName ? 'block' : 'none';
-        });
-    }
-
-    function saveEmoji() {
-        const url = document.getElementById('emoji-url-input').value.trim();
-        const category = document.getElementById('emoji-category-input').value.trim();
-        const charId = document.getElementById('emoji-char-select').value;
-        if (!url) return showToast('请输入表情链接！');
-        const emojis = getStorage('emojis', []);
-        emojis.push({ id: 'emoji_' + Date.now(), url, category: category || '默认', charId });
-        setStorage('emojis', emojis);
-        showToast('表情添加成功！');
-        document.getElementById('emoji-url-input').value = '';
-        document.getElementById('emoji-category-input').value = '';
-        renderMyEmojis();
-        switchEmojiTab('view');
-    }
-
-    function saveBulkEmojis() {
-        const urls = document.getElementById('emoji-bulk-input').value.trim().split('\n');
-        const emojis = getStorage('emojis', []);
-        let count = 0;
-        urls.forEach(url => {
-            const trimmedUrl = url.trim();
-            if (trimmedUrl) {
-                emojis.push({ id: 'emoji_' + Date.now() + count, url: trimmedUrl, category: '批量导入', charId: 'all' });
-                count++;
-            }
-        });
-        if (count > 0) {
-            setStorage('emojis', emojis);
-            showToast(`成功批量导入 ${count} 个表情！`);
-            document.getElementById('emoji-bulk-input').value = '';
-            renderMyEmojis();
-            switchEmojiTab('view');
-        } else {
-            showToast('未输入有效链接。');
+            button.addEventListener('mousedown', () => {
+                pressTimer = window.setTimeout(() => openCharacterBinder(category), 600);
+            });
+            button.addEventListener('mouseup', () => clearTimeout(pressTimer));
+            button.addEventListener('mouseleave', () => clearTimeout(pressTimer));
         }
-    }
+    });
+}
 
-    function renderMyEmojis() {
-        const emojis = getStorage('emojis', []);
-        const displayArea = document.getElementById('emoji-display-area');
-        displayArea.innerHTML = emojis.length === 0 ? '<p>还没有添加任何表情包哦~</p>' : '';
-        emojis.forEach(emoji => {
-            const item = document.createElement('div');
-            item.className = 'emoji-preview-item';
-            item.innerHTML = `<img src="${emoji.url}" alt="表情" class="emoji-preview-img"><button class="emoji-delete-btn" onclick="window.deleteEmoji('${emoji.id}')">×</button>`;
-            displayArea.appendChild(item);
-        });
-    }
+/**
+ * 【核心重构】保存批量添加的表情，完全按照您的设想
+ */
+function saveBulkEmojis() {
+    const text = document.getElementById('emoji-bulk-input').value.trim();
+    if (!text) return showToast('未输入任何内容。');
 
-    function deleteEmoji(emojiId) {
-        let emojis = getStorage('emojis', []);
-        emojis = emojis.filter(e => e.id !== emojiId);
+    const lines = text.split('\n');
+    let emojis = getStorage('emojis', []);
+    let count = 0;
+
+    lines.forEach(line => {
+        const trimmedLine = line.trim();
+        if (!trimmedLine) return;
+        
+        const match = trimmedLine.match(/^(.*?)(:|：)(https?:\/\/.+)$/);
+        if (match) {
+            const description = match[1].trim();
+            const url = match[3].trim();
+            
+            emojis.push({ 
+                id: 'emoji_' + Date.now() + count, 
+                url: url, 
+                description: description, // 存储描述
+                category: '未分类', // 默认放入“未分类”
+                charIds: ['all'] 
+            });
+            count++;
+        }
+    });
+
+    if (count > 0) {
         setStorage('emojis', emojis);
+        showToast(`成功导入 ${count} 个表情到“未分类”！`);
+        document.getElementById('emoji-bulk-input').value = '';
         renderMyEmojis();
+        switchEmojiTab('view');
+    } else {
+        showToast('未找到有效格式。请输入：表情描述:http://...');
+    }
+}
+
+/**
+ * 删除指定的表情
+ */
+function deleteEmoji(emojiId) {
+    if (!confirm('确定要删除这个表情吗？')) return;
+    let emojis = getStorage('emojis', []);
+    emojis = emojis.filter(e => e.id !== emojiId);
+    setStorage('emojis', emojis);
+    renderMyEmojis();
+}
+function openCharacterBinder(category) {
+    let emojis = getStorage('emojis', []);
+    // 找到属于该分类的所有表情，以确定当前绑定状态
+    const emojisInCategory = emojis.filter(e => e.category === category);
+    if (emojisInCategory.length === 0) return; // 如果该分类没表情了，就不打开
+    
+    const currentBoundIds = emojisInCategory[0].charIds || []; // 以第一个为准
+
+    let optionsHtml = `<label style="display:block; padding: 10px; border-bottom: 1px solid #eee;"><input type="checkbox" value="all" ${currentBoundIds.includes('all') ? 'checked' : ''}> 所有角色通用</label>`;
+    aiList.forEach(ai => {
+        optionsHtml += `<label style="display:block; padding: 10px; border-bottom: 1px solid #eee;"><input type="checkbox" value="${ai.id}" ${currentBoundIds.includes(ai.id) ? 'checked' : ''}> ${ai.name}</label>`;
+    });
+
+    const modalHtml = `
+        <div class="action-sheet-modal active" id="binder-modal" style="z-index: 3000;">
+            <div class="picker-content dark-modal" style="height: auto; max-height: 70%;">
+                <div class="picker-header"><span>为“${category}”分类绑定角色</span></div>
+                <div class="modal-scroll-content no-scrollbar" id="binder-options">${optionsHtml}</div>
+                <div style="padding: 10px; display: flex; gap: 10px;">
+                    <button class="drawer-button-cancel" style="flex:1;" onclick="document.getElementById('binder-modal').remove()">取消</button>
+                    <button class="btn-primary" style="flex:1;" onclick="saveCharacterBinding('${category}')">保存</button>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+}
+
+/**
+ * 【恢复并强化】保存角色绑定
+ */
+function saveCharacterBinding(category) {
+    const selectedIds = Array.from(document.querySelectorAll('#binder-options input:checked')).map(input => input.value);
+    if (selectedIds.length === 0) return showToast('至少选择一个角色或“通用”');
+    const finalIds = selectedIds.includes('all') ? ['all'] : selectedIds;
+    
+    let emojis = getStorage('emojis', []);
+    // 将该分类下的所有表情都更新为新的绑定
+    emojis.forEach(emoji => {
+        if (emoji.category === category) {
+            emoji.charIds = finalIds;
+        }
+    });
+    setStorage('emojis', emojis);
+    document.getElementById('binder-modal').remove();
+    showToast('绑定成功！');
+}
+
+function openCategoryEditor() {
+    let emojis = getStorage('emojis', []);
+    const categories = [...new Set(emojis.map(e => e.category || '未分类'))];
+    
+    let editorHtml = '';
+    categories.forEach(cat => {
+        // 【核心修改】移除了 isUncategorized 和 disabled 的逻辑
+        editorHtml += `
+            <div style="display: flex; align-items: center; gap: 10px; padding: 10px; border-bottom: 1px solid #444;">
+                <input type="text" class="drawer-input category-editor-input" value="${cat}" data-original-name="${cat}">
+                <button class="btn-small" style="background: #ff4757;" onclick="window.deleteCategoryAndEmojis('${cat}')">删除</button>
+            </div>
+        `;
+    });
+
+    const modalHtml = `
+        <div class="action-sheet-modal active" id="category-editor-modal" style="z-index: 3000;">
+            <div class="picker-content dark-modal" style="height: auto; max-height: 80%;">
+                <div class="picker-header"><span>管理分类</span></div>
+                <p style="padding:0 15px; color:#888; font-size:13px;">在这里重命名或删除分类。</p>
+                <div class="modal-scroll-content no-scrollbar" style="padding: 0 15px;">${editorHtml}</div>
+                <div style="padding: 15px; border-top: 1px solid #333; display: flex; gap: 10px;">
+                    <button class="drawer-button-cancel" style="flex:1;" onclick="document.getElementById('category-editor-modal').remove()">取消</button>
+                     <button class="btn-primary" style="flex:0.8;" onclick="window.addCategory()">新增</button>
+                    <button class="btn-primary" style="flex:1;" onclick="window.updateCategories()">保存更改</button>
+                </div>
+            </div>
+        </div>
+
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+}
+function updateCategories() {
+    let emojis = getStorage('emojis', []);
+    const inputs = document.querySelectorAll('.category-editor-input');
+    
+    inputs.forEach(input => {
+        const originalName = input.dataset.originalName;
+        const newName = input.value.trim();
+        
+        // 只有当名字真的被改变时才执行更新
+        if (newName && newName !== originalName) {
+            // 遍历所有表情，如果分类名匹配，就更新它
+            emojis.forEach(emoji => {
+                // (emoji.category || '未分类') 确保即使旧数据没有category字段也能匹配上
+                if ((emoji.category || '未分类') === originalName) {
+                    emoji.category = newName;
+                }
+            });
+        }
+    });
+
+    setStorage('emojis', emojis); // 保存更新后的表情列表
+    document.getElementById('category-editor-modal').remove(); // 关闭弹窗
+    renderMyEmojis(); // 重新渲染表情列表以显示更新
+    showToast('分类已更新！');
+}
+
+/**
+ * 【新】保存分类的重命名
+ */
+function updateCategories() {
+    let emojis = getStorage('emojis', []);
+    const inputs = document.querySelectorAll('.category-editor-input');
+    
+    inputs.forEach(input => {
+        const originalName = input.dataset.originalName;
+        const newName = input.value.trim();
+        
+        if (newName && newName !== originalName) {
+            // 遍历所有表情，如果分类名匹配，就更新它
+            emojis.forEach(emoji => {
+                if ((emoji.category || '未分类') === originalName) {
+                    emoji.category = newName;
+                }
+            });
+        }
+    });
+
+    setStorage('emojis', emojis);
+    document.getElementById('category-editor-modal').remove();
+    renderMyEmojis(); // 重新渲染以显示更新
+    showToast('分类已更新！');
+}
+
+  function addCategory() {
+    const newCategoryName = prompt("请输入新的分类名称：", "");
+
+    if (!newCategoryName || !newCategoryName.trim()) {
+        return; // 用户取消或输入为空
     }
 
-    function openT2IModal() {
-        document.getElementById('text-to-image-modal').classList.add('active');
+    const trimmedName = newCategoryName.trim();
+    let emojis = getStorage('emojis', []);
+    const existingCategories = [...new Set(emojis.map(e => e.category || '未分类'))];
+
+    if (existingCategories.includes(trimmedName)) {
+        showToast(`分类“${trimmedName}”已存在！`);
+        return;
     }
 
-    function closeT2IModal() {
-        document.getElementById('text-to-image-modal').classList.remove('active');
+    const tempEmoji = { category: trimmedName };
+
+    document.getElementById('category-editor-modal').remove();
+    let existingHtml = document.querySelector("#category-editor-modal .modal-scroll-content").innerHTML;
+    existingHtml += `
+        <div style="display: flex; align-items: center; gap: 10px; padding: 10px; border-bottom: 1px solid #444;">
+            <input type="text" class="drawer-input category-editor-input" value="${trimmedName}" data-original-name="${trimmedName}">
+            <button class="btn-small" style="background: #ff4757;" onclick="window.deleteCategoryAndEmojis('${trimmedName}')">删除</button>
+        </div>
+    `;
+    document.querySelector("#category-editor-modal .modal-scroll-content").innerHTML = existingHtml;
+    showToast(`新分类“${trimmedName}”已添加，请记得点击“保存更改”。`);
+}
+
+function deleteCategoryAndEmojis(categoryName) {
+    if (!confirm(`确定要删除“${categoryName}”分类及其下的所有表情吗？此操作不可撤销！`)) {
+        return;
     }
+    
+    let emojis = getStorage('emojis', []);
+    // 过滤掉所有属于该分类的表情
+    const updatedEmojis = emojis.filter(emoji => (emoji.category || '未分类') !== categoryName);
+    
+    setStorage('emojis', updatedEmojis);
+    document.getElementById('category-editor-modal').remove();
+    renderMyEmojis(); // 重新渲染
+    showToast(`分类“${categoryName}”已删除。`);
+}
+function addCategory() {
+    const newCategoryName = prompt("请输入新的分类名称：", "新分类");
+    if (!newCategoryName || !newCategoryName.trim()) {
+        return; // 用户取消或输入为空
+    }
+
+    const trimmedName = newCategoryName.trim();
+    let emojis = getStorage('emojis', []);
+    const existingCategories = [...new Set(emojis.map(e => e.category || '未分类'))];
+
+    if (existingCategories.includes(trimmedName)) {
+        showToast(`分类“${trimmedName}”已存在！`);
+        return;
+    }
+
+    // 找到一个“未分类”的表情，用于移动到新分类下
+    const emojiToMove = emojis.find(e => (e.category || '未分类') === '未分类');
+
+    if (!emojiToMove) {
+        showToast('无法创建新分类： “未分类”中没有可移动的表情。');
+        return;
+    }
+
+    // 将这个表情的分类修改为新的分类名
+    emojiToMove.category = trimmedName;
+    setStorage('emojis', emojis);
+
+    // 关闭当前弹窗并重新打开，以刷新列表
+    document.getElementById('category-editor-modal').remove();
+    openCategoryEditor();
+    showToast(`分类“${trimmedName}”创建成功！`);
+}
+function openT2IModal() {
+    // 同时激活遮罩层和内容容器
+    document.getElementById('t2i-modal-overlay').classList.add('active');
+    document.getElementById('t2i-modal-container').classList.add('active');
+}
+
+function closeT2IModal() {
+    // 同时移除遮罩层和内容容器的激活状态
+    document.getElementById('t2i-modal-overlay').classList.remove('active');
+    document.getElementById('t2i-modal-container').classList.remove('active');
+}
 
     function sendDescribedImage() {
         const description = document.getElementById('t2i-prompt-input').value.trim();
@@ -1381,7 +2402,7 @@ persona_directives:
         renderMessages();
         document.getElementById('t2i-prompt-input').value = '';
         closeT2IModal();
-        setTimeout(generateReply, 1000);
+         document.getElementById('chat-toolbar')?.classList.remove('active');
     }
     
     // 省略7, 8, 9, 10, 11, 12, 13大章节，因为它们在上面已经写过了，这里只是为了展示插入位置
@@ -1416,6 +2437,24 @@ persona_directives:
                     
                     const charDataJson = atob(characterDataMatch[1]);
                     const charData = JSON.parse(charDataJson);
+
+                    let newWorldbookId = 'none';
+                // 检查卡片数据中是否包含世界书内容 (常见的字段是 character_book)
+                const worldBookText = charData.character_book;
+
+                if (worldBookText && worldBookText.trim()) {
+                    const worldbooks = getStorage('worldbooks', []); 
+                    const newWb = {
+                        id: 'wb_' + Date.now(),
+                        name: `[导入] ${charData.name || '角色'}的世界书`,
+                        content: worldBookText,
+                        category: '导入'
+                    };
+                    worldbooks.unshift(newWb);
+                    setStorage('worldbooks', worldbooks);
+                    newWorldbookId = newWb.id;
+                    showToast('成功导入并关联了世界书！');
+                }
                     
                     const newChar = {
                         id: Date.now(),
@@ -1426,9 +2465,9 @@ persona_directives:
                         userId: userProfiles[0]?.id,
                         settings: {
                             timePerception: false,
-                            chatWorldbookId: 'none',
-                            offlineMode: { enabled: false, wordCountMin: 500, wordCountMax: 1500, worldbookId: 'none' }
-                        }
+                           chatWorldbookId: newWorldbookId,
+                        offlineMode: { enabled: false, wordCountMin: 500, wordCountMax: 1500, worldbookId: 'none' }
+                    }
                     };
                     aiList.unshift(newChar);
                     setStorage('ai_list_v2', aiList);
@@ -1506,7 +2545,45 @@ persona_directives:
             catContainer.appendChild(tab);
         });
     }
+function openTransferActionSheet(messageId) {
+    document.getElementById('current-transfer-message-id').value = messageId;
+    document.getElementById('transfer-action-sheet').classList.add('active');
+}
 
+// 2. 关闭操作菜单
+function closeTransferActionSheet() {
+    document.getElementById('transfer-action-sheet').classList.remove('active');
+}
+
+// 3. 确认收款
+function acceptTransfer() {
+    const messageId = document.getElementById('current-transfer-message-id').value;
+    const ai = aiList.find(c => c.id == currentChatId);
+    if (!ai || !messageId) return;
+
+    const message = ai.history.find(m => m.id === messageId);
+    if (message) {
+        message.status = 'accepted'; // 修改状态
+        setStorage('ai_list_v2', aiList); // 保存
+        renderMessages(); // 刷新界面
+    }
+    closeTransferActionSheet();
+}
+
+// 4. 拒绝收款
+function rejectTransfer() {
+    const messageId = document.getElementById('current-transfer-message-id').value;
+    const ai = aiList.find(c => c.id == currentChatId);
+    if (!ai || !messageId) return;
+
+    const message = ai.history.find(m => m.id === messageId);
+    if (message) {
+        message.status = 'rejected'; // 修改状态
+        setStorage('ai_list_v2', aiList); // 保存
+        renderMessages(); // 刷新界面
+    }
+    closeTransferActionSheet();
+}
     function renderWbList() {
         const listContainer = document.getElementById('wb-list');
         listContainer.innerHTML = '';
@@ -1553,11 +2630,11 @@ persona_directives:
         const editorContainer = document.getElementById('wb-entry-list-editor');
         const entryDiv = document.createElement('div');
         entryDiv.className = 'wb-entry-item';
-        entryDiv.innerHTML = `
-            <button class="wb-entry-delete-btn" onclick="this.parentElement.remove()">×</button>
-            <input type="text" class="neo-input entry-keyword" placeholder="条目名称 (关键词)" value="${escapeHTML(keyword)}">
-            <textarea class="neo-input entry-content" placeholder="输入你需要设定的提示词内容...">${escapeHTML(content)}</textarea>
-        `;
+       entryDiv.innerHTML = `
+        <button class="wb-entry-delete-btn" onclick="this.parentElement.remove()">×</button>
+        <input type="text" class="neo-input entry-keyword" placeholder="条目名称 (标题)" value="${escapeHTML(keyword)}">
+        <textarea class="neo-input entry-content" placeholder="输入你需要设定的提示词内容...">${escapeHTML(content)}</textarea>
+    `;
         editorContainer.appendChild(entryDiv);
     }
 
@@ -1673,6 +2750,47 @@ persona_directives:
             }, { passive: true });
         });
     }
+function openTransferPopup() {
+    document.getElementById('transfer-popup-wrapper').style.display = 'flex';
+}
+
+// 2. 关闭弹窗的函数
+function closeTransferPopup() {
+    document.getElementById('transfer-popup-wrapper').style.display = 'none';
+}
+
+// 3. 发送转账数据的函数
+function sendTransferPopupData() {
+    const amountInput = document.getElementById('transfer-popup-amount');
+    const remarkInput = document.getElementById('transfer-popup-remark');
+    const amount = parseFloat(amountInput.value);
+
+    if (isNaN(amount) || amount <= 0) {
+        showToast('请输入有效的转账金额');
+        return;
+    }
+    
+    const remark = remarkInput.value.trim();
+    const ai = aiList.find(a => a.id == currentChatId);
+    if (!ai) return;
+    const currentUser = userProfiles.find(p => p.id == ai.userId) || userProfiles[0];
+
+    const transferMessage = {
+        sender: currentUser.id,
+        type: 'transfer',
+        amount: amount.toFixed(2),
+        remark: remark || '转账',
+        status: 'pending',
+        timestamp: new Date().toISOString()
+    };
+
+    addMessage(currentChatId, transferMessage);
+    
+    amountInput.value = '';
+    remarkInput.value = '';
+    closeTransferPopup();
+    renderMessages();
+}
 
     function openAnniversaryCreator(editId = null) {
         currentEditAnniversaryId = editId;
@@ -1728,7 +2846,151 @@ persona_directives:
             daySelect.value = today.getDate();
         }
     }
+function openVoiceModal() {
+    const overlay = document.getElementById('voice-modal-overlay');
+    const container = document.getElementById('voice-modal-container');
 
+    // 先让元素可见，再触发透明度动画
+    overlay.style.display = 'block';
+    container.style.display = 'flex';
+
+    // 使用一个极小的延迟来确保display属性先生效
+    setTimeout(() => {
+        overlay.classList.add('active');
+        container.classList.add('active');
+    }, 10);
+}
+
+function closeVoiceModal() {
+    const overlay = document.getElementById('voice-modal-overlay');
+    const container = document.getElementById('voice-modal-container');
+
+    // 先触发透明度动画
+    overlay.classList.remove('active');
+    container.classList.remove('active');
+
+    // 在动画结束后，再彻底隐藏元素
+    setTimeout(() => {
+        overlay.style.display = 'none';
+        container.style.display = 'none';
+    }, 300); // 这个时间应该和你的CSS transition时间匹配
+}
+function sendVoiceMessage() {
+    // 1. 获取弹窗里的输入内容
+    const text = document.getElementById('voice-text-input').value.trim();
+    const tone = document.getElementById('voice-tone-input').value.trim();
+
+    // 2. 检查内容是否为空
+    if (!text) {
+        showToast('请输入你想说的话'); // 调用您已有的提示函数
+        return;
+    }
+
+    // 3. 根据文本长度，简单计算一个语音时长
+    const duration = Math.max(1, Math.round(text.length / 5)); // 每5个字算1秒，最少1秒
+
+    // 4. 找到当前聊天对象和用户
+    const ai = aiList.find(a => a.id == currentChatId);
+    if (!ai) return;
+    const currentUser = userProfiles.find(p => p.id == ai.userId) || userProfiles[0];
+
+    // 5. 创建一个新的“语音消息”对象
+    const voiceMessage = {
+        sender: currentUser.id,
+        type: 'voice',       //  <-- 类型是 'voice'
+        text: text,          //  <-- 语音识别出的文本
+        tone: tone,          //  <-- 语气
+        duration: `${duration}s`, //  <-- 计算出的时长，例如 "3s"
+        timestamp: new Date().toISOString()
+    };
+
+    // 6. 添加消息到历史记录
+    addMessage(currentChatId, voiceMessage);
+    
+    // 7. 清空输入框并关闭弹窗
+    document.getElementById('voice-text-input').value = '';
+    document.getElementById('voice-tone-input').value = '';
+    closeVoiceModal();
+
+    // 8. 重新渲染聊天界面，显示新消息
+    renderMessages();
+    document.getElementById('chat-toolbar')?.classList.remove('active');
+}
+function sendTransferMessage() {
+    // 1. 获取弹窗里的输入元素
+    const amountInput = document.getElementById('transfer-amount-input');
+    const remarkInput = document.getElementById('transfer-remark-input');
+
+    // 2. 将金额转换为数字并进行验证
+    const amount = parseFloat(amountInput.value);
+    if (isNaN(amount) || amount <= 0) {
+        showToast('请输入有效的转账金额');
+        return; // 如果金额无效，则中断操作
+    }
+
+    // 3. 获取留言内容
+    const remark = remarkInput.value.trim();
+
+    // 4. 找到当前聊天对象和用户
+    const ai = aiList.find(a => a.id == currentChatId);
+    if (!ai) return;
+    const currentUser = userProfiles.find(p => p.id == ai.userId) || userProfiles[0];
+
+    // 5. 创建一个新的“转账消息”对象
+    const transferMessage = {
+        sender: currentUser.id,
+        type: 'transfer',              // <-- 类型是 'transfer'
+        amount: amount.toFixed(2),     // <-- 金额，保留两位小数
+        remark: remark || '转账',      // <-- 留言，如果为空则默认为"转账"
+        status: 'pending',             // <-- 初始状态，'pending'表示待接收
+        timestamp: new Date().toISOString()
+    };
+
+    // 6. 添加消息到历史记录
+    addMessage(currentChatId, transferMessage);
+    
+    // 7. 清空输入框并关闭弹窗
+    amountInput.value = '';
+    remarkInput.value = '';
+    closeTransferModal(); // 这需要您已经有了关闭转账弹窗的函数
+
+    // 8. 重新渲染聊天界面，显示新消息
+    renderMessages();
+    document.getElementById('chat-toolbar')?.classList.remove('active');
+}
+function openTransferModal() {
+    const overlay = document.getElementById('transfer-modal-overlay');
+    const container = document.getElementById('transfer-modal-container');
+
+    // 检查元素是否存在
+    if (overlay && container) {
+        // 先让元素可见
+        overlay.style.display = 'block';
+        container.style.display = 'flex';
+        // 然后再添加 active 类来触发动画
+        setTimeout(() => {
+            overlay.classList.add('active');
+            container.classList.add('active');
+        }, 10);
+    }
+}
+
+function closeTransferModal() {
+    const overlay = document.getElementById('transfer-modal-overlay');
+    const container = document.getElementById('transfer-modal-container');
+
+    // 检查元素是否存在
+    if (overlay && container) {
+        // 先移除 active 类触发动画
+        overlay.classList.remove('active');
+        container.classList.remove('active');
+        // 在动画结束后再彻底隐藏元素
+        setTimeout(() => {
+            overlay.style.display = 'none';
+            container.style.display = 'none';
+        }, 300); // 这里的300ms应该和你的CSS过渡动画时间一致
+    }
+}
     function saveAnniversary() {
         const title = document.getElementById('anniversary-title-input').value.trim();
         if (!title) {
@@ -1756,6 +3018,30 @@ persona_directives:
         renderAnniversaryList();
         showToast('保存成功');
     }
+function openTransferActionSheet(messageId) {
+    document.getElementById('current-transfer-message-id').value = messageId;
+    document.getElementById('transfer-action-sheet').classList.add('active');
+}
+
+// 2. 关闭操作菜单
+function closeTransferActionSheet() {
+    document.getElementById('transfer-action-sheet').classList.remove('active');
+}
+
+// 3. 确认收款
+function acceptTransfer() {
+    const messageId = document.getElementById('current-transfer-message-id').value;
+    const ai = aiList.find(c => c.id == currentChatId);
+    if (!ai || !messageId) return;
+
+    const message = ai.history.find(m => m.id === messageId);
+    if (message) {
+        message.status = 'accepted'; // 修改状态
+        setStorage('ai_list_v2', aiList); // 保存
+        renderMessages(); // 刷新界面
+    }
+    closeTransferActionSheet();
+}
 
     function deleteAnniversary(id) {
         if (confirm('确定要删除这个纪念日吗？')) {
@@ -2351,6 +3637,61 @@ persona_directives:
             showToast('保存失败: 图片可能过大');
         }
     }
+function openLocationModal() {
+    const overlay = document.getElementById('location-modal-overlay');
+    const container = document.getElementById('location-modal-container');
+    if (overlay && container) {
+        overlay.style.display = 'block';
+        container.style.display = 'flex';
+        setTimeout(() => {
+            overlay.classList.add('active');
+            container.classList.add('active');
+        }, 10);
+    }
+}
+
+// 2. 关闭位置弹窗
+function closeLocationModal() {
+    const overlay = document.getElementById('location-modal-overlay');
+    const container = document.getElementById('location-modal-container');
+    if (overlay && container) {
+        overlay.classList.remove('active');
+        container.classList.remove('active');
+        setTimeout(() => {
+            overlay.style.display = 'none';
+            container.style.display = 'none';
+        }, 300);
+    }
+}
+
+// 3. 发送位置消息
+function sendLocationMessage() {
+    const placeInput = document.getElementById('location-place-input');
+    const place = placeInput.value.trim();
+
+    if (!place) {
+        showToast('请输入地点名称');
+        return;
+    }
+
+    const ai = aiList.find(a => a.id == currentChatId);
+    if (!ai) return;
+    const currentUser = userProfiles.find(p => p.id == ai.userId) || userProfiles[0];
+
+    const locationMessage = {
+        sender: currentUser.id,
+        type: 'location', // <-- 类型是 'location'
+        place: place,     // <-- 地点名称
+        timestamp: new Date().toISOString()
+    };
+
+    addMessage(currentChatId, locationMessage);
+    
+    placeInput.value = '';
+    closeLocationModal();
+    renderMessages();
+    document.getElementById('chat-toolbar')?.classList.remove('active');
+}
 
     function resetLockWallpaper() {
         beautifyConfig.lockWpData = '';
@@ -4212,16 +5553,40 @@ window.openWorldbookBinder = openWorldbookBinder;
     window.tryClearCurrentChat = tryClearCurrentChat;
     window.closeThoughtsModal = closeThoughtsModal;
     window.toggleToolbar = toggleToolbar;
+    window.openVoiceModal = openVoiceModal;
+    window.closeVoiceModal = closeVoiceModal;
+    window.goBackInDm = goBackInDm;
+    window.sendVoiceMessage = sendVoiceMessage;
+    window.sendTransferMessage = sendTransferMessage;
+    window.openTransferModal = openTransferModal;
+window.closeTransferModal = closeTransferModal;
+window.openLocationModal = openLocationModal;
+window.closeLocationModal = closeLocationModal;
+window.sendLocationMessage = sendLocationMessage;
+window.openTransferActionSheet = openTransferActionSheet;
+window.closeTransferActionSheet = closeTransferActionSheet;
+window.acceptTransfer = acceptTransfer;
+window.rejectTransfer = rejectTransfer;
 
     // --- 新功能：表情包 & T2I ---
-    window.openEmojiManager = openEmojiManager;
-    window.closeEmojiManager = closeEmojiManager;
-    window.switchEmojiTab = switchEmojiTab;
-    window.saveEmoji = saveEmoji;
-    window.deleteEmoji = deleteEmoji;
-    window.openT2IModal = openT2IModal;
-    window.closeT2IModal = closeT2IModal;
-    window.sendDescribedImage = sendDescribedImage;
+window.openEmojiManager = openEmojiManager;
+window.closeEmojiManager = closeEmojiManager;
+window.switchEmojiTab = switchEmojiTab;
+window.saveBulkEmojis = saveBulkEmojis;
+window.deleteEmoji = deleteEmoji;
+window.sendEmojiMessage = sendEmojiMessage;
+window.filterEmojiCategory = filterEmojiCategory;
+window.openCharacterBinder = openCharacterBinder;
+window.saveCharacterBinding = saveCharacterBinding;
+window.openCategoryEditor = openCategoryEditor;
+window.updateCategories = updateCategories;
+window.addCategory = addCategory;
+window.addCategory = addCategory;
+// T2I 部分
+window.openT2IModal = openT2IModal;
+window.closeT2IModal = closeT2IModal;
+window.sendDescribedImage = sendDescribedImage;
+window.flipImageCard = flipImageCard;
 
      // --- 论坛 App ---
     window.switchForumTab = switchForumTab;
@@ -4289,7 +5654,7 @@ window.openWorldbookBinder = openWorldbookBinder;
     window.backupAllData = backupAllData;
 
 
-})();
+});
 
 // 将游戏控制函数暴露到全局
 const fixKeyboardBug = () => {

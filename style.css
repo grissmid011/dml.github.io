@@ -109,7 +109,10 @@ body {
     font-weight: 300; 
     line-height: 1; 
 }
-
+.date-line,
+.time-line {
+    color: #000; /* 将颜色设置为黑色 */
+}
 .grid-container { 
     display: grid; 
     grid-template-columns: 1fr 1fr; 
@@ -225,7 +228,7 @@ body {
 .home-app-name {
     font-size: 11px; 
     font-weight: 500; 
-    color: white;
+    color: rgb(4, 3, 3);
     text-shadow: 0 1px 2px rgba(0,0,0,0.3); 
     white-space: nowrap;
 }
@@ -797,11 +800,48 @@ input:checked + .slider:before {
     background-color: var(--qq-bg) !important; 
     color: #000 !important; 
 }
-.qq-header { 
-    background: transparent !important; 
-    border-bottom: none !important; 
-    box-shadow: 0 4px 10px rgba(0,0,0,0.02) !important; 
-    color: #000 !important; 
+.qq-header {
+    /* 确保使用 flex 布局，并且两端对齐 */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative; /* 为标题的绝对定位提供基准 */
+}
+
+/* 新增：标题和副标题的容器 */
+.nav-title-container {
+    /* 使用绝对定位来实现完美居中 */
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    
+    /* 内部元素垂直排列并居中 */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    pointer-events: none; /* 让它不影响点击 */
+}
+
+/* 修改：主标题样式 */
+.nav-title {
+    font-weight: 800; /* 加粗 */
+    font-size: 17px;
+}
+
+/* 新增：副标题（正在输入…）样式 */
+.nav-subtitle {
+    font-size: 12px;
+    color: #888;
+    height: 0; /* 默认隐藏 */
+    opacity: 0;
+    transition: height 0.3s ease, opacity 0.3s ease;
+}
+
+/* 新增：当副标题需要显示时的样式 */
+.nav-subtitle.visible {
+    height: 15px; /* 显示时给予高度 */
+    opacity: 1;
 }
 
 /* QQ 底部导航栏 */
@@ -953,6 +993,7 @@ input:checked + .slider:before {
     gap: 10px; 
     width: 100%; 
     min-width: 0; 
+    align-items: flex-start;
 }
 .message-row.me { 
     flex-direction: row-reverse; 
@@ -1007,100 +1048,111 @@ input:checked + .slider:before {
 }
 
 /* QQ 聊天输入框 */
-.input-bar { 
-    background: var(--qq-bg); 
-    box-shadow: 0 -4px 15px rgba(0,0,0,0.03); 
-    flex-direction: column; 
-    display: flex; 
-    align-items: stretch; 
-    padding: 0; 
+.input-bar {
+    position: relative;
+    background-color: #FFFFFF;
+    border-top: 1px solid #E0E0E0;
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.04);
 }
-.chat-main-input-row { 
-    display: flex; 
-    align-items: center; 
-    gap: 10px; 
-    padding: 8px 15px 25px; 
+
+/* 主输入行 (输入框、+号、发送按钮) */
+.chat-main-input-row {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    gap: 8px;
+    position: relative;
+    z-index: 2;
+    background-color: #FFFFFF; /* 使用父容器的白色 */
 }
-.chat-input { 
-    flex: 1; 
-    border: none; 
-    padding: 12px 15px; 
-    border-radius: 20px; 
-    background: #fff; 
-    font-size: 15px; 
-    outline: none; 
-    min-width: 0; 
-    box-shadow: inset 3px 3px 8px var(--qq-shadow-dark), inset -3px -3px 8px var(--qq-shadow-light); 
+
+.chat-input {
+    flex: 1;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 20px;
+    background-color: #f0f2f5; /* 输入框用浅灰色，与白色背景区分 */
+    font-size: 15px;
+    outline: none;
+    min-width: 0;
 }
-.icon-btn-chat { /* <--- 我把它移到了前面 (正确) */
-    width: 42px; 
-    height: 42px; 
-    border-radius: 50%; 
-    display: flex; 
-    justify-content: center; 
-    align-items: center; 
-    font-size: 18px; 
-    border: none; 
-    color: #fff; 
-    cursor: pointer; 
-    flex-shrink: 0; 
-    transition: 0.1s; 
-    font-weight: bold; 
-}
-.btn-toggle-toolbar { /* <--- 我把它移到了后面 (正确) */
+
+/* “+”号按钮 */
+.btn-toggle-toolbar {
     padding: 0;
     width: 44px;
     height: 44px;
-    background-color: transparent; 
+    background-color: transparent;
     border: none;
     display: flex;
     justify-content: center;
     align-items: center;
     cursor: pointer;
     flex-shrink: 0;
-    color: #555; /* <--- 现在这行灰色的样式会生效 */
+    color: #555;
+    transition: transform 0.3s ease;
 }
-.btn-toggle-toolbar svg {
-    width: 28px;
-    height: 28px;
+.btn-toggle-toolbar.rotated {
+    transform: rotate(45deg);
 }
-.icon-btn-chat:active { 
-    transform: scale(0.9); 
-}
-.icon-btn-chat.small-icon {
-    width: 36px;  
-    height: 36px;
-}
-.icon-btn-chat.small-icon svg {
-    width: 20px;  
-    height: 20px; 
-}
-.btn-send { 
-    background: #000; 
-    box-shadow: 3px 3px 8px rgba(0,0,0,0.2); 
-}
-.btn-gen { 
-    background: #ffffff; 
-    color: #000; 
-    border: 2px solid #000; 
-    box-shadow: 3px 3px 8px rgba(0,0,0,0.1); 
-}
-.icon-btn-chat:disabled { 
-    background: #ccc; 
-    border-color: #ccc; 
-    cursor: not-allowed; 
-    color: #fff; 
-}
-.chat-input-toolbar {
+
+/* 发送和AI回复按钮的通用容器样式 */
+.icon-btn-chat {
+    width: 38px;
+    height: 38px;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    box-shadow: none;
+    color: #000;
+    padding: 0;
     display: flex;
-    justify-content: flex-start;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    position: relative; /* 为加载动画提供基准 */
+}
+.icon-btn-chat svg {
+    width: 24px;
+    height: 24px;
+}
+
+/* AI 回复按钮的加载状态 */
+.btn-gen.loading svg {
+    opacity: 0;
+}
+.btn-gen.loading::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid rgba(0, 0, 0, 0.2);
+    border-top-color: #000;
+    animation: spinner 0.8s linear infinite;
+}
+@keyframes spinner {
+    to { transform: rotate(360deg); }
+}
+
+/* 隐藏的工具栏 */
+.chat-input-toolbar {
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    width: 100%;
+    background-color: #FFFFFF;
+    border-bottom: 1px solid #EAEAEA;
+    display: flex;
     align-items: center;
     padding: 10px 20px;
     gap: 15px;
     transform: translateY(100%);
     opacity: 0;
     visibility: hidden;
-    transition: transform 0.3s ease-out, opacity 0.3s ease, visibility 0.3s;
+    transition: transform 0.3s ease-out, opacity 0.3s ease;
+    z-index: 1;
 }
 .chat-input-toolbar.active {
     transform: translateY(0);
@@ -1114,11 +1166,11 @@ input:checked + .slider:before {
     gap: 5px;
 }
 .toolbar-btn {
-    width: 40px;
-    height: 40px;
-    background-color: #fff;
-    border: 1px solid #eee;
-    border-radius: 10px;
+    width: 45px;
+    height: 45px;
+    background-color: #f0f2f5;
+    border: none;
+    border-radius: 12px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -1129,8 +1181,17 @@ input:checked + .slider:before {
     width: 28px;
     height: 28px;
 }
-.toolbar-label {
-    display: none;
+
+/* 时间戳样式 (现在它应该能正确生效了) */
+.chat-timestamp {
+    width: fit-content;
+    margin: 15px auto 25px auto;
+    background-color: rgba(0, 0, 0, 0.08); /* 颜色改得更淡一点 */
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    color: #555; /* 在淡色背景上，深灰色文字更清晰 */
+    font-weight: 500;
 }
 
 /* QQ 朋友圈 */
@@ -1834,47 +1895,59 @@ input:checked + .slider:before {
 }
 
 .bubble.image-card {
-    background: #000;
-    width: 220px;
-    height: 220px;
+    background: transparent; /* 【修改】父容器背景设为透明 */
+    width: 90px;
+    height: 90px;
     padding: 0;
     cursor: pointer;
     transition: transform 0.6s;
-    transform-style: preserve-3d; /* 关键：开启3D空间 */
+    transform-style: preserve-3d;
     position: relative;
+    margin-top: 10px;
 }
+
 .image-card-face {
     position: absolute;
     width: 100%;
     height: 100%;
-    -webkit-backface-visibility: hidden; /* 隐藏元素背面 */
+    -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
-    border-radius: 16px;
+    border-radius: 16px; /* 卡片圆角 */
     overflow: hidden;
+    /* 【新增】确保内容居中 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
+
 .image-card-front {
-    background: linear-gradient(45deg, #222, #555);
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    background: #1c1c1e; /* 【修改】使用一个iOS风格的深灰色背景，比纯黑更有质感 */
     color: #fff;
-    font-size: 50px;
+    /* 【修改】移除font-size，因为它会影响布局 */
+    
+    /* 图标部分 */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M12 3a9 9 0 0 0-9 9c0 4.97 4.03 9 9 9s9-4.03 9-9-4.03-9-9-9zm-4.5 9a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm3-4a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm3 4a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 40px; /* 【修改】图标尺寸调整为更和谐的大小 */
 }
+
 .image-card-back {
-    background: #eee;
+    background: #f0f0f0;  /* 【修改】使用一个柔和的浅灰色背景 */
     color: #333;
-    padding: 15px;
-    font-size: 13px;
-    line-height: 1.4;
-    transform: rotateY(180deg); /* 关键：背面翻转180度 */
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    padding: 8px; /* 【修改】内边距减小以适应小卡片 */
+    font-size: 12px; /* 【修改】字体减小 */
+    line-height: 1.3;
+    transform: rotateY(180deg);
     text-align: center;
+    /* 【新增】强制换行，防止文本撑开卡片 */
+    word-break: break-all;
 }
+
 .bubble.image-card.flipped {
-    transform: rotateY(180deg); /* 关键：点击后整个卡片翻转 */
+    transform: rotateY(180deg);
 }
+
 .moment-post-footer {
     border-top: 1px solid var(--neo-shadow-dark);
     padding-top: 10px;
@@ -2458,9 +2531,10 @@ input:checked + .slider:before {
     height: 100%;
     background-color: rgba(0, 0, 0, 0.4);
     z-index: 1999;
+    /* 动画关键点 */
     opacity: 0;
+    visibility: hidden;
     transition: opacity 0.3s ease;
-    pointer-events: none;
 }
 
 /* 模态框容器 */
@@ -2472,14 +2546,15 @@ input:checked + .slider:before {
     height: 100%;
     display: flex;
     justify-content: center;
-    align-items: center; /* 垂直居中 */
+    align-items: center;
     z-index: 2000;
+    /* 动画关键点 */
     opacity: 0;
-    transition: opacity 0.3s ease;
-    pointer-events: none; /* 默认不可点击，防止遮挡 */
-    transform: scale(1.1); /* 配合动画效果 */
+    visibility: hidden;
+    transform: scale(1.1);
     transition: opacity 0.2s ease, transform 0.2s ease;
 }
+
 
 /* 模态框内容区域 */
 .modal-content {
@@ -2495,7 +2570,7 @@ input:checked + .slider:before {
 .modal-overlay.active,
 .modal-container.active {
     opacity: 1;
-    pointer-events: auto; /* 激活后可以响应点击 */
+    visibility: visible; /* 激活时变为可见 */
 }
 .modal-container.active {
     transform: scale(1); /* 恢复正常大小 */
@@ -3008,4 +3083,219 @@ html, body {
     background: #555;
     border-radius: 50%;
     cursor: pointer;
+}
+.btn-gen {
+    position: relative; /* 为加载动画提供定位基准 */
+}
+
+/* 当按钮处于 loading 状态时，隐藏内部的 SVG 图标 */
+.btn-gen.loading svg {
+    opacity: 0;
+}
+
+/* 创建一个假的“边框”作为加载动画的轨道 */
+.btn-gen.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px; /* 加载圈的大小 */
+    height: 20px;
+    margin-top: -10px; /* 居中 */
+    margin-left: -10px;
+    border-radius: 50%;
+    border: 2px solid rgba(0, 0, 0, 0.2); /* 轨道的颜色 */
+    border-top-color: #000; /* 旋转部分的颜色 */
+    animation: spinner 0.8s linear infinite;
+}
+
+/* 定义旋转动画 */
+@keyframes spinner {
+    to {
+        transform: rotate(360deg);
+    }
+}
+#message-action-modal .modal-content {
+    padding: 8px 0; /* 上下留白 */
+    width: 200px; /* 固定宽度 */
+    max-width: 80%;
+}
+#message-action-modal .modal-item {
+    justify-content: center; /* 居中显示 */
+    padding: 14px;
+    font-weight: 500;
+}
+.modal-item-separator {
+    height: 8px;
+    background-color: #f0f2f5;
+    margin: 8px 0;
+}
+/* 禁用按钮的样式 */
+.modal-item.disabled {
+    color: #bbb;
+    pointer-events: none;
+    cursor: not-allowed;
+}
+
+/* 撤回消息提示的样式 */
+.recalled-message-placeholder {
+    text-align: center;
+    margin: 10px 0;
+    font-size: 12px;
+    color: #aaa;
+}
+
+/* AI 撤回的消息，可以点击 */
+.recalled-message-placeholder.clickable {
+    cursor: pointer;
+    text-decoration: underline;
+}
+.bubble.voice {
+    cursor: pointer;
+}
+
+/* 播放器内部的布局 */
+.bubble.voice .voice-player {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.bubble.voice .voice-icon {
+    font-size: 16px;
+    line-height: 1;
+}
+
+/* 模拟的语音条 */
+.bubble.voice .voice-bar {
+    /* 宽度现在完全由JS的内联style控制，这里不再需要任何宽度设置 */
+    height: 1.5px;
+    background-color: currentColor;
+    opacity: 0.6;
+}
+
+
+/* 时长文本 */
+.bubble.voice .voice-duration {
+    font-size: 14px;
+    opacity: 0.8;
+    white-space: nowrap;
+}
+
+/* 展开的文本 */
+.bubble.voice .voice-text {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    font-size: 14px;
+    line-height: 1.4;
+}
+.bubble.transfer {
+    background-color: #F9A825;
+    color: white;
+    width: auto; /* 【核心修改】移除了固定宽度，让宽度自适应 */
+    display: inline-block; /* 让气泡包裹内容 */
+    min-width: 170px; /* 保证一个合适的最小宽度 */
+    max-width: 220px;
+    padding: 0;
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    transition: background-color 0.3s ease;
+}
+
+/* 根据不同状态改变背景色 */
+.bubble.transfer.accepted { background-color: #f0f0f0; color: #888; }
+.bubble.transfer.rejected { background-color: #e0e0e0; color: #999; }
+
+/* 移除AI或ME气泡默认的边框或背景 */
+.bubble.transfer.ai, .bubble.transfer.me { border: none; }
+.bubble.transfer.accepted.ai, .bubble.transfer.rejected.ai { background-color: #f0f0f0; }
+.bubble.transfer.accepted.me, .bubble.transfer.rejected.me { background-color: #e9e9e9; }
+
+.transfer-content {
+    padding: 10px 14px; /* 减小内边距 */
+    display: flex;
+    align-items: center;
+    gap: 10px; /* 减小图标和文字的间距 */
+}
+.transfer-icon {
+    font-size: 26px; /* 减小图标尺寸 */
+    line-height: 1;
+}
+.transfer-details { display: flex; flex-direction: column; }
+.transfer-amount {
+    font-size: 18px; /* 减小金额字体 */
+    font-weight: 500;
+}
+.transfer-remark {
+    font-size: 12px; /* 减小留言字体 */
+    opacity: 0.9;
+    margin-top: 1px;
+}
+.transfer-footer {
+    color: #fff;
+    background-color: rgba(0,0,0,0.05);
+    font-size: 12px;
+    padding: 4px 14px;
+}
+.bubble.transfer.accepted .transfer-footer,
+.bubble.transfer.rejected .transfer-footer {
+    color: #999;
+    background-color: transparent;
+    border-top: 1px solid #e5e5e5;
+}
+.bubble.location {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* 图标和文字之间的间距 */
+    width: auto; /* 【核心】宽度由内容决定 */
+    max-width: 230px; /* 限制一个最大宽度 */
+    padding: 10px 14px; /* 稍微减小内边距 */
+    cursor: pointer;
+}
+
+/* AI和我的气泡样式，只负责背景和边框 */
+.bubble.location.ai {
+    background-color: #fff;
+    border: 1px solid #eee;
+}
+.bubble.location.me {
+    background-color: var(--bubble-me-bg, #ecefe9);
+}
+
+/* 位置图标的样式 */
+.location-icon {
+    font-size: 22px;
+    line-height: 1;
+}
+
+/* 文本细节部分的容器 */
+.location-details {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* 防止长文本溢出 */
+}
+
+/* 地名文本 */
+.location-place {
+    font-weight: 500;
+    font-size: 15px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #333;
+}
+
+/* “共享位置”的副标题 */
+.location-subtitle {
+    font-size: 12px;
+    color: #888;
+}
+
+/* 确保在我发出的绿色气泡里，文字颜色也清晰可见 */
+.bubble.location.me .location-place,
+.bubble.location.me .location-subtitle {
+    color: #333;
 }
