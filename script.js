@@ -1873,54 +1873,97 @@ function editMessage() {
     function closeThoughtsModal() {
         document.getElementById('thoughts-modal').classList.remove('active');
     }
-    
-    function openChatSettingsDrawer() {
-        const ai = aiList.find(c => c.id == currentChatId);
-        if (!ai) return;
-        const userSelect = document.getElementById('chat-user-persona-select');
-        userSelect.innerHTML = '';
-        userProfiles.forEach(p => userSelect.appendChild(new Option(p.name, p.id)));
-        userSelect.value = ai.userId;
-        const chatWbSelect = document.getElementById('chat-wb-select');
-        const offlineWbSelect = document.getElementById('offline-wb-select');
-        chatWbSelect.innerHTML = '<option value="none">无</option>';
-        offlineWbSelect.innerHTML = '<option value="none">无</option>';
-        worldbooks.forEach(wb => {
-            const optionText = `[${wb.category}] ${wb.name}`;
-            chatWbSelect.appendChild(new Option(optionText, wb.id));
-            offlineWbSelect.appendChild(new Option(optionText, wb.id));
-        });
-        chatWbSelect.value = ai.settings.chatWorldbookId || 'none';
-        offlineWbSelect.value = ai.settings.offlineMode?.worldbookId || 'none';
-        document.getElementById('time-perception-switch').checked = ai.settings.timePerception || false;
-        const offlineEnabled = ai.settings.offlineMode?.enabled || false;
-        document.getElementById('offline-mode-switch').checked = offlineEnabled;
-        document.getElementById('offline-word-min').value = ai.settings.offlineMode?.wordCountMin || 500;
-        document.getElementById('offline-word-max').value = ai.settings.offlineMode?.wordCountMax || 1500;
-        toggleOfflineSettings(offlineEnabled);
-        openDrawer('chat-settings-drawer');
-    }
-    
-    function toggleOfflineSettings(isON) {
-        document.getElementById('offline-settings-container').classList.toggle('visible', isON);
-    }
+   function openChatSettingsDrawer() {
+    const ai = aiList.find(c => c.id == currentChatId);
+    if (!ai) return;
 
-    function saveChatSettings() {
-        const ai = aiList.find(c => c.id == currentChatId);
-        if (!ai) return;
-        ai.userId = parseInt(document.getElementById('chat-user-persona-select').value);
-        ai.settings.chatWorldbookId = document.getElementById('chat-wb-select').value;
-        ai.settings.timePerception = document.getElementById('time-perception-switch').checked;
-        if (!ai.settings.offlineMode) ai.settings.offlineMode = {};
-        ai.settings.offlineMode.enabled = document.getElementById('offline-mode-switch').checked;
-        ai.settings.offlineMode.wordCountMin = parseInt(document.getElementById('offline-word-min').value) || 500;
-        ai.settings.offlineMode.wordCountMax = parseInt(document.getElementById('offline-word-max').value) || 1500;
-        ai.settings.offlineMode.worldbookId = document.getElementById('offline-wb-select').value;
-        setStorage('ai_list_v2', aiList);
-        closeDrawer('chat-settings-drawer');
-        showToast('聊天设置已保存');
-        renderMessages();
+    // 确保 ai.settings 存在
+    if (!ai.settings) ai.settings = {};
+    if (!ai.settings.offlineMode) ai.settings.offlineMode = {};
+
+    const currentUser = userProfiles.find(p => p.id == ai.userId) || userProfiles[0];
+
+    // 填充“我的角色”
+    const userSelect = document.getElementById('chat-user-persona-select');
+    userSelect.innerHTML = userProfiles.map(p => 
+        `<option value="${p.id}" ${p.id == currentUser.id ? 'selected' : ''}>${p.name}</option>`
+    ).join('');
+
+    // 【核心】填充线上和线下两个世界书选择框
+    const worldbooks = getStorage('worldbooks', []);
+    const wbOptionsHtml = '<option value="none">无</option>' + worldbooks.map(wb => `<option value="${wb.id}">${wb.name}</option>`).join('');
+    
+    const onlineWbSelect = document.getElementById('chat-wb-select');
+    const offlineWbSelect = document.getElementById('offline-wb-select');
+    onlineWbSelect.innerHTML = wbOptionsHtml;
+    offlineWbSelect.innerHTML = wbOptionsHtml;
+    
+    // 设置选中状态
+    onlineWbSelect.value = ai.settings.chatWorldbookId || 'none';
+    offlineWbSelect.value = ai.settings.offlineMode.worldbookId || 'none';
+
+    // 填充开关和输入框
+    document.getElementById('time-perception-switch').checked = ai.settings.timePerception ?? false;
+    document.getElementById('offline-mode-switch').checked = ai.settings.offlineMode.enabled ?? false;
+    document.getElementById('offline-word-min').value = ai.settings.offlineMode.wordCountMin || 80;
+    document.getElementById('offline-word-max').value = ai.settings.offlineMode.wordCountMax || 150;
+
+    // 初始化折叠区域状态
+    toggleCollapse('offline-settings-container', ai.settings.offlineMode.enabled ?? false);
+    toggleCollapse('worldbook-collapse-section', false); // 默认收起世界书
+
+    openDrawer('chat-settings-drawer');
+}
+   function toggleOfflineSettings(isEnabled) {
+    toggleCollapse('offline-settings-container', isEnabled);
+}
+function toggleCollapse(containerId, forceState) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    const shouldOpen = typeof forceState === 'boolean' ? forceState : !container.classList.contains('open');
+
+    if (shouldOpen) {
+        container.classList.add('open');
+        container.style.maxHeight = container.scrollHeight + 'px';
+    } else {
+        container.classList.remove('open');
+        container.style.maxHeight = '0px';
     }
+}
+function openWorldbookManager() {
+    showToast('管理世界书功能待开发');
+}
+function toggleWorldbookSection() {
+    toggleCollapse('worldbook-collapse-section');
+}
+
+
+  function saveChatSettings() {
+    const ai = aiList.find(c => c.id == currentChatId);
+    if (!ai) return;
+
+    if (!ai.settings) ai.settings = {};
+    if (!ai.settings.offlineMode) ai.settings.offlineMode = {};
+
+    // 保存常规设置
+    ai.userId = parseInt(document.getElementById('chat-user-persona-select').value);
+    ai.settings.timePerception = document.getElementById('time-perception-switch').checked;
+
+    // 保存两个世界书的ID
+    ai.settings.chatWorldbookId = document.getElementById('chat-wb-select').value;
+    ai.settings.offlineMode.worldbookId = document.getElementById('offline-wb-select').value;
+    
+    // 保存线下模式专属设置
+    ai.settings.offlineMode.enabled = document.getElementById('offline-mode-switch').checked;
+    ai.settings.offlineMode.wordCountMin = parseInt(document.getElementById('offline-word-min').value) || 80;
+    ai.settings.offlineMode.wordCountMax = parseInt(document.getElementById('offline-word-max').value) || 150;
+    
+    setStorage('ai_list_v2', aiList);
+    closeDrawer('chat-settings-drawer');
+    showToast('聊天设置已保存');
+    renderMessages();
+}
     
     function tryClearCurrentChat() {
         if (!currentChatId || !confirm('确定清空当前对话的所有记录吗？此操作不可撤销。')) return;
@@ -5567,6 +5610,9 @@ window.openTransferActionSheet = openTransferActionSheet;
 window.closeTransferActionSheet = closeTransferActionSheet;
 window.acceptTransfer = acceptTransfer;
 window.rejectTransfer = rejectTransfer;
+window.toggleWorldbookSection = toggleWorldbookSection;
+window.toggleCollapse = toggleCollapse;
+window.toggleOfflineSettings = toggleOfflineSettings;
 
     // --- 新功能：表情包 & T2I ---
 window.openEmojiManager = openEmojiManager;

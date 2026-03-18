@@ -466,6 +466,9 @@ body {
     opacity: 0; pointer-events: none;
     transition: opacity 0.3s ease-out;
     display: flex; align-items: flex-end;
+       opacity: 0; /* 默认完全透明 */
+    pointer-events: none; /* 默认不响应任何鼠标/触摸事件，可以“点穿”它 */
+    transition: opacity 0.3s ease; /* 让它出现时有渐变效果 */
 }
 .drawer-overlay.active { 
     opacity: 1; 
@@ -475,14 +478,17 @@ body {
     width: 100%; 
     background: #fff; 
     border-radius: 25px 25px 0 0; 
-    padding: 25px;
+    /* padding: 25px; */ /* ‼️【修改】注释掉或删除这行，因为它会破坏滚动布局 */
     transform: translateY(100%); 
     transition: transform 0.3s var(--ease-ios);
     display: flex; 
     flex-direction: column; 
-    align-items: center; 
+    /* align-items: center; */ /* ‼️【修改】注释掉或删除这行，让内容自然伸展 */
     max-height: 85%;
+    color: #000; /* ‼️【新增】为所有抽屉设置一个默认的黑色字体，解决字体消失问题 */
 }
+
+
 .drawer-overlay.active .drawer { 
     transform: translateY(0); 
 }
@@ -624,7 +630,7 @@ input:checked + .slider {
     background-color: #000; 
 }
 input:checked + .slider:before { 
-    transform: translateX(26px); /* Corrected value */
+    transform: translateX(20px); /* Corrected value */
 }
 .offline-settings-container { 
     display: none; 
@@ -3298,4 +3304,97 @@ html, body {
 .bubble.location.me .location-place,
 .bubble.location.me .location-subtitle {
     color: #333;
+}
+.drawer-footer {
+    flex-shrink: 0;
+    display: flex;
+    gap: 15px;
+    padding: 15px 20px;
+    border-top: 1px solid #e5e5e5;
+    background-color: #f7f7f7;
+}
+.drawer-footer button {
+    flex: 1;
+    padding: 12px;
+    border-radius: 12px;
+    border: none;
+    font-weight: bold;
+    font-size: 16px;
+    background: #e9e9eb;
+    color: #000;
+    cursor: pointer;
+}
+.drawer-footer button.primary {
+    background: #007aff;
+    color: #fff;
+}
+
+/* 统一设置标签样式 */
+.setting-card .setting-label {
+    font-weight: bold;
+    color: #000;
+}
+/* 子设置行的标签 */
+.setting-card .sub-row label {
+    font-weight: normal;
+    color: #333;
+    padding-left: 15px;
+}
+
+/* 折叠容器统一样式 */
+.collapse-container {
+    max-height: 0;
+    overflow: hidden; /* ‼️ 关键：确保内容被裁剪，解决“折叠不完全”问题 */
+    transition: max-height 0.35s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+.collapse-icon-btn {
+    background: none;
+    border: none;
+    font-size: 18px;
+    color: #c7c7cc;
+    transform: rotate(90deg);
+    transition: transform 0.3s ease;
+    cursor: pointer;
+}
+.collapse-container.open ~ .collapse-icon-btn {
+    transform: rotate(-90deg);
+}
+
+/* 全新的红/蓝开关样式 */
+.rocker-switch {
+    display: inline-block;
+    position: relative;
+    width: 51px;
+    height: 31px;
+}
+.rocker-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+.rocker-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #ff3b30; /* 关闭时为红色 */
+    transition: .4s;
+    border-radius: 34px;
+}
+.rocker-slider:before {
+    position: absolute;
+    content: "";
+    height: 27px;
+    width: 27px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.rocker-switch input:checked + .rocker-slider {
+    background-color: #007aff; /* 开启时为蓝色 */
+}
+.rocker-switch input:checked + .rocker-slider:before {
+    transform: translateX(20px);
 }

@@ -543,7 +543,11 @@
         <div id="chat-title" class="nav-title">聊天中</div>
         <div id="typing-indicator" class="nav-subtitle"></div>
     </div>
-                <button class="nav-btn" style="font-size:20px; color:#000;" onclick="openChatSettingsDrawer()">🖤</button>
+                <button class="nav-btn" onclick="openChatSettingsDrawer()">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24px" height="24px">
+        <path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/>
+    </svg>
+</button>
             </div>
             <div class="message-area no-scrollbar" id="msg-area"></div>
            <div class="input-bar">
@@ -722,78 +726,80 @@
                 <button class="close-btn" onclick="closePostCreator()" style="position: absolute; top: 10px; left: 10px; background: transparent; border: none; font-size: 24px;">×</button>
             </div>
         </div>
-        
-        <div class="drawer-overlay" id="chat-settings-drawer">
-            <div class="drawer" style="background-color: #f7f7f7;">
-                <div class="drawer-scroll-content no-scrollbar">
-                    <div class="setting-card" style="width:100%; margin-bottom: 10px;">
-                        <div class="setting-row">
-                            <label>我的身份</label>
-                            <select id="chat-user-persona-select" class="input-clean" style="text-align: right; font-weight: 500;"></select>
-                        </div>
-                         <div class="setting-row">
-                            <label>聊天世界书</label>
-                            <select id="chat-wb-select" class="input-clean" style="text-align: right; font-weight: 500;"></select>
-                        </div>
-                        <div class="setting-row">
-                            <label style="font-weight: bold; color: #000;">时间感知</label>
-                            <label class="slider-switch">
-                                <input type="checkbox" id="time-perception-switch">
-                                <span class="slider"></span>
-                            </label>
-                        </div>
+<div class="drawer-overlay" id="chat-settings-drawer">
+    <div class="drawer">
+        <div class="drawer-scroll-content no-scrollbar">
+            <!-- 基础设置 -->
+            <div class="setting-card">
+                <div class="setting-row">
+                    <label class="setting-label">我的角色</label>
+                    <select id="chat-user-persona-select" class="input-clean"></select>
+                </div>
+            </div>
+    
+            <!-- 世界书设置（可折叠） -->
+            <div class="setting-card">
+                <div class="setting-row" style="cursor: pointer;" onclick="toggleCollapse('worldbook-collapse-section')">
+                    <label class="setting-label">绑定世界书</label>
+                    <button class="collapse-icon-btn">❯</button>
+                </div>
+                <div id="worldbook-collapse-section" class="collapse-container">
+                    <div class="setting-row sub-row">
+                        <label>线上</label>
+                        <select id="chat-wb-select" class="input-clean"></select>
                     </div>
-
-                    <div class="setting-card" style="width:100%; margin-bottom: 10px;">
-                        <div class="setting-row">
-                            <label style="font-weight: bold; color: #000;">线下模式</label>
-                             <label class="slider-switch">
-                                <input type="checkbox" id="offline-mode-switch" onchange="toggleOfflineSettings(this.checked)">
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-                        <div id="offline-settings-container" class="offline-settings-container">
-                            <div class="setting-row">
-                                <label style="font-weight: bold; color: #000;">回复字数</label>
-                                <div class="word-count-inputs">
-                                    <input type="number" id="offline-word-min" class="input-clean" style="border: 1px solid #ddd; padding: 5px; border-radius: 8px;">
-                                    <span>-</span>
-                                    <input type="number" id="offline-word-max" class="input-clean" style="border: 1px solid #ddd; padding: 5px; border-radius: 8px;">
-                                    <span>字</span>
-                                </div>
-                            </div>
-                            <div class="setting-row">
-                               <label style="font-weight: bold; color: #000;" >线下世界书</label>
-                               <select id="offline-wb-select" class="input-clean" style="text-align: right; font-weight: 500;"></select>
-                            </div>
-                            <div class="setting-row" style="cursor: pointer;" onclick="exportCurrentChat()">
-                                <label style="font-weight: bold; color: #000;">导出当前对话</label>
-                            </div>
-                            <div class="setting-row" style="cursor: pointer;" onclick="importCurrentChat()">
-                                <label style="font-weight: bold; color: #000;">导入当前对话</label>                              
-                            </div>
-                            <div class="setting-row" style="cursor: pointer;" onclick="tryClearCurrentChat()">
-                                <label style="font-weight: bold; color: #000;">清空当前对话</label>                              
-                            </div>
-                        </div>
-                    </div>
-
-                    <ul class="drawer-action-list" style="margin-top: 10px; width:100%;">
-                        <li class="drawer-action-item" onclick="openAiDrawer(true)">修改角色设定</li>
-                        <li class="drawer-action-item" onclick="openUserDrawer()">修改我的资料</li>
-                        <li class="drawer-action-item" onclick="exportCurrentChat()">导出当前对话</li>
-                        <li class="drawer-action-item" onclick="importCurrentChat()">导入当前对话</li>
-                        <li class="drawer-action-item danger" onclick="tryClearCurrentChat()">清空当前对话</li>
-                    </ul>
-                    
-                    <div style="display:flex; width:100%; gap:10px; margin-top: 20px;">
-                        <button onclick="closeDrawer('chat-settings-drawer')" style="flex:1; padding:12px; border-radius:12px; border:none; background:#ddd; font-weight:bold;">取消</button>
-                        <button onclick="saveChatSettings()" style="flex:1; padding:12px; border-radius:12px; border:none; background:#000; color:#fff; font-weight:bold;">保存</button>
+                    <div class="setting-row sub-row">
+                        <label>线下</label>
+                        <select id="offline-wb-select" class="input-clean"></select>
                     </div>
                 </div>
             </div>
+    
+            <!-- 开关设置 -->
+            <div class="setting-card">
+                <div class="setting-row">
+                    <label class="setting-label">时间感知</label>
+                    <label class="rocker-switch">
+                        <input type="checkbox" id="time-perception-switch">
+                        <span class="rocker-slider"></span>
+                    </label>
+                </div>
+                <div class="setting-row">
+                    <label class="setting-label">线下模式</label>
+                    <label class="rocker-switch">
+                        <input type="checkbox" id="offline-mode-switch" onchange="toggleOfflineSettings(this.checked)">
+                        <span class="rocker-slider"></span>
+                    </label>
+                </div>
+                <div id="offline-settings-container" class="collapse-container">
+                     <div class="setting-row sub-row">
+                        <label>回复字数</label>
+                        <div class="word-count-inputs">
+                            <input type="number" id="offline-word-min" class="input-clean" style="border: 1px solid #ddd; padding: 5px; border-radius: 8px;">
+                            <span>-</span>
+                            <input type="number" id="offline-word-max" class="input-clean" style="border: 1px solid #ddd; padding: 5px; border-radius: 8px;">
+                            <span>字</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 操作列表 -->
+            <ul class="drawer-action-list">
+                <li class="drawer-action-item" onclick="openAiDrawer(true)">修改角色设定</li>
+                <li class="drawer-action-item" onclick="openUserDrawer()">修改我的资料</li>
+                <li class="drawer-action-item" onclick="importCurrentChat()">导入当前对话</li>
+                <li class="drawer-action-item" onclick="exportCurrentChat()">导出当前对话</li>
+                <li class="drawer-action-item danger" onclick="tryClearCurrentChat()">清空当前对话</li>
+            </ul>
         </div>
-
+        <!-- 底部按钮区（现在在滚动区之外） -->
+        <div class="drawer-footer">
+            <button onclick="closeDrawer('chat-settings-drawer')">取消</button>
+            <button class="primary" onclick="saveChatSettings()">保存</button>
+        </div>
+    </div>
+</div>
         <div class="action-sheet-modal" id="moment-actions-modal" onclick="closeMomentActions()">
             <div class="picker-content" onclick="event.stopPropagation()">
                 <ul class="picker-list" style="padding-top:10px; padding-bottom:10px;">
