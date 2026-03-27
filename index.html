@@ -25,10 +25,36 @@
             <!-- 锁屏 -->
             <div id="lock-screen">
                 <div class="lock-title">蛋壳机</div>
-                <div class="lock-slider">
+                <!-- 模式一：经典滑块解锁（默认） -->
+                <div class="lock-slider" id="lock-slider">
                     <div class="lock-slider-track" id="lock-slider-track">
                         <div class="lock-slider-label">滑动来解锁</div>
                         <div class="lock-slider-thumb" id="lock-slider-thumb"></div>
+                    </div>
+                </div>
+                <!-- 模式二/三：上滑解锁提示与密码面板（在对应模式下显示） -->
+                <div class="lock-swipe-hint" id="lock-swipe-hint">上滑解锁</div>
+                <div class="lock-passcode-panel" id="lock-passcode-panel">
+                    <div class="lock-passcode-title">输入密码</div>
+                    <div class="lock-passcode-dots" id="lock-passcode-dots">
+                        <span class="lock-passcode-dot"></span>
+                        <span class="lock-passcode-dot"></span>
+                        <span class="lock-passcode-dot"></span>
+                        <span class="lock-passcode-dot"></span>
+                    </div>
+                    <div class="lock-passcode-keypad">
+                        <button class="lock-key" data-key="1">1</button>
+                        <button class="lock-key" data-key="2">2</button>
+                        <button class="lock-key" data-key="3">3</button>
+                        <button class="lock-key" data-key="4">4</button>
+                        <button class="lock-key" data-key="5">5</button>
+                        <button class="lock-key" data-key="6">6</button>
+                        <button class="lock-key" data-key="7">7</button>
+                        <button class="lock-key" data-key="8">8</button>
+                        <button class="lock-key" data-key="9">9</button>
+                        <div class="lock-key placeholder"></div>
+                        <button class="lock-key" data-key="0">0</button>
+                        <button class="lock-key delete" data-key="delete">⌫</button>
                     </div>
                 </div>
             </div>
@@ -44,11 +70,11 @@
                             </div>
                         </div>
                         <div class="grid-container">
-                            <!-- 左上：图片组件 -->
-                            <div class="widget photo-widget" id="photo-widget" onclick="document.getElementById('bg-upload').click()">
-                                <svg class="heart-icon" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-                                <div class="battery-container"><div class="battery-level" id="battery-bar"></div></div>
-                                <input type="file" id="bg-upload" accept="image/*" style="display:none">
+                            <!-- 左上：纪念日概览组件（由纪念日 App 驱动） -->
+                            <div class="widget photo-widget anniversary-widget" id="photo-widget">
+                                <div class="anniv-title" id="anniv-main-title">纪念日</div>
+                                <div class="anniv-days" id="anniv-main-days">-- 天</div>
+                                <div class="anniv-sub" id="anniv-main-sub">在纪念日 App 中设置你的重要日子</div>
                             </div>
                             <!-- 右上APP区域 -->
                             <div class="apps-area app-row-container">
@@ -127,16 +153,10 @@
                                      <span class="home-app-name">论坛</span>
                                  </button>
                              </div>
-                             <!-- 右下时间进度条组件 -->
-                             <div class="widget time-bars-area">
-                                 <div class="vertical-bar-group">
-                                     <div class="bar-track"><div class="bar-fill" id="day-fill"></div></div>
-                                     <div class="bar-label">日剩 <span id="day-text">0%</span></div>
-                                 </div>
-                                 <div class="vertical-bar-group">
-                                     <div class="bar-track"><div class="bar-fill" id="year-fill"></div></div>
-                                     <div class="bar-label">年剩 <span id="year-text">0%</span></div>
-                                 </div>
+                             <!-- 右下方形图片组件：初始透明，可导入本地图片美化 -->
+                             <div class="widget bottom-photo-widget" id="bottom-photo-widget">
+                                 <input type="file" id="bottom-photo-upload" accept="image/*" style="display:none">
+                                 <div class="bottom-photo-placeholder" id="bottom-photo-placeholder">点此添加一张小图片</div>
                              </div>
                          </div>
                          <!-- Dock栏 -->
@@ -181,7 +201,6 @@
                                   <div class="love-header-message" contenteditable="true" data-placeholder="写一句只属于今天的黑白留言，比如：&quot;今天也要好好相爱&quot;"></div>
                               </div>
                           </div>
-+
                           <!-- 第二屏中部 · 黑白简约日记长条 -->
                           <div class="role-diary-strip">
                               <div class="role-diary-avatar">
@@ -197,7 +216,7 @@
                                       <div class="love-apps-column">
                                            <div class="love-apps-row">
                                                <button class="home-app love-app" type="button" onclick="openPage('shop-page')">
-                                                   <div class="home-app-icon love-app-icon love-uploadable" data-component-id="shop">
+                                                   <div class="home-app-icon love-app-icon" data-component-id="shop">
                                                        <svg viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
                                                            <path d="M6 7l1.5-4h9L18 7" />
                                                            <path d="M5 7h14l-1 13H6L5 7z" />
@@ -208,7 +227,7 @@
                                                    <span class="home-app-name">购物</span>
                                                </button>
                                                <button class="home-app love-app" type="button" onclick="openLivePage()">
-                                                  <div class="home-app-icon love-app-icon love-uploadable" data-component-id="live">
+                                                  <div class="home-app-icon love-app-icon" data-component-id="live">
                                                       <svg viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
                                                           <rect x="3" y="6" width="14" height="12" rx="3" />
                                                           <path d="M17 12l4-3v6l-4-3Z" />
@@ -220,7 +239,7 @@
                                               </button>
                                           </div>
                                           <div class="love-apps-row">
-                                              <button class="home-app love-app" type="button" onclick="openTarotEntry()">
+                                               <button class="home-app love-app" type="button" onclick="openPage('tarot-page')">
                                                    <div class="home-app-icon love-app-icon">
                                                        <svg viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
                                                            <rect x="5" y="3" width="14" height="18" rx="2" />
@@ -241,61 +260,65 @@
                                                </button>
                                           </div>
                                       </div>
-                                      <div class="love-heart love-glass love-uploadable" data-component-id="heart" role="button" tabindex="0" aria-label="爱心收藏组件">
-                                          <svg class="love-heart-svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
-                                              <path
-                                                  fill-rule="evenodd"
-                                                  clip-rule="evenodd"
-                                                  d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
-                                                  fill="#FFFFFF"
-                                                  fill-opacity="0.3"
-                                                  stroke="#FFFFFF"
-                                                  stroke-width="1.2" />
-                                          </svg>
-                                      </div>
+                                       <div class="love-heart love-uploadable" data-component-id="heart" role="button" tabindex="0" aria-label="爱心收藏组件">
+                                           <svg class="love-heart-svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
+                                               <path
+                                                   fill-rule="evenodd"
+                                                   clip-rule="evenodd"
+                                                   d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+                                                   fill="#FFFFFF"
+                                                   fill-opacity="0.3"
+                                                   stroke="#FFFFFF"
+                                                   stroke-width="1.2" />
+                                           </svg>
+                                       </div>
                                   </div>
                                   <div class="love-bottom-group">
                                       <div class="love-circle love-glass love-uploadable" data-component-id="circle" role="button" tabindex="0" aria-label="圆形心情组件"></div>
                                       <div class="love-bottom-apps">
-                                          <button class="home-app love-app" type="button" onclick="notifyComingSoon('无限流')">
-                                              <div class="home-app-icon love-app-icon">
-                                                  <svg viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-                                                      <path d="M4 12c0-2.2 1.8-4 4-4 2.5 0 4 4 4 4s1.5 4 4 4c2.2 0 4-1.8 4-4s-1.8-4-4-4c-2.5 0-4 4-4 4s-1.5 4-4 4c-2.2 0-4-1.8-4-4z" />
-                                                  </svg>
-                                              </div>
-                                              <span class="home-app-name">无限流</span>
-                                          </button>
-                                          <button class="home-app love-app" type="button" onclick="notifyComingSoon('小剧场')">
-                                              <div class="home-app-icon love-app-icon">
-                                                  <svg viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                                                      <rect x="3" y="5" width="18" height="14" rx="2" />
-                                                      <path d="M3 10h18" />
-                                                      <path d="M8 5v5" />
-                                                      <path d="M16 5v5" />
-                                                  </svg>
-                                              </div>
-                                              <span class="home-app-name">小剧场</span>
-                                          </button>
-                                          <button class="home-app love-app" type="button" onclick="notifyComingSoon('漂流瓶')">
-                                              <div class="home-app-icon love-app-icon">
-                                                  <svg viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                                                      <path d="M10 2h4v3l-1 1v2l2 2v9l-3 3-3-3v-9l2-2V6l-1-1V2z" />
-                                                      <path d="M7 14c1.5 1 3.3 1.5 5 1.5S15.5 15 17 14" />
-                                                  </svg>
-                                              </div>
-                                              <span class="home-app-name">漂流瓶</span>
-                                          </button>
-                                          <button class="home-app love-app" type="button" onclick="notifyComingSoon('烹饪')">
-                                              <div class="home-app-icon love-app-icon">
-                                                  <svg viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                                                      <rect x="4" y="10" width="16" height="8" rx="2" />
-                                                      <path d="M9 10V7a3 3 0 0 1 6 0v3" />
-                                                      <path d="M6 18v2" />
-                                                      <path d="M18 18v2" />
-                                                  </svg>
-                                              </div>
-                                              <span class="home-app-name">烹饪</span>
-                                          </button>
+                                          <div class="love-bottom-col">
+                                              <button class="home-app love-app" type="button" onclick="openPage('infinite-page')">
+                                                   <div class="home-app-icon love-app-icon">
+                                                       <svg viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                                                           <path d="M4 12c0-2.2 1.8-4 4-4 2.5 0 4 4 4 4s1.5 4 4 4c2.2 0 4-1.8 4-4s-1.8-4-4-4c-2.5 0-4 4-4 4s-1.5 4-4 4c-2.2 0-4-1.8-4-4z" />
+                                                       </svg>
+                                                   </div>
+                                                   <span class="home-app-name">无限流</span>
+                                               </button>
+                                              <button class="home-app love-app" type="button" onclick="openPage('travel-page')">
+                                                  <div class="home-app-icon love-app-icon">
+                                                      <svg viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                                                          <path d="M3 19l18-7-18-3 3 4 5 1-5 1-3 4z" />
+                                                          <path d="M10 4.5a3.5 3.5 0 1 1 7 0V7" />
+                                                      </svg>
+                                                  </div>
+                                                  <span class="home-app-name">旅游</span>
+                                              </button>
+                                          </div>
+                                            <div class="love-bottom-col">
+                                                <button class="home-app love-app" type="button" onclick="openPage('theatre-page')">
+                                                    <div class="home-app-icon love-app-icon">
+                                                        <svg viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                                                            <rect x="3" y="5" width="18" height="14" rx="2" />
+                                                            <path d="M3 10h18" />
+                                                            <path d="M8 5v5" />
+                                                            <path d="M16 5v5" />
+                                                        </svg>
+                                                    </div>
+                                                    <span class="home-app-name">小剧场</span>
+                                                </button>
+                                               <button class="home-app love-app" type="button" onclick="openPage('cooking-page')">
+                                                   <div class="home-app-icon love-app-icon">
+                                                       <svg viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                                                           <rect x="4" y="10" width="16" height="8" rx="2" />
+                                                           <path d="M9 10V7a3 3 0 0 1 6 0v3" />
+                                                           <path d="M6 18v2" />
+                                                           <path d="M18 18v2" />
+                                                       </svg>
+                                                   </div>
+                                                   <span class="home-app-name">烹饪</span>
+                                               </button>
+                                           </div>
                                       </div>
                                   </div>
                               </div>
@@ -310,35 +333,306 @@
                 </div>
             </div>
  
-            <!-- 直播首页 -->
-            <div class="app-page live-page" id="live-page">
-                <div class="nav-header">
-                    <button class="nav-btn" onclick="closePage('live-page')">❮</button>
-                    <span class="nav-title">直播</span>
-                    <div class="live-nav-right">
-                        <button class="nav-icon-btn" id="live-profile-btn" aria-label="打开个人主页">
-                            <svg viewBox="0 0 24 24">
-                               <circle cx="12" cy="8" r="3.2"></circle>
-                               <path d="M5 19c1.5-3 3.8-4.5 7-4.5s5.5 1.5 7 4.5"></path>
-                            </svg>
-                        </button>
-                        <button class="nav-icon-btn" id="live-refresh-btn" aria-label="刷新直播间">
-                            <svg viewBox="0 0 24 24">
-                                <rect x="3" y="7" width="12" height="10" rx="2"></rect>
-                                <polygon points="17,9 21,11 21,13 17,15"></polygon>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-                <div class="scroll-content live-scroll">
-                    <div class="live-rooms-header">
-                        <div class="live-rooms-title">今晚谁在直播？</div>
-                        <div class="live-rooms-subtitle">从你的 AI 角色和他们的好友里，为你随机挑选一批直播间。</div>
-                        <div class="live-rooms-hint" id="live-rooms-hint">提示：需要先在孵蛋室创建至少 5 个 AI 好友，才能解锁直播。</div>
-                    </div>
-                    <div class="live-room-list" id="live-room-list"></div>
-                </div>
-            </div>
+             <!-- 旅游页面 -->
+             <div class="app-page travel-page" id="travel-page">
+                 <div class="nav-header travel-nav-header">
+                     <button class="nav-btn" onclick="closePage('travel-page')">❮</button>
+                     <span class="nav-title">旅游</span>
+                     <button class="nav-icon-btn travel-flag-btn" id="travel-flag-btn" aria-label="生成国内游行程">
+                         <svg viewBox="0 0 24 24">
+                             <path d="M6 4v16" />
+                             <path d="M8 5h8l-2 3 2 3H8" />
+                         </svg>
+                     </button>
+                 </div>
+                 <div class="travel-main">
+                     <div class="travel-card" id="travel-main-card">
+                         <div class="travel-placeholder" id="travel-placeholder-domestic">
+                             点击右上角的小旗子，告诉我你想去什么样的国内城市，我会为你准备 4–5 条行程候选。
+                         </div>
+                         <div class="travel-placeholder" id="travel-placeholder-foreign" hidden>
+                             在这里可以规划你的国外旅行。默认会以飞机为主要交通方式，根据你的设定生成行程。
+                         </div>
+                         <div class="travel-trip-list" id="travel-trip-list-domestic" hidden></div>
+                         <div class="travel-trip-list" id="travel-trip-list-foreign" hidden></div>
+                         <div class="travel-report-view" id="travel-report-view" hidden></div>
+                     </div>
+                 </div>
+                 <div class="travel-tab-bar" id="travel-tab-bar">
+                     <button class="travel-tab active" data-tab="domestic">
+                         <span class="travel-tab-icon">🏠</span>
+                         <span class="travel-tab-label">国内游</span>
+                     </button>
+                     <button class="travel-tab" data-tab="foreign">
+                         <span class="travel-tab-icon">🌍</span>
+                         <span class="travel-tab-label">国外游</span>
+                     </button>
+                 </div>
+ 
+                 <!-- 国内游设定弹窗 -->
+                 <div class="travel-modal-overlay" id="travel-pref-modal">
+                     <div class="travel-modal">
+                         <div class="travel-modal-header">
+                             <div class="travel-modal-title">国内游设定</div>
+                             <button class="travel-modal-close" id="travel-pref-close">✕</button>
+                         </div>
+                         <div class="travel-modal-body">
+                             <div class="travel-field">
+                                 <label>你大概想去什么样的地方？</label>
+                                 <textarea id="travel-destination-input" placeholder="例如：南方靠海的小城，有老街和咖啡馆"></textarea>
+                             </div>
+                             <div class="travel-field">
+                                 <label>这次旅行更像是一种什么感觉？</label>
+                                 <textarea id="travel-mood-input" placeholder="例如：想放空、晒太阳、多吃东西"></textarea>
+                             </div>
+                             <div class="travel-field">
+                                 <label>主要交通方式</label>
+                                 <div class="travel-transport-options" id="travel-transport-options">
+                                     <button type="button" class="transport-option active" data-value="self_drive">自驾</button>
+                                     <button type="button" class="transport-option" data-value="train">高铁</button>
+                                     <button type="button" class="transport-option" data-value="flight">飞机</button>
+                                     <button type="button" class="transport-option" data-value="other">其他</button>
+                                 </div>
+                             </div>
+                         </div>
+                         <div class="travel-modal-footer">
+                             <button class="btn-small secondary" id="travel-pref-cancel">取消</button>
+                             <button class="btn-small primary" id="travel-pref-confirm">生成行程</button>
+                         </div>
+                     </div>
+                 </div>
+ 
+                 <!-- 角色绑定弹窗 -->
+                 <div class="travel-modal-overlay" id="travel-role-modal">
+                     <div class="travel-modal large">
+                         <div class="travel-modal-header">
+                             <div class="travel-modal-title">绑定旅行角色</div>
+                             <button class="travel-modal-close" id="travel-role-close">✕</button>
+                         </div>
+                         <div class="travel-modal-body travel-role-body">
+                             <div class="travel-role-section">
+                                 <div class="travel-role-section-title">用户角色（只选 1 个）</div>
+                                 <div class="travel-role-list" id="travel-user-role-list"></div>
+                             </div>
+                             <div class="travel-role-section">
+                                 <div class="travel-role-section-title">AI 角色（最多 3 个）</div>
+                                 <div class="travel-role-list" id="travel-ai-role-list"></div>
+                             </div>
+                         </div>
+                         <div class="travel-modal-footer">
+                             <button class="btn-small secondary" id="travel-role-cancel">取消</button>
+                             <button class="btn-small primary" id="travel-go-btn">去旅游</button>
+                         </div>
+                     </div>
+                 </div>
+ 
+                 <!-- 旅行进程弹窗 -->
+                 <div class="travel-modal-overlay" id="travel-progress-modal">
+                     <div class="travel-modal progress">
+                         <div class="travel-modal-header">
+                             <div class="travel-modal-title" id="travel-progress-title">本次旅行</div>
+                             <button class="travel-modal-close" id="travel-progress-close">✕</button>
+                         </div>
+                         <div class="travel-progress-tabs">
+                             <button class="travel-progress-tab active" data-stage="pre">出发前</button>
+                             <button class="travel-progress-tab" data-stage="during">旅游中</button>
+                             <button class="travel-progress-tab" data-stage="post">收尾阶段</button>
+                         </div>
+                         <div class="travel-progress-body">
+                             <div class="travel-progress-list" id="travel-progress-list"></div>
+                         </div>
+                         <div class="travel-progress-footer">
+                             <div class="travel-progress-input-wrap">
+                                 <input id="travel-progress-input" type="text" placeholder="输入你想做的选择或想法，来推动这次旅行的发展" />
+                                 <button id="travel-progress-send">发送</button>
+                             </div>
+                             <div class="travel-progress-actions">
+                                 <button class="btn-small" id="travel-progress-refresh">让 AI 推进进程</button>
+                                 <button class="btn-small primary" id="travel-end-btn">结束本次旅行并生成报告</button>
+                             </div>
+                         </div>
+                     </div>
+                 </div>
+              </div>
+ 
+              <!-- 无限流 App 页面 -->
+              <div class="app-page infinite-page" id="infinite-page">
+                  <div class="infinite-nav-header">
+                      <button class="nav-btn" onclick="closePage('infinite-page')">❮</button>
+                      <span class="nav-title">无限流</span>
+                      <span class="infinite-nav-status" id="infinite-nav-status">未绑定角色</span>
+                  </div>
+ 
+                  <div class="infinite-main">
+                      <!-- 顶部阴森感提示区，可后续用 CSS 做氛围效果 -->
+                      <div class="infinite-hero">
+                          <div class="infinite-hero-title">UNLIMITED RUN</div>
+                          <div class="infinite-hero-sub">选择一条不会重复的线路，在黑暗里试着通关。</div>
+                          <button class="infinite-hero-sword-btn disabled" id="infinite-sword-btn" aria-label="生成副本" disabled>
+                              <span class="sword-icon">🗡</span>
+                          </button>
+                      </div>
+ 
+                      <!-- 主内容区：根据底部 Tab 切换 -->
+                      <div class="infinite-content" id="infinite-content">
+                          <!-- 首页：只展示当前角色与简单提示，配合右上角刀 icon 使用 -->
+                          <section class="infinite-section infinite-section-home active" id="infinite-home-section">
+                              <div class="infinite-empty-hint" id="infinite-home-hint">
+                                  这里暂时什么都没有。先在「个人中心」里绑定一个角色，再回来试着点一下右上角的刀。
+                              </div>
+                          </section>
+ 
+                          <!-- 副本 / 任务：展示可进入的副本列表与当前进行中的副本 -->
+                          <section class="infinite-section" id="infinite-dungeon-section">
+                              <div class="infinite-sub-header">
+                                  <div class="infinite-sub-title">可进入的副本</div>
+                                  <button class="btn-small" id="infinite-refresh-dungeons-btn">刷新列表</button>
+                              </div>
+                              <div class="infinite-dungeon-list" id="infinite-dungeon-list">
+                                  <div class="infinite-empty-hint">从首页点刀生成一批与你当前评级匹配的副本。</div>
+                              </div>
+ 
+                              <div class="infinite-sub-header" style="margin-top:16px;">
+                                  <div class="infinite-sub-title">当前副本进程</div>
+                              </div>
+                              <div class="infinite-dungeon-session" id="infinite-dungeon-session">
+                                  <div class="infinite-empty-hint">尚未进入任何副本。</div>
+                              </div>
+                          </section>
+ 
+                          <!-- 个人中心：角色绑定 / 属性 / 商城 / 仓库 -->
+                          <section class="infinite-section" id="infinite-profile-section">
+                              <div class="infinite-profile-header">
+                                  <div class="infinite-profile-main">
+                                      <div class="infinite-role-name" id="infinite-role-name">未绑定角色</div>
+                                      <div class="infinite-role-rating" id="infinite-role-rating">评级：F</div>
+                                      <div class="infinite-role-attrs" id="infinite-role-attrs">
+                                          体力 10 · 力量 10 · 精神 10
+                                      </div>
+                                  </div>
+                                  <button class="btn-small primary" id="infinite-bind-role-btn">绑定 / 切换角色</button>
+                              </div>
+ 
+                              <div class="infinite-points-row">
+                                  <div class="infinite-points-label">积分余额</div>
+                                  <div class="infinite-points-value" id="infinite-points-value">0</div>
+                              </div>
+ 
+                              <div class="infinite-shop-block">
+                                  <div class="infinite-sub-header">
+                                      <div class="infinite-sub-title">系统商城</div>
+                                      <button class="btn-small" id="infinite-refresh-shop-btn">刷新推荐</button>
+                                  </div>
+                                  <div class="infinite-shop-list" id="infinite-shop-list">
+                                      <div class="infinite-empty-hint">根据当前评级与积分，为你推荐一些不会有图的道具和武器。</div>
+                                  </div>
+                              </div>
+ 
+                              <div class="infinite-inventory-block">
+                                  <div class="infinite-sub-header">
+                                      <div class="infinite-sub-title">仓库</div>
+                                  </div>
+                                  <div class="infinite-inventory-list" id="infinite-inventory-list">
+                                      <div class="infinite-empty-hint">还没有任何战利品。完成副本或在商城购买后会出现在这里。</div>
+                                  </div>
+                              </div>
+                          </section>
+                      </div>
+                  </div>
+ 
+                  <!-- 队友选择弹层 -->
+                  <div class="infinite-modal-overlay" id="infinite-team-modal">
+                      <div class="infinite-modal">
+                          <div class="infinite-modal-header">
+                              <div class="infinite-modal-title">选择一起进本的队友</div>
+                              <button class="infinite-modal-close" id="infinite-team-close">✕</button>
+                          </div>
+                          <div class="infinite-modal-body">
+                              <div class="infinite-team-section">
+                                  <div class="infinite-team-title">AI 好友</div>
+                                  <div class="infinite-team-list" id="infinite-team-ai-list"></div>
+                              </div>
+                              <div class="infinite-team-section">
+                                  <div class="infinite-team-title">随机路人</div>
+                                  <div class="infinite-team-list" id="infinite-team-stranger-list"></div>
+                              </div>
+                          </div>
+                          <div class="infinite-modal-footer">
+                              <button class="btn-small secondary" id="infinite-team-cancel">取消</button>
+                              <button class="btn-small primary" id="infinite-team-confirm">进入副本</button>
+                          </div>
+                      </div>
+                  </div>
+ 
+                  <!-- 副本中剧情与指令输入弹层（手机上可全屏覆盖） -->
+                  <div class="infinite-modal-overlay" id="infinite-dungeon-run-modal">
+                      <div class="infinite-modal dungeon-run">
+                          <div class="infinite-modal-header">
+                              <div class="infinite-modal-title" id="infinite-dungeon-run-title">当前副本</div>
+                              <button class="infinite-modal-close" id="infinite-dungeon-run-close">✕</button>
+                          </div>
+                          <div class="infinite-dungeon-run-body">
+                              <div class="infinite-dungeon-progress-bar">
+                                  <div class="infinite-dungeon-progress-inner" id="infinite-dungeon-progress-inner"></div>
+                              </div>
+                              <div class="infinite-dungeon-log" id="infinite-dungeon-log"></div>
+                              <div class="infinite-dungeon-input-wrap">
+                                  <textarea id="infinite-dungeon-input" placeholder="输入你接下来想做的事，例如：找线索 / 保护队友 / 做一点和通关无关的事" rows="2"></textarea>
+                                  <button id="infinite-dungeon-send-btn">推进剧情</button>
+                              </div>
+                          </div>
+                          <div class="infinite-modal-footer dungeon-footer">
+                              <button class="btn-small" id="infinite-dungeon-end-btn">提前结束</button>
+                          </div>
+                      </div>
+                  </div>
+ 
+                  <!-- 底部导航栏 -->
+                  <div class="infinite-tab-bar" id="infinite-tab-bar">
+                      <button class="infinite-tab-btn active" data-tab="home">
+                          <span class="infinite-tab-icon">◎</span>
+                          <span class="infinite-tab-label">首页</span>
+                      </button>
+                      <button class="infinite-tab-btn" data-tab="dungeon">
+                          <span class="infinite-tab-icon">⛓</span>
+                          <span class="infinite-tab-label">副本</span>
+                      </button>
+                      <button class="infinite-tab-btn" data-tab="profile">
+                          <span class="infinite-tab-icon">✶</span>
+                          <span class="infinite-tab-label">个人中心</span>
+                      </button>
+                  </div>
+              </div>
+ 
+              <!-- 直播首页 -->
+              <div class="app-page live-page" id="live-page">
+<div class="nav-header">
+                     <button class="nav-btn" onclick="closePage('live-page')">❮</button>
+                     <span class="nav-title">直播</span>
+                     <div class="live-nav-right">
+                         <button class="nav-icon-btn" id="live-profile-btn" aria-label="打开个人主页">
+                             <svg viewBox="0 0 24 24">
+                                <circle cx="12" cy="8" r="3.2"></circle>
+                                <path d="M5 19c1.5-3 3.8-4.5 7-4.5s5.5 1.5 7 4.5"></path>
+                             </svg>
+                         </button>
+                         <button class="nav-icon-btn" id="live-refresh-btn" aria-label="刷新直播间">
+                             <svg viewBox="0 0 24 24">
+                                 <rect x="3" y="7" width="12" height="10" rx="2"></rect>
+                                 <polygon points="17,9 21,11 21,13 17,15"></polygon>
+                             </svg>
+                         </button>
+                     </div>
+                 </div>
+                 <div class="scroll-content live-scroll">
+                     <div class="live-rooms-header">
+                         <div class="live-rooms-title">今晚谁在直播？</div>
+                         <div class="live-rooms-subtitle">从你的 AI 角色和他们的好友里，为你随机挑选一批直播间。</div>
+                         <div class="live-rooms-hint" id="live-rooms-hint">提示：需要先在孵蛋室创建至少 5 个 AI 好友，才能解锁直播。</div>
+                     </div>
+                     <div class="live-room-list" id="live-room-list"></div>
+                 </div>
+             </div>
 
             <!-- 直播间页面 -->
             <div class="app-page live-room-page" id="live-room-page">
@@ -402,6 +696,85 @@
                 </div>
             </div>
 
+            <!-- 烹饪 App 主页面 -->
+            <div class="app-page cooking-page" id="cooking-page">
+                <div class="nav-header cooking-nav-header">
+                    <button class="nav-btn" onclick="closePage('cooking-page')">❮</button>
+                    <span class="nav-title">烹饪</span>
+                    <button class="nav-btn" id="cooking-works-btn">作品</button>
+                </div>
+                <div class="cooking-layout">
+                    <div class="scroll-content cooking-scroll" id="cooking-scroll">
+                        <div class="cooking-category-label" id="cooking-category-label">主食 · 一起做一顿温柔的家常饭</div>
+
+                        <section class="cooking-section" id="cooking-ingredients-section">
+                            <div class="cooking-section-header">
+                                <h2 class="cooking-section-title">原料</h2>
+                                <button class="cooking-link-btn" id="cooking-ingredients-clear-btn">清空</button>
+                            </div>
+                            <div class="cooking-ingredients-summary" id="cooking-ingredients-summary">当前还没有选原料，可以先从“肉类、主食、配菜、调料”里随便抓一点。</div>
+                            <div class="cooking-ingredients-groups" id="cooking-ingredients-groups">
+                                <!-- 具体食材标签由脚本注入 -->
+                            </div>
+                        </section>
+
+                        <section class="cooking-section" id="cooking-steps-section">
+                            <div class="cooking-section-header">
+                                <h2 class="cooking-section-title">烹饪过程</h2>
+                                <button class="cooking-link-btn" id="cooking-steps-reset-btn">重写</button>
+                            </div>
+                            <div class="cooking-steps-list" id="cooking-steps-list">
+                                <!-- 步骤卡片由脚本注入，默认会有几步模板 -->
+                            </div>
+                            <button class="cooking-add-step-btn" id="cooking-add-step-btn">＋ 添加一步想象中的小动作</button>
+                        </section>
+
+                        <section class="cooking-section" id="cooking-finish-section">
+                            <div class="cooking-section-header">
+                                <h2 class="cooking-section-title">完成这道菜</h2>
+                            </div>
+                            <div class="cooking-finish-card">
+                                <div class="cooking-cover-placeholder" id="cooking-cover-placeholder">这里先想象一个小小的盘子，等以后再给它一张真正的照片。</div>
+                                <label class="cooking-field-label" for="cooking-dish-name">给这道菜取一个名字</label>
+                                <input id="cooking-dish-name" class="cooking-input" type="text" placeholder="例如：想象中的深夜土豆炖肉" />
+
+                                <label class="cooking-field-label">这道菜更像是一种什么心情？</label>
+                                <div class="cooking-mood-tags" id="cooking-mood-tags">
+                                    <!-- 心情标签由脚本注入，例如：解压 / 犒劳自己 / 想念某人 等 -->
+                                </div>
+
+                                <button class="cooking-ai-btn" id="cooking-ai-taste-btn">请 AI 来尝一口</button>
+
+                                <div class="cooking-ai-result" id="cooking-ai-result" hidden>
+                                    <div class="cooking-ai-result-title">AI 的品尝记录</div>
+                                    <div class="cooking-ai-result-text" id="cooking-ai-result-text"></div>
+                                    <button class="cooking-share-btn" id="cooking-share-qq-btn">分享到 QQ 让它再吃一口</button>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+
+                    <div class="cooking-tab-bar" id="cooking-tab-bar">
+                        <button class="cooking-tab active" data-category="main">
+                            <span class="cooking-tab-icon">🍚</span>
+                            <span class="cooking-tab-label">主食</span>
+                        </button>
+                        <button class="cooking-tab" data-category="bake">
+                            <span class="cooking-tab-icon">🧁</span>
+                            <span class="cooking-tab-label">烘焙</span>
+                        </button>
+                        <button class="cooking-tab" data-category="light">
+                            <span class="cooking-tab-icon">🍟</span>
+                            <span class="cooking-tab-label">轻食</span>
+                        </button>
+                        <button class="cooking-tab" data-category="western">
+                            <span class="cooking-tab-icon">🥩</span>
+                            <span class="cooking-tab-label">西餐</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             <!-- 塔罗牌入口弹窗：选择角色人设后才能进入塔罗界面 -->
             <div class="modal-overlay tarot-modal-overlay" id="tarot-entry-modal">
                 <div class="tarot-modal">
@@ -436,9 +809,9 @@
             </div>
 
             <!-- 塔罗牌主页面 -->
-            <div class="app-page tarot-page" id="tarot-page">
+            <div class="tarot-page" id="tarot-page">
                 <div class="nav-header">
-                    <button class="nav-btn" onclick="closePage('tarot-page')">❮</button>
+                    <button class="nav-btn" onclick="closeTarotOverlay()">❮</button>
                     <span class="nav-title">塔罗牌</span>
                     <span style="width: 40px;"></span>
                 </div>
@@ -448,8 +821,8 @@
                         <section class="tarot-section" id="tarot-menu-section">
                             <div class="tarot-role-label" id="tarot-current-role-label">当前绑定角色：未选择</div>
                             <button type="button" class="tarot-menu-btn" id="tarot-start-btn">开始占卜</button>
-                            <button type="button" class="tarot-menu-btn" id="tarot-rules-btn">规则介绍</button>
-                            <button type="button" class="tarot-menu-btn" id="tarot-rebind-btn">绑定角色</button>
+                            <button type="button" class="tarot-menu-btn" id="tarot-rules-btn" onclick="document.getElementById('tarot-rules-modal').classList.add('active')">规则介绍</button>
+                            <button type="button" class="tarot-menu-btn" id="tarot-rebind-btn" onclick="openTarotEntry(true)">绑定角色</button>
                             <div class="tarot-daily-hint" id="tarot-daily-hint"></div>
                         </section>
 
@@ -650,6 +1023,432 @@
                     </div>
                 </div>
 
+                <!-- 你画我猜 · 开局设置弹窗 -->
+                <div id="draw-guess-setup-overlay" class="draw-guess-setup-overlay">
+                    <div class="draw-guess-setup-modal">
+                        <div class="draw-guess-setup-title">你画我猜 · 开局设置</div>
+                        <div class="draw-guess-setup-section">
+                            <div class="draw-guess-setup-label">选择玩家人数</div>
+                            <div class="draw-guess-player-count" id="draw-guess-player-count">
+                                <button type="button" data-size="2" class="count-btn active">2 人</button>
+                                <button type="button" data-size="4" class="count-btn">4 人</button>
+                            </div>
+                            <div class="draw-guess-setup-hint">每局会随机选出一位画画方，其余为猜题方。</div>
+                        </div>
+                        <div class="draw-guess-setup-section">
+                            <div class="draw-guess-setup-label">绑定玩家角色</div>
+                            <div class="draw-guess-role-columns">
+                                <div class="draw-guess-role-column">
+                                    <div class="draw-guess-role-title">用户角色（只选 1 个）</div>
+                                    <div class="draw-guess-role-list" id="draw-guess-user-role-list"></div>
+                                </div>
+                                <div class="draw-guess-role-column">
+                                    <div class="draw-guess-role-title">AI 好友角色</div>
+                                    <div class="draw-guess-role-list" id="draw-guess-ai-role-list"></div>
+                                    <div class="draw-guess-setup-subhint">根据人数自动限制可选择数量。</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="draw-guess-setup-actions">
+                            <button type="button" id="draw-guess-cancel-btn" class="setup-btn secondary">取消</button>
+                            <button type="button" id="draw-guess-start-btn" class="setup-btn primary">开始游戏</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 你画我猜 · 游戏主界面 -->
+                <div class="app-page draw-guess-page" id="draw-guess-page">
+                    <div class="draw-guess-container">
+                        <div class="draw-guess-header">
+                            <button class="nav-btn" id="draw-guess-back-btn">❮</button>
+                            <div class="draw-guess-title-wrap">
+                                <div class="draw-guess-title">你画我猜</div>
+                                <div class="draw-guess-subtitle" id="draw-guess-subtitle">正在准备题目…</div>
+                            </div>
+                            <span style="width: 40px;"></span>
+                        </div>
+                        <div class="draw-guess-players" id="draw-guess-players"></div>
+                        <div class="draw-guess-main">
+                            <div class="draw-guess-canvas">
+                                <div class="draw-guess-section-title">画面进度</div>
+                                <div class="draw-guess-hint-list" id="draw-guess-hint-list">
+                                    <p class="draw-guess-placeholder">等待画画方给出第一笔描述。</p>
+                                </div>
+                            </div>
+                            <div class="draw-guess-right-column">
+                                <div class="draw-guess-section-title">猜题区</div>
+                                <div class="draw-guess-status" id="draw-guess-status"></div>
+                                <div class="draw-guess-guess-list" id="draw-guess-guess-list"></div>
+                                <div class="draw-guess-input-group">
+                                    <input id="draw-guess-guess-input" type="text" placeholder="输入你猜的谜底，例如：一只戴帽子的猫" />
+                                    <button id="draw-guess-submit-btn" class="draw-guess-btn primary">提交猜测</button>
+                                </div>
+                                <div class="draw-guess-drawer-panel" id="draw-guess-drawer-panel">
+                                    <textarea id="draw-guess-hint-input" rows="2" placeholder="如果你是画画方，可以用一句话描述下一步画面。"></textarea>
+                                    <div class="draw-guess-drawer-actions">
+                                        <button id="draw-guess-add-hint-btn" class="draw-guess-btn secondary">添加这一步画面</button>
+                                        <button id="draw-guess-ai-hint-btn" class="draw-guess-btn primary">让 AI 画一笔</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="draw-guess-footer">
+                            <div class="draw-guess-round" id="draw-guess-round-label">本题剩余尝试：3 次</div>
+                            <button class="draw-guess-btn" id="draw-guess-new-round-btn" style="display:none;">再来一题</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 狼人杀 · 开局设置弹窗 -->
+                <div id="werewolf-setup-overlay" class="werewolf-setup-overlay">
+                    <div class="werewolf-setup-modal">
+                        <div class="werewolf-setup-title">狼人杀 · 开局设置</div>
+
+                        <div class="werewolf-setup-section">
+                            <div class="werewolf-setup-label">选择人数局</div>
+                            <div class="werewolf-player-count" id="werewolf-player-count">
+                                <button type="button" data-size="6" class="count-btn active">6 人局</button>
+                                <button type="button" data-size="8" class="count-btn">8 人局</button>
+                                <button type="button" data-size="10" class="count-btn">10 人局</button>
+                            </div>
+                            <div class="werewolf-setup-hint">不同人数局可以配置不同的职业组合。</div>
+                        </div>
+
+                        <div class="werewolf-setup-section">
+                            <div class="werewolf-setup-label">配置职业人数</div>
+                            <div class="werewolf-role-grid">
+                                <div class="werewolf-role-row">
+                                    <div class="werewolf-role-name">平民</div>
+                                    <input type="number" min="0" value="3" id="werewolf-role-civilian" />
+                                </div>
+                                <div class="werewolf-role-row">
+                                    <div class="werewolf-role-name">狼人</div>
+                                    <input type="number" min="1" value="2" id="werewolf-role-wolf" />
+                                </div>
+                                <div class="werewolf-role-row">
+                                    <div class="werewolf-role-name">预言家</div>
+                                    <input type="number" min="0" value="1" id="werewolf-role-seer" />
+                                </div>
+                                <div class="werewolf-role-row">
+                                    <div class="werewolf-role-name">女巫</div>
+                                    <input type="number" min="0" value="0" id="werewolf-role-witch" />
+                                </div>
+                                <div class="werewolf-role-row">
+                                    <div class="werewolf-role-name">守卫</div>
+                                    <input type="number" min="0" value="0" id="werewolf-role-guard" />
+                                </div>
+                                <div class="werewolf-role-row">
+                                    <div class="werewolf-role-name">中立 · 猎人</div>
+                                    <input type="number" min="0" value="0" id="werewolf-role-hunter" />
+                                </div>
+                            </div>
+                            <div class="werewolf-setup-subhint">提示：所有职业人数之和必须等于上方选择的人数。</div>
+                        </div>
+
+                        <div class="werewolf-setup-section">
+                            <div class="werewolf-setup-label">绑定玩家角色</div>
+                            <div class="werewolf-role-columns">
+                                <div class="werewolf-role-column">
+                                    <div class="werewolf-role-title">用户角色（只选 1 个）</div>
+                                    <div class="werewolf-role-list" id="werewolf-user-role-list"></div>
+                                </div>
+                                <div class="werewolf-role-column">
+                                    <div class="werewolf-role-title">AI 角色</div>
+                                    <div class="werewolf-role-list" id="werewolf-ai-role-list"></div>
+                                    <div class="werewolf-setup-subhint" id="werewolf-ai-hint">根据人数与职业配置自动限制可选择数量。</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="werewolf-setup-actions">
+                            <button type="button" id="werewolf-cancel-btn" class="setup-btn secondary">取消</button>
+                            <button type="button" id="werewolf-start-btn" class="setup-btn primary">进入游戏</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 狼人杀 · 游戏主界面 -->
+                <div class="app-page werewolf-page" id="werewolf-page">
+                    <div class="werewolf-container">
+                        <div class="werewolf-header">
+                            <button class="nav-btn" id="werewolf-back-btn">❮</button>
+                            <div class="werewolf-title-wrap">
+                                <div class="werewolf-title">狼人杀</div>
+                                <div class="werewolf-subtitle" id="werewolf-subtitle">游戏尚未开始</div>
+                            </div>
+                            <span class="werewolf-phase" id="werewolf-phase-label">准备阶段</span>
+                        </div>
+
+                        <div class="werewolf-players" id="werewolf-players">
+                            <!-- 顶部显示所有玩家头像与名字，由脚本渲染 -->
+                        </div>
+
+                        <div class="werewolf-main">
+                            <div class="werewolf-log" id="werewolf-log">
+                                <p class="werewolf-log-placeholder">点击「进入游戏」后，系统会随机为每位玩家分配身份，并从第 1 夜开始推进游戏。</p>
+                            </div>
+                        </div>
+
+                        <div class="werewolf-input-panel">
+                            <div class="werewolf-input-hint" id="werewolf-input-hint">当前没有需要你发言或投票的阶段。</div>
+                            <div class="werewolf-input-row">
+                                <input id="werewolf-input" type="text" placeholder="轮到你发言或投票时，在这里输入你的想法…" />
+                                <button id="werewolf-send-btn" class="werewolf-action-btn" disabled>发送</button>
+                            </div>
+                            <div class="werewolf-extra-row" id="werewolf-vote-row" style="display:none;">
+                                <select id="werewolf-vote-select"></select>
+                                <button id="werewolf-vote-btn" class="werewolf-action-btn primary">提交投票</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 剧本杀 · 开局设置弹窗 -->
+                <div id="script-kill-setup-overlay" class="script-kill-setup-overlay">
+                    <div class="script-kill-setup-modal">
+                        <div class="script-kill-setup-title">剧本杀 · 开局设置</div>
+
+                        <div class="script-kill-setup-section">
+                            <div class="script-kill-setup-label">选择人数局</div>
+                            <div class="script-kill-player-count" id="script-kill-player-count">
+                                <button type="button" data-size="6" class="count-btn active">6 人局</button>
+                                <button type="button" data-size="8" class="count-btn">8 人局</button>
+                            </div>
+                            <div class="script-kill-setup-hint">暂时仅支持 6 人和 8 人两种人数局。</div>
+                        </div>
+
+                        <div class="script-kill-setup-section">
+                            <div class="script-kill-setup-label">选择剧本</div>
+                            <div class="script-kill-script-list" id="script-kill-script-list">
+                                <!-- 由脚本渲染三个内置剧本，以及后续的自定义剧本入口 -->
+                            </div>
+                            <div class="script-kill-setup-subhint">初始提供「幽灵古堡」「诡异疯人院」「迷宫古宅」三个剧本，后续可通过调用 API 生成自定义剧本。</div>
+                        </div>
+
+                        <div class="script-kill-setup-section">
+                            <div class="script-kill-setup-label">绑定玩家角色</div>
+                            <div class="script-kill-role-columns">
+                                <div class="script-kill-role-column">
+                                    <div class="script-kill-role-title">用户角色（只选 1 个）</div>
+                                    <div class="script-kill-role-list" id="script-kill-user-role-list"></div>
+                                </div>
+                                <div class="script-kill-role-column">
+                                    <div class="script-kill-role-title">AI 好友角色</div>
+                                    <div class="script-kill-role-list" id="script-kill-ai-role-list"></div>
+                                    <div class="script-kill-setup-subhint" id="script-kill-ai-hint">根据人数自动限制可选择数量。</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="script-kill-setup-actions">
+                            <button type="button" id="script-kill-cancel-btn" class="setup-btn secondary">取消</button>
+                            <button type="button" id="script-kill-start-btn" class="setup-btn primary">进入剧本</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 剧本杀 · 游戏主界面 -->
+                <div class="app-page script-kill-page" id="script-kill-page">
+                    <div class="script-kill-container">
+                        <div class="script-kill-header">
+                            <button class="nav-btn" id="script-kill-back-btn">❮</button>
+                            <div class="script-kill-title-wrap">
+                                <div class="script-kill-title">剧本杀</div>
+                                <div class="script-kill-subtitle" id="script-kill-subtitle">游戏尚未开始</div>
+                            </div>
+                            <span class="script-kill-phase" id="script-kill-phase-label">准备阶段</span>
+                        </div>
+
+                        <div class="script-kill-players" id="script-kill-players">
+                            <!-- 顶部显示所有玩家头像与名字，由脚本渲染 -->
+                        </div>
+
+                        <div class="script-kill-main">
+                            <div class="script-kill-log" id="script-kill-log">
+                                <p class="script-kill-log-placeholder">
+                                    选择人数、剧本和玩家后，点击「进入剧本」。系统会先引导所有人分别做一次身份介绍，然后进入搜证与发言阶段。
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="script-kill-toolbar">
+                            <button type="button" class="script-kill-tool-btn" id="script-kill-role-btn">查看身份</button>
+                            <button type="button" class="script-kill-tool-btn" id="script-kill-timeline-btn">查看时间线</button>
+                            <button type="button" class="script-kill-tool-btn primary" id="script-kill-next-stage-btn">开始介绍身份</button>
+                        </div>
+
+                        <div class="script-kill-input-panel">
+                            <div class="script-kill-input-hint" id="script-kill-input-hint">
+                                在需要你发言或补充线索时，在下方输入框里写下你的说法或提问。
+                            </div>
+                            <div class="script-kill-input-row">
+                                <input id="script-kill-input" type="text" placeholder="例如：我案发前 10 分钟一直在花园喝酒，没有离开过。" />
+                                <button id="script-kill-send-btn" class="script-kill-action-btn" disabled>发送</button>
+                            </div>
+                            <div class="script-kill-vote-row" id="script-kill-vote-row" style="display:none;">
+                                <select id="script-kill-vote-select"></select>
+                                <button id="script-kill-vote-btn" class="script-kill-action-btn primary">提交投票</button>
+                            </div>
+                            <div class="script-kill-status" id="script-kill-status"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 剧本杀 · 查看身份弹窗 -->
+                <div class="script-kill-modal-overlay" id="script-kill-role-modal">
+                    <div class="script-kill-modal">
+                        <div class="script-kill-modal-header">
+                            <div class="script-kill-modal-title">我的身份</div>
+                            <button class="script-kill-modal-close" id="script-kill-role-modal-close">✕</button>
+                        </div>
+                        <div class="script-kill-modal-body">
+                            <div class="script-kill-role-card">
+                                <div class="script-kill-role-name" id="script-kill-role-name">尚未分配</div>
+                                <div class="script-kill-role-desc" id="script-kill-role-desc"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 剧本杀 · 查看时间线弹窗 -->
+                <div class="script-kill-modal-overlay" id="script-kill-timeline-modal">
+                    <div class="script-kill-modal">
+                        <div class="script-kill-modal-header">
+                            <div class="script-kill-modal-title">案发当天 · 我的时间线</div>
+                            <button class="script-kill-modal-close" id="script-kill-timeline-modal-close">✕</button>
+                        </div>
+                        <div class="script-kill-modal-body">
+                            <div class="script-kill-timeline" id="script-kill-timeline-list">
+                                <!-- 由脚本填充当前角色在案发当天的时间线节点 -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 谁是卧底 · 开局设置弹窗 -->
+                <div id="undercover-setup-overlay" class="undercover-setup-overlay">
+                    <div class="undercover-setup-modal">
+                        <div class="undercover-setup-title">谁是卧底 · 开局设置</div>
+
+                        <div class="undercover-setup-section">
+                            <div class="undercover-setup-label">选择人数局</div>
+                            <div class="undercover-player-count" id="undercover-player-count">
+                                <button type="button" data-size="4" class="count-btn active">4 人局</button>
+                                <button type="button" data-size="6" class="count-btn">6 人局</button>
+                            </div>
+                            <div class="undercover-setup-hint">当前支持 4 人和 6 人两种人数局，包含你自己。</div>
+                        </div>
+
+                        <div class="undercover-setup-section">
+                            <div class="undercover-setup-label">绑定玩家角色</div>
+                            <div class="undercover-role-columns">
+                                <div class="undercover-role-column">
+                                    <div class="undercover-role-title">用户角色（只选 1 个）</div>
+                                    <div class="undercover-role-list" id="undercover-user-role-list"></div>
+                                </div>
+                                <div class="undercover-role-column">
+                                    <div class="undercover-role-title">AI 好友角色</div>
+                                    <div class="undercover-role-list" id="undercover-ai-role-list"></div>
+                                    <div class="undercover-setup-subhint" id="undercover-ai-hint">根据人数自动限制可选择数量。</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="undercover-setup-actions">
+                            <button type="button" id="undercover-cancel-btn" class="setup-btn secondary">取消</button>
+                            <button type="button" id="undercover-start-btn" class="setup-btn primary">进入游戏</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 谁是卧底 · 游戏主界面 -->
+                <div class="app-page undercover-page" id="undercover-page">
+                    <div class="undercover-container">
+                        <div class="undercover-header">
+                            <button class="nav-btn" id="undercover-back-btn">❮</button>
+                            <div class="undercover-title-wrap">
+                                <div class="undercover-title">谁是卧底</div>
+                                <div class="undercover-subtitle" id="undercover-subtitle">游戏尚未开始</div>
+                            </div>
+                            <button class="undercover-mask-btn" id="undercover-word-btn" aria-label="查看我的谜底">
+                                <span class="undercover-mask-icon">🎭</span>
+                            </button>
+                        </div>
+
+                        <div class="undercover-players" id="undercover-players">
+                            <!-- 顶部显示所有玩家头像与名字，由脚本渲染 -->
+                        </div>
+
+                        <div class="undercover-main">
+                            <div class="undercover-log" id="undercover-log">
+                                <p class="undercover-log-placeholder">
+                                    先在游戏大厅中选择人数和角色，点击「进入游戏」。系统会为大家分配词语，其中只有一人拿到不一样的词。
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="undercover-input-panel">
+                            <div class="undercover-input-hint" id="undercover-input-hint">
+                                当前没有需要你发言或投票的阶段。
+                            </div>
+                            <div class="undercover-input-row">
+                                <input id="undercover-input" type="text" placeholder="轮到你发言时，在这里输入你的描述或推理…" />
+                                <button id="undercover-send-btn" class="undercover-action-btn" disabled>发送</button>
+                            </div>
+                            <div class="undercover-vote-row" id="undercover-vote-row" style="display:none;">
+                                <select id="undercover-vote-select"></select>
+                                <button id="undercover-vote-btn" class="undercover-action-btn primary">提交投票</button>
+                            </div>
+                            <div class="undercover-status" id="undercover-status"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 谁是卧底 · 我的谜底弹窗 -->
+                <div class="undercover-modal-overlay" id="undercover-word-modal">
+                    <div class="undercover-modal">
+                        <div class="undercover-modal-header">
+                            <div class="undercover-modal-title">你的谜底</div>
+                            <button class="undercover-modal-close" id="undercover-word-close">✕</button>
+                        </div>
+                        <div class="undercover-modal-body">
+                            <div class="undercover-word-main" id="undercover-word-text">尚未分配</div>
+                            <div class="undercover-word-desc" id="undercover-role-desc-text"></div>
+                        </div>
+                        <div class="undercover-modal-footer">
+                            <button class="undercover-modal-btn" id="undercover-word-ok">我记住了</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 谁是卧底 · 结果结算弹窗 -->
+                <div class="undercover-modal-overlay" id="undercover-result-modal">
+                    <div class="undercover-modal">
+                        <div class="undercover-modal-header">
+                            <div class="undercover-modal-title">本局结果</div>
+                            <button class="undercover-modal-close" id="undercover-result-close">✕</button>
+                        </div>
+                        <div class="undercover-modal-body">
+                            <div class="undercover-result-summary" id="undercover-result-summary"></div>
+                            <div class="undercover-result-words">
+                                <div class="undercover-result-word-item">
+                                    <div class="label">平民词</div>
+                                    <div class="value" id="undercover-common-word">-</div>
+                                </div>
+                                <div class="undercover-result-word-item">
+                                    <div class="label">卧底词</div>
+                                    <div class="value" id="undercover-undercover-word">-</div>
+                                </div>
+                            </div>
+                            <div class="undercover-result-detail" id="undercover-result-detail"></div>
+                        </div>
+                        <div class="undercover-modal-footer undercover-result-footer">
+                            <button class="undercover-modal-btn secondary" id="undercover-result-again">再来一局</button>
+                            <button class="undercover-modal-btn primary" id="undercover-result-back">返回大厅</button>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="scroll-content no-scrollbar" style="padding: 15px; display: flex; flex-direction: column; gap: 20px;">
                     <div class="neo-card" style="display: flex; align-items: center; gap: 15px; padding: 15px;" onclick="openTruthGameSetup()">
                         <div class="game-icon" style="background-color: #333;">
@@ -673,6 +1472,230 @@
                             <div style="font-size: 16px; font-weight: bold; margin-bottom: 5px;">飞行棋</div>
                             <div style="font-size: 13px; color: #666;">和 3 个好友在暖黄色桌面上玩飞行棋，或切换到粉色情趣联机模式。</div>
                         </div>
+                    </div>
+
+                    <div class="neo-card" style="display: flex; align-items: center; gap: 15px; padding: 15px;" onclick="openDrawGuessSetup()">
+                        <div class="game-icon" style="background: linear-gradient(135deg, #4b6fff, #9fd0ff);">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" width="30px" height="30px">
+                                <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1.003 1.003 0 0 0 0-1.42l-2.34-2.34a1.003 1.003 0 0 0-1.42 0l-1.83 1.83 3.75 3.75 1.84-1.82z"/>
+                            </svg>
+                        </div>
+                        <div class="game-info">
+                            <div style="font-size: 16px; font-weight: bold; margin-bottom: 5px;">你画我猜</div>
+                            <div style="font-size: 13px; color: #666;">选择 2 人或 4 人，用文字“画画”，通过 API 逐步追加线索，让其他人来猜谜底。</div>
+                        </div>
+                    </div>
+
+                    <div class="neo-card" style="display: flex; align-items: center; gap: 15px; padding: 15px;" onclick="openWerewolfSetup()">
+                        <div class="game-icon" style="background: radial-gradient(circle at 30% 20%, #ffffff, #222);">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" width="30px" height="30px">
+                                <path d="M4 4l4 1 2.5-2L13 6l4 1 3 5-3 1-1 5-4-2-3 3-1-4-3-2-1-6z"/>
+                            </svg>
+                        </div>
+                        <div class="game-info">
+                            <div style="font-size: 16px; font-weight: bold; margin-bottom: 5px;">狼人杀</div>
+                            <div style="font-size: 13px; color: #666;">绑定玩家与 AI 身份，随机分配职业，从夜晚到白天，靠发言与投票找出真正的狼人。</div>
+                        </div>
+                    </div>
+
+                    <div class="neo-card" style="display: flex; align-items: center; gap: 15px; padding: 15px;" onclick="openScriptKillSetup()">
+                        <div class="game-icon" style="background: radial-gradient(circle at 30% 20%, #ffffff, #000000);">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" width="30px" height="30px">
+                                <path d="M5 3h9a2 2 0 0 1 2 2v4H9L5 13V5a2 2 0 0 1 2-2zm9 6 3.5 3.5a2.121 2.121 0 0 1 0 3L14 20h-3l2.5-2.5-2-2L14 11z"/>
+                            </svg>
+                        </div>
+                        <div class="game-info">
+                            <div style="font-size: 16px; font-weight: bold; margin-bottom: 5px;">剧本杀</div>
+                            <div style="font-size: 13px; color: #666;">选择剧本和玩家身份，通过搜证、发言与投票找出隐藏在众人中的凶手。</div>
+                        </div>
+                    </div>
+
+                    <div class="neo-card" style="display: flex; align-items: center; gap: 15px; padding: 15px;" onclick="openUndercoverSetup()">
+                        <div class="game-icon" style="background: radial-gradient(circle at 30% 20%, #ffffff, #000000);">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" width="30px" height="30px">
+                                <path d="M4 9c0-3 3.134-5 8-5s8 2 8 5-3.134 5-8 5-8-2-8-5zm2.5 0c0 1.105 1.79 2 5.5 2s5.5-.895 5.5-2-1.79-2-5.5-2-5.5.895-5.5 2zm1 5.5C8.5 16.985 10.79 19 12 19s3.5-2.015 4.5-4.5h-2c-.6 1.3-1.69 2.5-2.5 2.5s-1.9-1.2-2.5-2.5h-2z"/>
+                            </svg>
+                        </div>
+                        <div class="game-info">
+                            <div style="font-size: 16px; font-weight: bold; margin-bottom: 5px;">谁是卧底</div>
+                            <div style="font-size: 13px; color: #666;">选择 4 人或 6 人局，随机分配一个卧底词语，靠描述、推理与投票把卧底揪出来。</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 小剧场页面 -->
+            <div class="app-page theatre-page" id="theatre-page">
+                <div class="theatre-nav">
+                    <button class="nav-btn" onclick="closePage('theatre-page')">❮</button>
+                    <span class="theatre-nav-title">小剧场</span>
+                    <span class="theatre-nav-right"></span>
+                </div>
+                <div class="theatre-divider"></div>
+                <div class="theatre-body">
+                    <div class="theatre-entry-card" id="theatre-render-entry">
+                        <div class="theatre-entry-title">渲染类</div>
+                        <div class="theatre-entry-subtitle">为 QQ 聊天创建正则 + HTML 卡片规则</div>
+                    </div>
+                    <div class="theatre-entry-card" id="theatre-story-entry">
+                        <div class="theatre-entry-title">剧情类</div>
+                        <div class="theatre-entry-subtitle">用角色与世界书生成千字以上小剧场</div>
+                    </div>
+
+                    <div class="theatre-panel" id="theatre-render-panel">
+                        <div class="theatre-section-header">渲染类规则</div>
+                        <div class="theatre-section-subtitle">在这里为 QQ 聊天创建正则 + HTML 卡片规则，并分类管理转账卡片、照片卡片等。</div>
+                        <button class="btn-small" id="theatre-add-render-rule-btn" type="button" style="width:100%; margin-top:10px; margin-bottom:14px;">新建渲染规则</button>
+                        <div class="theatre-render-rule-list" id="theatre-render-rule-list"></div>
+                    </div>
+                    <div class="theatre-panel" id="theatre-story-panel" style="display:none;">
+                        <div class="theatre-section-header">剧情类模板 & 作品库</div>
+                        <div class="theatre-section-subtitle">选择角色与世界书，配置世界观与字数要求，生成千字以上的小剧场剧情。</div>
+
+                        <div class="theatre-story-toolbar">
+                            <button class="btn-small" id="theatre-add-story-template-btn" type="button">新建剧情模板</button>
+                        </div>
+
+                        <div class="theatre-story-columns">
+                            <div class="theatre-story-column">
+                                <div class="theatre-subsection-title">剧情模板</div>
+                                <div class="theatre-story-template-list" id="theatre-story-template-list"></div>
+                            </div>
+                            <div class="theatre-story-column">
+                                <div class="theatre-subsection-title">作品库</div>
+                                <div class="theatre-story-episode-list" id="theatre-story-episode-list"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 小剧场 · 渲染类规则编辑弹窗 -->
+            <div class="modal-overlay theatre-modal-overlay" id="theatre-render-modal">
+                <div class="theatre-modal">
+                    <div class="theatre-modal-header">
+                        <div class="theatre-modal-title" id="theatre-render-modal-title">新建渲染规则</div>
+                        <button type="button" class="theatre-modal-close" id="theatre-render-modal-close">✕</button>
+                    </div>
+                    <div class="theatre-modal-body">
+                        <div class="theatre-form-group">
+                            <label class="theatre-label" for="theatre-rule-name">规则名称</label>
+                            <input type="text" id="theatre-rule-name" class="theatre-input" placeholder="例如：转账 · 黑金卡片" />
+                        </div>
+                        <div class="theatre-form-row">
+                            <div class="theatre-form-group">
+                                <label class="theatre-label" for="theatre-rule-category">分类</label>
+                                <input type="text" id="theatre-rule-category" class="theatre-input" placeholder="例如：转账卡片 / 照片卡片" />
+                            </div>
+                            <div class="theatre-form-group" style="max-width:110px;">
+                                <label class="theatre-label" for="theatre-rule-enabled">启用</label>
+                                <label class="theatre-switch">
+                                    <input type="checkbox" id="theatre-rule-enabled" checked />
+                                    <span class="theatre-switch-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="theatre-form-group">
+                            <label class="theatre-label" for="theatre-rule-pattern">正则表达式</label>
+                            <input type="text" id="theatre-rule-pattern" class="theatre-input" placeholder="例如：\\[(转账成功)\\] 已向(.+?)转账(\\d+\\.\\d{2})元" />
+                        </div>
+                        <div class="theatre-form-group">
+                            <label class="theatre-label" for="theatre-rule-flags">正则标志（flags）</label>
+                            <input type="text" id="theatre-rule-flags" class="theatre-input" placeholder="例如：i 或 im" />
+                        </div>
+                        <div class="theatre-form-group">
+                            <label class="theatre-label" for="theatre-rule-template">HTML 模板</label>
+                            <textarea id="theatre-rule-template" class="theatre-textarea" rows="5" placeholder="使用 {{raw}}、{{group.1}}、{{group.2}} 等占位符渲染卡片内容"></textarea>
+                            <div class="theatre-hint">提示：{{raw}} 为原始整条消息文本，{{group.1}} / {{group.2}} 为正则捕获组。</div>
+                        </div>
+                        <div class="theatre-form-group">
+                            <label class="theatre-label" for="theatre-rule-test-text">测试文本</label>
+                            <textarea id="theatre-rule-test-text" class="theatre-textarea" rows="3" placeholder="粘贴一段 QQ 聊天中的原始文本，用于测试匹配与渲染效果"></textarea>
+                        </div>
+                        <div class="theatre-form-group">
+                            <div class="theatre-form-row theatre-test-row">
+                                <button type="button" class="btn-small" id="theatre-rule-test-btn">测试匹配与渲染</button>
+                                <div class="theatre-test-status" id="theatre-rule-test-status"></div>
+                            </div>
+                            <div class="theatre-preview-wrapper">
+                                <div class="theatre-preview-title">预览卡片</div>
+                                <div class="theatre-preview-card" id="theatre-rule-preview"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="theatre-modal-footer">
+                        <button type="button" class="btn-small secondary" id="theatre-render-modal-cancel">取消</button>
+                        <button type="button" class="btn-small primary" id="theatre-render-modal-save">保存</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 小剧场 · 剧情类模板编辑弹窗 -->
+            <div class="modal-overlay theatre-modal-overlay" id="theatre-story-modal">
+                <div class="theatre-modal">
+                    <div class="theatre-modal-header">
+                        <div class="theatre-modal-title" id="theatre-story-modal-title">新建剧情模板</div>
+                        <button type="button" class="theatre-modal-close" id="theatre-story-modal-close">✕</button>
+                    </div>
+                    <div class="theatre-modal-body theatre-modal-body-scroll">
+                        <div class="theatre-form-group">
+                            <label class="theatre-label" for="theatre-story-name">模板名称</label>
+                            <input type="text" id="theatre-story-name" class="theatre-input" placeholder="例如：校园日常 · 宿舍夜谈" />
+                        </div>
+
+                        <div class="theatre-form-group">
+                            <label class="theatre-label">参与角色（可多选）</label>
+                            <div class="theatre-hint">包含你自己（用户角色）和多个 AI 好友角色。</div>
+                            <div class="theatre-tag-list" id="theatre-story-role-list"></div>
+                        </div>
+
+                        <div class="theatre-form-group">
+                            <label class="theatre-label">绑定世界书（可多选）</label>
+                            <div class="theatre-hint">可绑定多本世界书共同参与小剧场设定。</div>
+                            <div class="theatre-tag-list" id="theatre-story-worldbook-list"></div>
+                        </div>
+
+                        <div class="theatre-form-group">
+                            <label class="theatre-label" for="theatre-story-worldview">世界观设定</label>
+                            <textarea id="theatre-story-worldview" class="theatre-textarea" rows="4" placeholder="描述这个小剧场所处的世界观、时代背景、风格（现代 / 都市 / 科幻 / 魔幻等）"></textarea>
+                        </div>
+
+                        <div class="theatre-form-group">
+                            <label class="theatre-label" for="theatre-story-backstory">前情提要</label>
+                            <textarea id="theatre-story-backstory" class="theatre-textarea" rows="4" placeholder="简要说明故事发生前已经发生的事情，用于保证剧情连贯"></textarea>
+                        </div>
+
+                        <div class="theatre-form-group">
+                            <label class="theatre-label" for="theatre-story-style">风格与语气要求（可选）</label>
+                            <textarea id="theatre-story-style" class="theatre-textarea" rows="3" placeholder="例如：第一人称视角，偏日常轻松，有细腻心理描写和环境氛围"></textarea>
+                        </div>
+
+                        <div class="theatre-form-row">
+                            <div class="theatre-form-group">
+                                <label class="theatre-label" for="theatre-story-min-words">最小字数</label>
+                                <input type="number" id="theatre-story-min-words" class="theatre-input" min="1000" step="100" placeholder="至少 1000" />
+                                <div class="theatre-hint">小剧场正文建议不低于 1000 字。</div>
+                            </div>
+                        </div>
+
+                        <div class="theatre-form-group">
+                            <label class="theatre-label" for="theatre-story-template">HTML 渲染模板</label>
+                            <textarea id="theatre-story-template" class="theatre-textarea" rows="6" placeholder="使用 {{title}}、{{summary}}、{{content}} 等占位符，定义剧情在 QQ 卡片中的展示方式"></textarea>
+                            <div class="theatre-hint">提示：{{content}} 将替换为经过简单换行处理后的正文 HTML，{{title}} 为剧情标题。</div>
+                        </div>
+
+                        <div class="theatre-form-group">
+                            <label class="theatre-label" for="theatre-story-preview">预览（生成后）</label>
+                            <div class="theatre-preview-wrapper">
+                                <div class="theatre-preview-title">小剧场卡片预览</div>
+                                <div class="theatre-preview-card" id="theatre-story-preview"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="theatre-modal-footer">
+                        <button type="button" class="btn-small secondary" id="theatre-story-modal-cancel">取消</button>
+                        <button type="button" class="btn-small" id="theatre-story-generate-btn">生成剧情并预览</button>
+                        <button type="button" class="btn-small primary" id="theatre-story-modal-save">保存模板</button>
                     </div>
                 </div>
             </div>
@@ -888,11 +1911,43 @@
                             当前账号与 QQ 界面创建的用户角色保持同步，书城只在本地统计你的阅读数据，不会上报服务器。
                         </div>
                     </div>
+                    <div id="bookstore-creator-view" class="bookstore-view">
+                        <div class="book-creator-header">
+                            <div class="book-creator-status">
+                                <span id="book-creator-mode-label">当前身份：创作者</span>
+                                <span id="book-creator-level-label">创作等级 Lv.1</span>
+                            </div>
+                            <div class="book-creator-time" id="book-creator-time">今日创作 0 分钟</div>
+                        </div>
+                        <div class="book-creator-projects">
+                            <div class="book-creator-empty" id="book-creator-empty">还没有任何创作项目，点击右上角的铅笔开始一部新的小说。</div>
+                            <div class="book-creator-list" id="book-creator-list"></div>
+                        </div>
+                        <div class="book-creator-editor" id="book-creator-editor">
+                            <div class="book-creator-editor-header">
+                                <div class="book-creator-editor-title" id="book-creator-editor-title"></div>
+                                <div class="book-creator-editor-meta" id="book-creator-editor-meta"></div>
+                            </div>
+                            <div class="book-creator-chapter-list" id="book-creator-chapter-list"></div>
+                            <div class="book-creator-chapter-memory" id="book-creator-chapter-memory"></div>
+                            <div class="book-creator-input-wrap">
+                                <textarea id="book-creator-outline-input" placeholder="写下本章或下一章的情节发展，例如：两人在末世便利店重逢..." rows="3"></textarea>
+                                <div class="book-creator-input-actions">
+                                    <button class="book-creator-btn" id="book-creator-generate-btn">✎ 写这一章</button>
+                                    <button class="book-creator-btn secondary" id="book-creator-regenerate-btn">重说这一章</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="bookstore-tabbar">
                     <button class="bookstore-tab-item active" id="bookstore-tab-shelf" data-view="shelf">
                         <span class="bookstore-tab-icon">☰</span>
                         <span class="bookstore-tab-label">首页</span>
+                    </button>
+                    <button class="bookstore-tab-item" id="bookstore-tab-creator" data-view="creator">
+                        <span class="bookstore-tab-icon">✎</span>
+                        <span class="bookstore-tab-label">创作区</span>
                     </button>
                     <button class="bookstore-tab-item" id="bookstore-tab-profile" data-view="profile">
                         <span class="bookstore-tab-icon">☺</span>
@@ -920,6 +1975,50 @@
                         <div class="book-modal-body book-companion-list" id="book-companion-list"></div>
                         <div class="book-modal-actions">
                             <button class="book-modal-cancel" id="book-companion-cancel-btn">取消</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-overlay" id="book-creator-settings-modal">
+                    <div class="book-modal">
+                        <div class="book-modal-title">新建小说设定</div>
+                        <div class="book-modal-body">
+                            <div class="book-creator-field">
+                                <label for="creator-novel-title">小说名称</label>
+                                <input type="text" id="creator-novel-title" placeholder="例如：与 AI 一起写的第一本书">
+                            </div>
+                            <div class="book-creator-field">
+                                <label for="creator-worldbook-select">绑定的世界书</label>
+                                <select id="creator-worldbook-select">
+                                    <option value="">不绑定世界书</option>
+                                </select>
+                                <div class="book-creator-hint">可选择一本文档作为世界观背景，AI 在创作时会优先参考。</div>
+                            </div>
+                            <div class="book-creator-field book-creator-inline">
+                                <label>每章字数区间</label>
+                                <div class="book-creator-range">
+                                    <input type="number" id="creator-chapter-min-words" placeholder="800">
+                                    <span class="book-creator-range-sep">—</span>
+                                    <input type="number" id="creator-chapter-max-words" placeholder="1500">
+                                    <span class="book-creator-range-unit">字</span>
+                                </div>
+                            </div>
+                            <div class="book-creator-field">
+                                <label>参与人物（可多选）</label>
+                                <div class="book-creator-role-list" id="creator-role-list"></div>
+                                <div class="book-creator-hint">可绑定多个用户角色和 AI 好友，一起进入同一本小说。</div>
+                            </div>
+                            <div class="book-creator-field">
+                                <label for="creator-world-setting-input">世界观设定</label>
+                                <input type="text" id="creator-world-setting-input" placeholder="例如：ABO / 末世 / 校园 / 星际舰队...">
+                            </div>
+                            <div class="book-creator-field">
+                                <label for="creator-style-input">文风偏好</label>
+                                <input type="text" id="creator-style-input" placeholder="例如：清水慢热 / 轻松日常 / 压抑偏执...">
+                            </div>
+                        </div>
+                        <div class="book-modal-actions">
+                            <button class="book-modal-cancel" id="book-creator-cancel-btn">取消</button>
+                            <button class="book-modal-cancel" id="book-creator-save-btn">保存并开始创作</button>
                         </div>
                     </div>
                 </div>
@@ -1010,6 +2109,56 @@
                                 <select id="anniversary-month-select"></select>
                                 <select id="anniversary-day-select"></select>
                             </div>
+                         </div>
+                         <!-- 首页纪念日组件样式设置 -->
+                         <div class="setting-card" style="padding: 15px;">
+                            <div style="font-weight: 500; font-size: 15px; margin-bottom: 10px;">首页纪念日组件样式（可选）</div>
+
+                            <!-- 标题行样式 -->
+                            <div style="display:flex; gap:12px; margin-bottom:10px;">
+                                <div style="flex:1;">
+                                    <label style="font-size:13px; color:#555; display:block; margin-bottom:4px;">标题颜色</label>
+                                    <input type="color" id="anniv-widget-title-color" style="width:100%; height:32px; padding:0; border:none; background:transparent;">
+                                </div>
+                                <div style="width:90px;">
+                                    <label style="font-size:13px; color:#555; display:block; margin-bottom:4px;">标题字号</label>
+                                    <input type="number" id="anniv-widget-title-size" min="10" max="32" step="1" style="width:100%; padding:6px 8px; font-size:13px;" placeholder="14">
+                                </div>
+                            </div>
+
+                            <!-- 状态行样式 -->
+                            <div style="display:flex; gap:12px; margin-bottom:10px;">
+                                <div style="flex:1;">
+                                    <label style="font-size:13px; color:#555; display:block; margin-bottom:4px;">状态颜色</label>
+                                    <input type="color" id="anniv-widget-status-color" style="width:100%; height:32px; padding:0; border:none; background:transparent;">
+                                </div>
+                                <div style="width:90px;">
+                                    <label style="font-size:13px; color:#555; display:block; margin-bottom:4px;">状态字号</label>
+                                    <input type="number" id="anniv-widget-status-size" min="10" max="32" step="1" style="width:100%; padding:6px 8px; font-size:13px;" placeholder="20">
+                                </div>
+                            </div>
+
+                            <!-- 背景颜色与图片 -->
+                            <div style="display:flex; gap:12px; margin-bottom:10px;">
+                                <div style="flex:1;">
+                                    <label style="font-size:13px; color:#555; display:block; margin-bottom:4px;">背景颜色</label>
+                                    <input type="color" id="anniv-widget-bg-color" style="width:100%; height:32px; padding:0; border:none; background:transparent;">
+                                </div>
+                                <div style="width:90px; display:flex; align-items:flex-end;">
+                                    <button type="button" class="btn-small" style="width:100%; padding:6px 8px; font-size:13px;" onclick="clearAnnivWidgetBackground()">清除背景</button>
+                                </div>
+                            </div>
+
+                            <div style="display:flex; flex-direction:column; gap:6px;">
+                                <label style="font-size:13px; color:#555;">背景图片</label>
+                                <div style="display:flex; gap:10px; align-items:center;">
+                                    <button type="button" class="btn-small" style="padding:6px 10px; font-size:13px;" onclick="document.getElementById('anniv-widget-bg-image-file').click()">选择图片</button>
+                                    <input type="file" id="anniv-widget-bg-image-file" accept="image/*" style="display:none;" onchange="handleAnnivWidgetBgImageChange(this)">
+                                    <div id="anniv-widget-bg-image-preview" style="width:48px; height:48px; border-radius:12px; background:#f2f2f2; background-size:cover; background-position:center;"></div>
+                                </div>
+                            </div>
+
+                            <button type="button" class="btn-small" style="width:100%; padding:10px; margin-top:10px; font-size:14px;" onclick="saveAnnivWidgetStyle()">保存首页组件样式</button>
                          </div>
                     </div>
                     <div style="padding: 0 15px;">
@@ -1111,6 +2260,14 @@
                             </div>
                             <span class="beautify-module-desc">全局字体与字重</span>
                         </button>
+                        <!-- 新增：锁屏类设置 -->
+                        <button class="beautify-module-btn" data-panel="lock" onclick="switchBeautifyPanel('lock')">
+                            <div class="beautify-module-main">
+                                <span class="beautify-module-icon">🔒</span>
+                                <span class="beautify-module-title">锁屏类</span>
+                            </div>
+                            <span class="beautify-module-desc">解锁方式与密码</span>
+                        </button>
                         <button class="beautify-module-btn" data-panel="global" onclick="switchBeautifyPanel('global')">
                             <div class="beautify-module-main">
                                 <span class="beautify-module-icon">✨</span>
@@ -1188,6 +2345,39 @@
                         </div>
                     </div>
 
+                    <!-- 新增：锁屏类设置面板 -->
+                    <div id="beautify-panel-lock" class="beautify-panel">
+                        <div class="setting-card">
+                            <h4 style="margin: 10px 0 0 0; padding: 10px 0; border-bottom: 0.5px solid #eee;">锁屏解锁方式</h4>
+                            <div class="setting-row" style="flex-direction:column; align-items:flex-start; gap:6px;">
+                                <label style="font-size:13px; font-weight:500;">选择解锁方式</label>
+                                <label style="font-size:13px;">
+                                    <input type="radio" name="lock-mode" value="slider" id="lock-mode-slider">
+                                    左滑滑轮锁屏（默认）
+                                </label>
+                                <label style="font-size:13px;">
+                                    <input type="radio" name="lock-mode" value="swipe" id="lock-mode-swipe">
+                                    上滑锁屏直接打开主屏幕
+                                </label>
+                                <label style="font-size:13px;">
+                                    <input type="radio" name="lock-mode" value="swipe_passcode" id="lock-mode-swipe-passcode">
+                                    上滑后进入密码界面（4 位数字）
+                                </label>
+                            </div>
+                        </div>
+                        <div class="setting-card">
+                            <h4 style="margin: 10px 0 0 0; padding: 10px 0; border-bottom: 0.5px solid #eee;">锁屏密码</h4>
+                            <div class="setting-row">
+                                <label>4 位数字密码</label>
+                                <input type="password" id="lock-passcode-input" class="input-clean" maxlength="4" pattern="\d{4}" placeholder="例如：1234" inputmode="numeric">
+                            </div>
+                            <div style="font-size:11px; color:#888; margin-top:4px; text-align:left;">
+                                提示：仅在“上滑后进入密码界面”模式下生效，默认密码为 1234。
+                            </div>
+                            <button class="btn-small" style="width:100%; padding:10px; margin-top:10px;" onclick="saveLockSettings()">保存锁屏设置</button>
+                        </div>
+                    </div>
+ 
                     <div id="beautify-panel-global" class="beautify-panel">
                         <div class="setting-card">
                             <h4 style="margin: 10px 0 0 0; padding: 10px 0; border-bottom: 0.5px solid #eee;">修改全局美化</h4>
@@ -1262,7 +2452,10 @@
                 <div class="scroll-content no-scrollbar hatchery-content">
                     <section class="hatchery-module-card">
                         <div class="hatchery-module-header">
-                            <div class="hatchery-module-title">角色卡模板（可选）</div>
+                            <div class="hatchery-module-title-row">
+                                <div class="hatchery-module-title">角色卡模板（可选）</div>
+                                <button type="button" id="hatchery-char-template-preset-btn" class="hatchery-btn hatchery-btn-small" onclick="openHatcheryCharTemplatePresets()">预设</button>
+                            </div>
                             <div class="hatchery-module-subtitle">粘贴一份你喜欢的角色卡模板，AI 会沿用结构填充内容</div>
                         </div>
                         <div class="hatchery-module-body">
@@ -1278,8 +2471,11 @@
                             <textarea id="hatchery-char-input" class="hatchery-textarea" placeholder="例如：性格、关系、说话口癖、适用场景（恋爱向、工作向、日常陪伴等）..."></textarea>
                             <div class="hatchery-actions">
                                 <button id="hatchery-char-btn" class="hatchery-btn" onclick="generateHatcheryCharacter()">生成</button>
+                                <button id="hatchery-char-edit-btn" class="hatchery-btn" onclick="modifyHatcheryCharacter()">修改</button>
+                                <button id="hatchery-char-copy-btn" class="hatchery-btn hatchery-btn-ghost" onclick="copyHatcheryCharacter()">复制</button>
                             </div>
                             <textarea id="hatchery-char-output" class="hatchery-output" placeholder="这里会展示生成好的角色卡文本，你可以复制后用于导入。"></textarea>
+                            <div id="hatchery-char-status" class="hatchery-status-text" style="display:none;">等待生成完毕</div>
                         </div>
                     </section>
                 </div>
@@ -1441,7 +2637,7 @@
                     <button class="nav-btn" style="color:#000;" onclick="closePage('qq-page')">❮</button>
                     <div class="nav-title" style="font-weight: 800; font-size:18px;">QQ</div>
                     <div style="display:flex; align-items:center;">
-                       <button class="nav-btn" style="font-size:24px; font-weight:300; color:#000;" onclick="openAddCharacterModal()">+</button>
+                       <button class="nav-btn" style="font-size:24px; font-weight:300; color:#000;" onclick="openQqCreateMenu()">+</button>
                     </div>
                 </div>
                 <div class="nav-header qq-header" id="qq-header-moments" style="display: none;">
@@ -1500,7 +2696,7 @@
             <!-- 聊天对话页面 -->
             <div class="app-page qq-page-bg" id="chat-page">
                 <div class="nav-header qq-header">
-                    <button class="nav-btn" style="color:#000;" onclick="closePage('chat-page')">❮</button>
+                    <button class="nav-btn" style="color:#000;" onclick="openPage('qq-page')">❮</button>
                     <div class="nav-title-container">
                         <div id="chat-title" class="nav-title">聊天中</div>
                         <div id="typing-indicator" class="nav-subtitle"></div>
@@ -1531,48 +2727,64 @@
                 </div>
                 <div class="input-bar">
                     <div class="chat-input-toolbar" id="chat-toolbar">
-                        <div class="toolbar-item">
-                            <button class="toolbar-btn" onclick="openEmojiManager()">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5s.67 1.5 1.5 1.5zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/></svg>
-                            </button>
-                        </div>
-                        <div class="toolbar-item">
-                            <button class="toolbar-btn" onclick="openT2IModal()">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
-                            </button>
-                        </div>
-                        <div class="toolbar-item">
-                            <button class="toolbar-btn" onclick="openVoiceModal()">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg>
-                            </button>
-                        </div>
-                        <div class="toolbar-item">
-                            <button class="toolbar-btn" onclick="openTransferModal() ">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm-8 3.5a3.5 3.5 0 1 1 0 7 3.5 3.5 0 0 1 0-7zM4 18V6h16v12H4z"/></svg>
-                            </button>
-                        </div>
-                        <div class="toolbar-item">
-                            <button class="toolbar-btn" onclick="openMusicModal()">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                                    <circle cx="9" cy="17" r="2.3"/>
-                                    <circle cx="17" cy="15" r="2.3"/>
-                                    <path d="M11.3 16.5V6l7-2v9.5"/>
-                                </svg>
-                            </button>
-                        </div>
-                        <div class="toolbar-item">
-                            <button class="toolbar-btn" onclick="openTakeoutModal()">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M6 8h12l-1.2 11H7.2L6 8Z"/>
-                                    <path d="M9 8l1.5-3h3L15 8"/>
-                                    <path d="M10 12h4"/>
-                                </svg>
-                            </button>
-                        </div>
-                        <div class="toolbar-item">
-                            <button class="toolbar-btn" onclick="openLocationModal()">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-                            </button>
+                        <div class="toolbar-scroll" id="chat-toolbar-scroll">
+                            <div class="toolbar-item">
+                                <button class="toolbar-btn" type="button" onclick="hapticTap('emoji'); openEmojiManager()">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5s.67 1.5 1.5 1.5zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/></svg>
+                                </button>
+                            </div>
+                            <div class="toolbar-item">
+                                <button class="toolbar-btn" type="button" onclick="hapticTap('t2i'); openT2IModal()">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
+                                </button>
+                            </div>
+                            <div class="toolbar-item">
+                                <button class="toolbar-btn" type="button" onclick="hapticTap('voice'); openVoiceModal()">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg>
+                                </button>
+                            </div>
+                            <div class="toolbar-item">
+                                <button class="toolbar-btn" type="button" onclick="hapticTap('transfer'); openTransferModal() ">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm-8 3.5a3.5 3.5 0 1 1 0 7 3.5 3.5 0 0 1 0-7zM4 18V6h16v12H4z"/></svg>
+                                </button>
+                            </div>
+                            <div class="toolbar-item">
+                                <button class="toolbar-btn" type="button" onclick="hapticTap('music'); openMusicModal()">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="9" cy="17" r="2.3"/>
+                                        <circle cx="17" cy="15" r="2.3"/>
+                                        <path d="M11.3 16.5V6l7-2v9.5"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="toolbar-item">
+                                <button class="toolbar-btn" type="button" onclick="hapticTap('takeout'); openTakeoutModal()">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M6 8h12l-1.2 11H7.2L6 8Z"/>
+                                        <path d="M9 8l1.5-3h3L15 8"/>
+                                        <path d="M10 12h4"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="toolbar-item">
+                                <button class="toolbar-btn" type="button" onclick="hapticTap('location'); openLocationModal()">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                                </button>
+                            </div>
+                            <div class="toolbar-item">
+                                <button class="toolbar-btn" type="button" id="toolbar-video-call-btn">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M17 10.5V7c0-1.1-.9-2-2-2H5C3.9 5 3 5.9 3 7v10c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2v-3.5l3.5 3.5V7L17 10.5z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="toolbar-item">
+                                <button class="toolbar-btn" type="button" id="toolbar-phone-lookup-btn">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M7 2h10c1.65 0 3 1.35 3 3v14c0 1.65-1.35 3-3 3H7c-1.65 0-3-1.35-3-3V5c0-1.65 1.35-3 3-3zm0 2c-.55 0-1 .45-1 1v14c0 .55.45 1 1 1h10c.55 0 1-.45 1-1V5c0-.55-.45-1-1-1H7zm3 1h4v1h-4V5zm-1 12h6v2H9v-2z"/>
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
                     </div>
                     <div class="chat-main-input-row">
@@ -1722,7 +2934,7 @@
             <!-- 聊天设置抽屉 -->
             <div class="drawer-overlay" id="chat-settings-drawer">
                 <div class="drawer">
-                    <div class="drawer-scroll-content no-scrollbar">
+                    <div class="drawer-scroll-content">
                         <div class="setting-card">
                             <div class="setting-row">
                                 <label class="setting-label">我的角色</label>
@@ -1758,9 +2970,19 @@
                                 </label>
                             </div>
                         </div>
-                        <ul class="drawer-action-list">
+                        <ul class="drawer-action-list" id="single-chat-settings-action-list">
                             <li class="drawer-action-item" onclick="handleEditCurrentAi()">修改角色设定</li>
                             <li class="drawer-action-item" onclick="openUserDrawer()">修改我的资料</li>
+                            <li class="drawer-action-item" onclick="openChatAppearanceModal()">修改界面美化</li>
+                            <li class="drawer-action-item" onclick="importCurrentChat()">导入当前对话</li>
+                            <li class="drawer-action-item" onclick="exportCurrentChat()">导出当前对话</li>
+                            <li class="drawer-action-item danger" onclick="tryClearCurrentChat()">清空当前对话</li>
+                        </ul>
+                        <ul class="drawer-action-list" id="group-chat-settings-action-list" style="display:none;">
+                            <li class="drawer-action-item" onclick="openUserDrawer()">修改我的资料</li>
+                            <li class="drawer-action-item" onclick="openGroupMembersManager()">修改群聊成员</li>
+                            <li class="drawer-action-item" onclick="promptRenameCurrentGroup()">设置群聊名称</li>
+                            <li class="drawer-action-item" onclick="openGroupTitlesManager()">设置称号</li>
                             <li class="drawer-action-item" onclick="openChatAppearanceModal()">修改界面美化</li>
                             <li class="drawer-action-item" onclick="importCurrentChat()">导入当前对话</li>
                             <li class="drawer-action-item" onclick="exportCurrentChat()">导出当前对话</li>
@@ -2004,6 +3226,7 @@
                     <ul class="picker-list" style="padding-top:10px; padding-bottom:10px;">
                         <li class="picker-item" onclick="openAiDrawer()">手动创建新角色</li>
                         <li class="picker-item" onclick="document.getElementById('import-char-input').click()">从文件导入角色卡</li>
+                        <li class="picker-item" onclick="createDefaultQqGroup()">创建群聊</li>
                     </ul>
                     <div class="picker-content" style="border-radius:0; margin-top: 8px;">
                          <ul class="picker-list"><li class="picker-item" onclick="closeAddCharacterModal()">取消</li></ul>
@@ -2221,6 +3444,119 @@
                     <div style="display: flex; gap: 10px; padding: 16px; border-top: 1px solid #e5e5e5;">
                         <button onclick="closeTakeoutModal()" class="drawer-button-cancel" style="flex: 1;">取消</button>
                         <button onclick="sendTakeoutMessage()" class="btn-primary" style="flex: 1;">发送外卖</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 查手机弹窗 -->
+            <div class="modal-overlay" id="phone-lookup-overlay"></div>
+            <div class="modal-container" id="phone-lookup-container">
+                <div class="modal-content phone-lookup-content">
+                    <div class="modal-header">查手机</div>
+                    <div class="phone-lookup-step" id="phone-lookup-step-select">
+                        <p class="phone-lookup-tip">选择想要触发的指令</p>
+                        <button class="phone-lookup-btn primary" data-phone-lookup-mode="target">查对方手机</button>
+                        <button class="phone-lookup-btn ghost" data-phone-lookup-mode="reverse">反向查手机</button>
+                    </div>
+                    <div class="phone-lookup-step is-hidden" id="phone-lookup-target-step">
+                        <p class="phone-lookup-tip">对方的小手机中目前只展示基础应用，功能稍后补完。</p>
+                        <div class="mini-phone-frame">
+                            <div class="mini-phone-speaker"></div>
+                            <div class="mini-phone-screen">
+                                <div class="mini-phone-status">
+                                    <span>12:45</span>
+                                    <span>82%</span>
+                                </div>
+                                <div class="mini-phone-glass mini-phone-glass-top"></div>
+                                <div class="mini-phone-glass mini-phone-glass-bottom"></div>
+                                <div class="mini-phone-app-grid">
+                                    <button class="mini-phone-app">
+                                        <span class="mini-phone-app-icon">QQ</span>
+                                        <span class="mini-phone-app-label">QQ</span>
+                                    </button>
+                                    <button class="mini-phone-app">
+                                        <span class="mini-phone-app-icon">📓</span>
+                                        <span class="mini-phone-app-label">日记</span>
+                                    </button>
+                                    <button class="mini-phone-app">
+                                        <span class="mini-phone-app-icon">🌐</span>
+                                        <span class="mini-phone-app-label">浏览器</span>
+                                    </button>
+                                    <button class="mini-phone-app">
+                                        <span class="mini-phone-app-icon">📸</span>
+                                        <span class="mini-phone-app-label">相册</span>
+                                    </button>
+                                    <button class="mini-phone-app">
+                                        <span class="mini-phone-app-icon">📝</span>
+                                        <span class="mini-phone-app-label">备忘录</span>
+                                    </button>
+                                    <button class="mini-phone-app">
+                                        <span class="mini-phone-app-icon">⋯</span>
+                                        <span class="mini-phone-app-label">更多</span>
+                                    </button>
+                                </div>
+                                <div class="mini-phone-footer">功能建设中</div>
+                            </div>
+                        </div>
+                        <p class="mini-phone-hint">左上和右下角嵌入了磨砂玻璃材质的资讯组件。</p>
+                    </div>
+                    <div class="phone-lookup-step is-hidden" id="phone-lookup-reverse-step">
+                        <p class="phone-lookup-tip">反向查手机：让 AI 角色查看你的手机记录。</p>
+                        <div class="reverse-hint-card">
+                            <p>功能规划中，后续将接入 API，让角色根据你上传的环境描述来“翻看”你的手机。</p>
+                            <p>现在可以先把想法写在聊天框里，AI 会记住这条待办。</p>
+                        </div>
+                    </div>
+                    <div class="modal-footer phone-lookup-footer">
+                        <button id="phone-lookup-back-btn" class="phone-lookup-btn ghost">返回</button>
+                        <button id="phone-lookup-close-btn" class="phone-lookup-btn danger">关闭</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 视频通话全屏层 -->
+            <div id="video-call-overlay" class="video-call-overlay">
+                <div class="video-call-panel video-call-dialing" id="video-call-dialing-panel">
+                    <img id="video-call-avatar" class="video-call-avatar" src="" alt="好友头像">
+                    <div class="video-call-label" id="video-call-name-label">好友昵称</div>
+                    <div class="video-call-status-text" id="video-call-status-text">正在呼叫……</div>
+                    <div class="video-call-btn-row">
+                        <button class="video-call-btn danger" id="video-call-hangup-btn">挂断</button>
+                        <button class="video-call-btn success" id="video-call-answer-btn">接通</button>
+                    </div>
+                </div>
+                <div class="video-call-panel video-call-active is-hidden" id="video-call-active-panel">
+                    <div class="video-call-active-wrapper">
+                        <div class="video-call-remote-bg" id="video-call-remote-bg">
+                            <img id="video-call-remote-image" class="video-call-remote-image is-hidden" alt="AI 背景预览">
+                            <div class="video-call-overlay-shade"></div>
+                        </div>
+                        <div class="video-call-my-card">
+                            <div class="video-call-my-preview" id="video-call-self-preview">
+                                <img id="video-call-self-image" class="video-call-self-image is-hidden" alt="我的背景预览">
+                            </div>
+                            <label class="video-call-upload-btn">我的背景
+                                <input type="file" id="video-call-self-input" accept="image/*">
+                            </label>
+                            <label class="video-call-upload-btn">对方背景
+                                <input type="file" id="video-call-remote-input" accept="image/*">
+                            </label>
+                        </div>
+                        <div class="video-call-scene-box">
+                            <div class="video-call-scene-title">实时场景</div>
+                            <p id="video-call-scene-description">AI 正在捕捉画面…</p>
+                            <button id="video-call-refresh-scene" class="video-call-btn ghost small">刷新场景描述</button>
+                        </div>
+                        <div class="video-call-user-input-area">
+                            <label for="video-call-user-input">告诉对方：此刻的你在做什么</label>
+                            <textarea id="video-call-user-input" placeholder="例如：我刚给猫梳毛，阳光有点晃眼"></textarea>
+                            <button id="video-call-submit-status" class="video-call-btn success small">提交</button>
+                        </div>
+                        <div class="video-call-live-log" id="video-call-live-log"></div>
+                        <div class="video-call-bottom-actions">
+                            <button class="video-call-btn ghost" id="video-call-ai-hangup">AI 挂断</button>
+                            <button class="video-call-btn danger" id="video-call-end-btn">结束通话</button>
+                        </div>
                     </div>
                 </div>
             </div>
