@@ -367,14 +367,48 @@ body {
     padding: 0 10px;
 }
 
-.widget { 
-    background: rgba(255, 255, 255, 0.15); 
-    backdrop-filter: blur(15px); 
-    border-radius: 28px; 
-    border: 1px solid rgba(255, 255, 255, 0.3); 
-    box-shadow: 0 8px 16px rgba(0,0,0,0.1); 
-    position: relative; 
-    overflow: hidden; 
+#main-screen .grid-container {
+    margin-top: 110px;
+    margin-bottom: 16px;
+}
+
+.widget {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(15px);
+    border-radius: 28px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+#main-screen #photo-widget {
+    border-radius: 0;
+    height: 110px;
+    width: 85%;
+    max-width: 180px;
+    min-width: 140px;
+    justify-self: flex-start;
+    align-self: flex-start;
+    border: 1px solid rgba(0,0,0,0.1);
+    padding: 0;
+    margin-top: 32px;
+}
+
+#main-screen #photo-widget.anniversary-widget {
+    padding: 12px 14px;
+}
+
+#main-screen #photo-widget .anniv-title {
+    font-size: 14px;
+}
+
+#main-screen #photo-widget .anniv-days {
+    font-size: 24px;
+}
+
+#main-screen #photo-widget .anniv-sub {
+    font-size: 11px;
 }
 
 .photo-widget {
@@ -465,10 +499,14 @@ body {
 }
 
 .app-row-container {
-    display: flex; 
-    flex-direction: row; 
-    justify-content: space-evenly; 
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
     align-items: center;
+}
+
+#main-screen .app-row-container {
+    margin-top: 12px;
 }
 .apps-area {
     grid-column: 2/3;
@@ -521,7 +559,7 @@ body {
     align-items: center;
     box-shadow: 0 6px 12px rgba(0,0,0,0.15);
     transition: transform 0.2s ease-out;
-    background-color: #f5ede2;
+    background-color: #fbe5d3;
     position: relative;
     overflow: hidden;
 }
@@ -666,7 +704,7 @@ body {
     color: #000;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.15s ease-in-out;
+    transition: opacity 0.12s ease-in-out;
 }
 .app-page.active {
     opacity: 1;
@@ -3236,13 +3274,13 @@ input:checked + .slider:before {
    ================================= */
 
 /* --- 5.1 QQ 应用 --- */
-.qq-page-bg { 
-    background-color: var(--qq-bg) !important; 
-    color: #000 !important; 
+.qq-page-bg {
+    background-color: var(--qq-bg) !important;
+    color: #000 !important;
 }
-/* QQ 主体和聊天页去掉自身的淡入淡出，避免两者淡入淡出叠加时透出主屏 */
+/* QQ 主体和聊天页恢复与通用页面接近的淡入淡出速度，保持切换观感一致 */
 .app-page.qq-page-bg {
-    transition: none;
+    transition: opacity 0.12s ease-in-out;
 }
   .qq-header {
   	/* 使用 flex 布局，左侧返回，中间绝对居中标题，右侧一组功能按钮 */
@@ -5454,9 +5492,9 @@ input:checked + .slider:before {
 }
 
 .love-app-icon {
-    width: 52px;
-    height: 52px;
-    border-radius: 14px;
+    width: 60px;
+    height: 60px;
+    border-radius: 16px;
     display: flex;
     align-items: center;
     justify-content: center;

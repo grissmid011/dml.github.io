@@ -75,7 +75,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- 1.2. 页面与抽屉导航 ---
     function closeAllOverlays() {
-        const selectors = '.drawer-overlay, .action-sheet-modal, .thoughts-modal-overlay, .clock-modal-overlay, .modal-overlay, .modal-container, .drawer-modal, .page-modal';
+        const selectors = [
+            '.drawer-overlay',
+            '.action-sheet-modal',
+            '.thoughts-modal-overlay',
+            '.clock-modal-overlay',
+            '.modal-overlay',
+            '.modal-container',
+            '.drawer-modal',
+            '.page-modal',
+            '.truth-game-setup-overlay',
+            '.flight-chess-setup-overlay',
+            '.script-kill-modal-overlay',
+            '.undercover-setup-overlay',
+            '.undercover-modal-overlay'
+        ].join(', ');
+
         document.querySelectorAll(selectors).forEach(el => {
             el.classList.remove('active');
             // 某些容器（如世界书绑定面板）还依赖 display 控制
@@ -92,15 +107,52 @@ document.addEventListener('DOMContentLoaded', function() {
         const page = document.getElementById(id);
         if (!page) return;
 
-        // 先给目标页面标记 active，再移除其他页面的 active，避免中间出现“所有页面都未激活”的瞬间
-        // 这样可以减少从 QQ 列表进入聊天页时短暂露出主屏幕的闪烁感
-        page.classList.add('active');
+        // 计算当前页面应该保留的“页面栈”：
+        // 1) 优先走 data-parent-page 明确声明的父页面
+        // 2) 若没有显式父页面，再退回到 DOM 中向上寻找祖先 app-page
+        // 这样像 QQ->聊天、纪念日->创建页、孵蛋室->子设计页 这类切换时，
+        // 父页面不会在子页面淡入期间一起消失，从而避免短暂露出主屏。
+        const pageStack = [];
+        const visited = new Set();
+        let current = page;
 
-        // 确保任意时刻只存在一个激活的 App 页面，避免页面叠在一起（例如购物页盖住塔罗页）
-        document.querySelectorAll('.app-page.active').forEach(el => {
-            if (el !== page) {
-                el.classList.remove('active');
+        while (current && !visited.has(current)) {
+            visited.add(current);
+            pageStack.unshift(current);
+
+            const explicitParentId = current.dataset ? current.dataset.parentPage : '';
+            if (explicitParentId) {
+                current = document.getElementById(explicitParentId);
+                continue;
             }
+
+            let ancestor = current.parentElement;
+            let matchedAncestor = null;
+            while (ancestor) {
+                if (ancestor.classList && ancestor.classList.contains('app-page')) {
+                    matchedAncestor = ancestor;
+                    break;
+                }
+                ancestor = ancestor.parentElement;
+            }
+            current = matchedAncestor;
+        }
+
+
+        // 延后一帧再清理无关页面，让目标页先稳定参与渲染，减少“闪到主屏”的观感
+        const baseZ = 100;
+        pageStack.forEach((el, index) => {
+            el.classList.add('active');
+            el.style.zIndex = String(baseZ + index);
+        });
+
+        requestAnimationFrame(() => {
+            document.querySelectorAll('.app-page').forEach(el => {
+                if (!pageStack.includes(el)) {
+                    el.classList.remove('active');
+                    el.style.zIndex = '';
+                }
+            });
         });
 
         // 进入任意 App 页面时，隐藏主屏幕底部的 Dock 栏，避免在 QQ 等页面底部看到重复的“第二个导航栏”
@@ -130,7 +182,19 @@ document.addEventListener('DOMContentLoaded', function() {
     }
          function closePage(id) {
         const page = document.getElementById(id);
-        if (page) page.classList.remove('active');
+        if (page) {
+            page.classList.remove('active');
+            page.style.zIndex = '';
+
+            const parentPageId = page.dataset ? page.dataset.parentPage : '';
+            if (parentPageId) {
+                const parentPage = document.getElementById(parentPageId);
+                if (parentPage) {
+                    parentPage.classList.add('active');
+                    parentPage.style.zIndex = '100';
+                }
+            }
+        }
 
         // 关闭页面后，如果已经没有任何 .app-page 处于 active 状态，则重新显示主屏 Dock；
         // 否则保持隐藏（例如从聊天页退回 QQ 页，仍视为“有 App 打开”）。
@@ -11747,7 +11811,14 @@ function rejectTransfer() {
             widget.style.paddingTop = styleConfig.paddingTop || '10px';
             widget.style.paddingBottom = styleConfig.paddingBottom || '10px';
 
-            // 背景优先级：图片 > 纯色 > 保持默认玻璃背景
+            // 每次先清理背景状态，避免上一次设置残留
+            widget.style.backgroundColor = '';
+            widget.style.backgroundRepeat = 'no-repeat';
+            widget.style.backgroundSize = 'cover';
+            widget.style.backgroundPosition = 'center';
+            widget.removeAttribute('data-keep-bg');
+
+            // 背景优先级：图片 > 纯色 > 默认玻璃背景
             if (styleConfig.bgImageData) {
                 widget.style.backgroundImage = `url(${styleConfig.bgImageData})`;
                 widget.dataset.keepBg = 'true';
@@ -11756,10 +11827,7 @@ function rejectTransfer() {
                 widget.style.backgroundColor = styleConfig.bgColor;
                 widget.dataset.keepBg = 'true';
             } else {
-                // 没有定制背景时，避免被其它全局 CSS 覆盖成不透明图片
-                if (!widget.dataset.keepBg) {
-                    widget.style.backgroundImage = 'none';
-                }
+                widget.style.backgroundImage = 'none';
             }
 
             // 标题行样式（第一行：【标题】）
@@ -11896,6 +11964,116 @@ function sendTransferPopupData() {
     renderMessages();
 }
 
+    function normalizeAnnivWidgetColor(value, fallback) {
+        if (typeof value !== 'string') return fallback;
+        const trimmed = value.trim();
+        if (/^#[0-9a-fA-F]{6}$/.test(trimmed)) return trimmed;
+        if (/^#[0-9a-fA-F]{3}$/.test(trimmed)) {
+            return `#${trimmed[1]}${trimmed[1]}${trimmed[2]}${trimmed[2]}${trimmed[3]}${trimmed[3]}`;
+        }
+        return fallback;
+    }
+
+    function getAnnivWidgetStyleConfig() {
+        return getStorage('danke_anniv_widget_style_v1', null) || {};
+    }
+
+    function setAnnivWidgetBgPreview(bgImageData) {
+        const preview = document.getElementById('anniv-widget-bg-image-preview');
+        if (!preview) return;
+        preview.dataset.imageData = bgImageData || '';
+        preview.style.backgroundImage = bgImageData ? `url(${bgImageData})` : 'none';
+        preview.style.backgroundColor = bgImageData ? 'transparent' : '#f2f2f2';
+    }
+
+    function fillAnnivWidgetStyleForm() {
+        const config = getAnnivWidgetStyleConfig();
+        const titleColorInput = document.getElementById('anniv-widget-title-color');
+        const titleSizeInput = document.getElementById('anniv-widget-title-size');
+        const statusColorInput = document.getElementById('anniv-widget-status-color');
+        const statusSizeInput = document.getElementById('anniv-widget-status-size');
+        const bgColorInput = document.getElementById('anniv-widget-bg-color');
+        const bgImageInput = document.getElementById('anniv-widget-bg-image-file');
+
+        if (titleColorInput) titleColorInput.value = normalizeAnnivWidgetColor(config.titleColor, '#000000');
+        if (titleSizeInput) titleSizeInput.value = parseInt(config.titleFontSize, 10) || 14;
+        if (statusColorInput) statusColorInput.value = normalizeAnnivWidgetColor(config.statusColor, '#000000');
+        if (statusSizeInput) statusSizeInput.value = parseInt(config.statusFontSize, 10) || 20;
+        if (bgColorInput) bgColorInput.value = normalizeAnnivWidgetColor(config.bgColor, '#ffffff');
+        if (bgImageInput) bgImageInput.value = '';
+
+        setAnnivWidgetBgPreview(config.bgImageData || '');
+    }
+
+    function saveAnnivWidgetStyle() {
+        const titleColorInput = document.getElementById('anniv-widget-title-color');
+        const titleSizeInput = document.getElementById('anniv-widget-title-size');
+        const statusColorInput = document.getElementById('anniv-widget-status-color');
+        const statusSizeInput = document.getElementById('anniv-widget-status-size');
+        const bgColorInput = document.getElementById('anniv-widget-bg-color');
+        const preview = document.getElementById('anniv-widget-bg-image-preview');
+
+        const clampSize = (value, fallback) => {
+            const num = parseInt(value, 10);
+            if (!Number.isFinite(num)) return `${fallback}px`;
+            return `${Math.min(32, Math.max(10, num))}px`;
+        };
+
+        const imageData = preview?.dataset?.imageData || '';
+        const config = {
+            titleColor: normalizeAnnivWidgetColor(titleColorInput?.value, '#000000'),
+            titleFontSize: clampSize(titleSizeInput?.value, 14),
+            statusColor: normalizeAnnivWidgetColor(statusColorInput?.value, '#000000'),
+            statusFontSize: clampSize(statusSizeInput?.value, 20)
+        };
+
+        if (imageData) {
+            config.bgImageData = imageData;
+        } else {
+            config.bgColor = normalizeAnnivWidgetColor(bgColorInput?.value, '#ffffff');
+        }
+
+        setStorage('danke_anniv_widget_style_v1', config);
+        updateAnniversaryWidgetDisplay();
+        showToast('已保存首页组件样式');
+    }
+
+    function handleAnnivWidgetBgImageChange(input) {
+        const file = input && input.files && input.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = e => {
+            const result = e && e.target ? e.target.result : '';
+            if (!result) return;
+            setAnnivWidgetBgPreview(result);
+            showToast('背景图片已选中，点击保存后生效');
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function clearAnnivWidgetBackground() {
+        const config = getAnnivWidgetStyleConfig();
+        delete config.bgColor;
+        delete config.bgImageData;
+        setStorage('danke_anniv_widget_style_v1', config);
+
+        const bgColorInput = document.getElementById('anniv-widget-bg-color');
+        const bgImageInput = document.getElementById('anniv-widget-bg-image-file');
+        if (bgColorInput) bgColorInput.value = '#ffffff';
+        if (bgImageInput) bgImageInput.value = '';
+        setAnnivWidgetBgPreview('');
+
+        const widget = document.getElementById('photo-widget');
+        if (widget) {
+            widget.style.backgroundColor = '';
+            widget.style.backgroundImage = 'none';
+            widget.removeAttribute('data-keep-bg');
+        }
+
+        updateAnniversaryWidgetDisplay();
+        showToast('已清除首页组件背景');
+    }
+
     function openAnniversaryCreator(editId = null) {
         currentEditAnniversaryId = editId;
         openPage('anniversary-creator-page');
@@ -11949,6 +12127,8 @@ function sendTransferPopupData() {
             populateDays();
             daySelect.value = today.getDate();
         }
+
+        fillAnnivWidgetStyleForm();
     }
 function openVoiceModal() {
     const overlay = document.getElementById('voice-modal-overlay');
@@ -14148,7 +14328,7 @@ function sendTakeoutMessage() {
                 iconEl.appendChild(img);
             }
 
-            iconEl.style.backgroundColor = '#f5ede2';
+            iconEl.style.backgroundColor = '#fbe5d3';
 
             // 孵蛋室：强制使用原始内联 SVG，隐藏 img，避免因为 dataURL 或自定义配置导致图标不可见
             if (id === 'hatchery') {
@@ -19493,6 +19673,9 @@ window.flipImageCard = flipImageCard;
     window.saveAnniversary = saveAnniversary;
     window.deleteAnniversary = deleteAnniversary;
     window.setAnniversaryWidget = setAnniversaryWidget;
+    window.saveAnnivWidgetStyle = saveAnnivWidgetStyle;
+    window.handleAnnivWidgetBgImageChange = handleAnnivWidgetBgImageChange;
+    window.clearAnnivWidgetBackground = clearAnnivWidgetBackground;
 
     // --- 自律钟 App ---
     window.openTaskCreator = openTaskCreator;

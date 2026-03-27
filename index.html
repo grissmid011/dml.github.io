@@ -906,7 +906,7 @@
                 </div>
 
                 <!-- 真心话大冒险 · 暖黄色主界面 -->
-                <div class="app-page" id="truth-game-page">
+                <div class="app-page" id="truth-game-page" data-parent-page="game-center-page">
                     <div class="truth-game-container">
                         <div class="truth-game-title">真心话大冒险</div>
                         <div class="truth-game-header">
@@ -975,7 +975,7 @@
                 </div>
 
                 <!-- 飞行棋 · 游戏主界面（单机 / 情趣联机共用） -->
-                <div class="app-page flight-chess-page" id="flight-chess-page">
+                <div class="app-page flight-chess-page" id="flight-chess-page" data-parent-page="game-center-page">
                     <div class="flight-chess-header">
                         <button class="nav-btn" id="flight-chess-exit-btn">❮</button>
                         <div class="flight-chess-header-title" id="flight-chess-header-title">飞行棋</div>
@@ -1057,7 +1057,7 @@
                 </div>
 
                 <!-- 你画我猜 · 游戏主界面 -->
-                <div class="app-page draw-guess-page" id="draw-guess-page">
+                <div class="app-page draw-guess-page" id="draw-guess-page" data-parent-page="game-center-page">
                     <div class="draw-guess-container">
                         <div class="draw-guess-header">
                             <button class="nav-btn" id="draw-guess-back-btn">❮</button>
@@ -1168,7 +1168,7 @@
                 </div>
 
                 <!-- 狼人杀 · 游戏主界面 -->
-                <div class="app-page werewolf-page" id="werewolf-page">
+                <div class="app-page werewolf-page" id="werewolf-page" data-parent-page="game-center-page">
                     <div class="werewolf-container">
                         <div class="werewolf-header">
                             <button class="nav-btn" id="werewolf-back-btn">❮</button>
@@ -1248,7 +1248,7 @@
                 </div>
 
                 <!-- 剧本杀 · 游戏主界面 -->
-                <div class="app-page script-kill-page" id="script-kill-page">
+                <div class="app-page script-kill-page" id="script-kill-page" data-parent-page="game-center-page">
                     <div class="script-kill-container">
                         <div class="script-kill-header">
                             <button class="nav-btn" id="script-kill-back-btn">❮</button>
@@ -1362,7 +1362,7 @@
                 </div>
 
                 <!-- 谁是卧底 · 游戏主界面 -->
-                <div class="app-page undercover-page" id="undercover-page">
+                <div class="app-page undercover-page" id="undercover-page" data-parent-page="game-center-page">
                     <div class="undercover-container">
                         <div class="undercover-header">
                             <button class="nav-btn" id="undercover-back-btn">❮</button>
@@ -2091,7 +2091,7 @@
                     <ul class="anniversary-list" id="anniversary-list-ul"></ul>
                 </div>
             </div>
-            <div class="app-page page-bg-gray" id="anniversary-creator-page">
+            <div class="app-page page-bg-gray" id="anniversary-creator-page" data-parent-page="anniversary-page">
                 <div class="nav-header">
                     <button class="nav-btn" onclick="closePage('anniversary-creator-page')">❮</button>
                     <span id="anniversary-creator-title">创建纪念日</span>
@@ -2218,7 +2218,7 @@
                     </div>
                 </div>
             </div>
-            <div class="app-page" id="focus-session-page">
+            <div class="app-page" id="focus-session-page" data-parent-page="clock-page">
                 <button class="nav-btn" style="position: absolute; top: 40px; left: 15px; color: white; text-shadow: 0 1px 3px rgba(0,0,0,0.5); z-index:10; font-size: 17px;" onclick="tryExitFocus()">❮</button>
                 <div class="focus-timer-container">
                     <svg width="250" height="250">
@@ -2443,7 +2443,7 @@
             </div>
 
             <!-- 孵蛋室 · 角色卡生成 -->
-            <div class="app-page hatchery-page" id="hatchery-char-page">
+            <div class="app-page hatchery-page" id="hatchery-char-page" data-parent-page="hatchery-page">
                 <div class="nav-header hatchery-nav">
                     <button class="nav-btn" onclick="closePage('hatchery-char-page')">❮</button>
                     <span>角色卡生成</span>
@@ -2482,7 +2482,7 @@
             </div>
 
             <!-- 孵蛋室 · 世界书生成 -->
-            <div class="app-page hatchery-page" id="hatchery-world-page">
+            <div class="app-page hatchery-page" id="hatchery-world-page" data-parent-page="hatchery-page">
                 <div class="nav-header hatchery-nav">
                     <button class="nav-btn" onclick="closePage('hatchery-world-page')">❮</button>
                     <span>世界书生成</span>
@@ -2519,7 +2519,7 @@
             </div>
 
             <!-- 孵蛋室 · CSS 美化生成 -->
-            <div class="app-page hatchery-page" id="hatchery-css-page">
+            <div class="app-page hatchery-page" id="hatchery-css-page" data-parent-page="hatchery-page">
                 <div class="nav-header hatchery-nav">
                     <button class="nav-btn" onclick="closePage('hatchery-css-page')">❮</button>
                     <span>CSS 美化生成</span>
@@ -2694,7 +2694,7 @@
             </div>
 
             <!-- 聊天对话页面 -->
-            <div class="app-page qq-page-bg" id="chat-page">
+            <div class="app-page qq-page-bg" id="chat-page" data-parent-page="qq-page">
                 <div class="nav-header qq-header">
                     <button class="nav-btn" style="color:#000;" onclick="openPage('qq-page')">❮</button>
                     <div class="nav-title-container">
@@ -2810,7 +2810,7 @@
             </div>
 
             <!-- 线下模式页面 -->
-            <div class="app-page qq-page-bg offline-page-bg" id="offline-page">
+            <div class="app-page qq-page-bg offline-page-bg" id="offline-page" data-parent-page="qq-page">
                 <div class="nav-header qq-header">
                     <button class="nav-btn" style="color:#000;" onclick="closePage('offline-page')">❮</button>
                     <div class="nav-title-container">
