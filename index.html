@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <link rel="apple-touch-icon" href="https://i.postimg.cc/VLshcrKR/IMG-3907.jpg">
+    <link rel="apple-touch-icon" href="https://i.postimg.cc/Xqx5VGmy/5D3EE863-1BA9-44F4-A5D8-52FED7BA816F.png">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="蛋壳机">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -36,12 +36,7 @@
                 <div class="lock-swipe-hint" id="lock-swipe-hint">上滑解锁</div>
                 <div class="lock-passcode-panel" id="lock-passcode-panel">
                     <div class="lock-passcode-title">输入密码</div>
-                    <div class="lock-passcode-dots" id="lock-passcode-dots">
-                        <span class="lock-passcode-dot"></span>
-                        <span class="lock-passcode-dot"></span>
-                        <span class="lock-passcode-dot"></span>
-                        <span class="lock-passcode-dot"></span>
-                    </div>
+                    <div class="lock-passcode-dots" id="lock-passcode-dots"></div>
                     <div class="lock-passcode-keypad">
                         <button class="lock-key" data-key="1">1</button>
                         <button class="lock-key" data-key="2">2</button>
@@ -57,20 +52,61 @@
                         <button class="lock-key delete" data-key="delete">⌫</button>
                     </div>
                 </div>
+                <div class="lock-pattern-panel" id="lock-pattern-panel">
+                    <div class="lock-pattern-title">绘制图案解锁</div>
+                    <div class="lock-pattern-subtitle" id="lock-pattern-subtitle">请按已保存的图案连接九点</div>
+                    <div class="lock-pattern-grid" id="lock-pattern-grid">
+                        <svg class="lock-pattern-lines" id="lock-pattern-lines" viewBox="0 0 300 300" preserveAspectRatio="none"></svg>
+                        <button type="button" class="lock-pattern-dot" data-dot="1"></button>
+                        <button type="button" class="lock-pattern-dot" data-dot="2"></button>
+                        <button type="button" class="lock-pattern-dot" data-dot="3"></button>
+                        <button type="button" class="lock-pattern-dot" data-dot="4"></button>
+                        <button type="button" class="lock-pattern-dot" data-dot="5"></button>
+                        <button type="button" class="lock-pattern-dot" data-dot="6"></button>
+                        <button type="button" class="lock-pattern-dot" data-dot="7"></button>
+                        <button type="button" class="lock-pattern-dot" data-dot="8"></button>
+                        <button type="button" class="lock-pattern-dot" data-dot="9"></button>
+                    </div>
+                </div>
             </div>
 
             <!-- 主屏幕 -->
             <div class="home-pager" id="home-pager">
                 <div class="home-pager-track" id="home-pager-track">
                     <div class="screen home-page" id="main-screen">
-                        <div class="header-widget">
-                            <div class="header-widget-left">
-                                <div class="date-line" id="date-display">...</div>
-                                <div class="time-line" id="time-display">...</div>
-                            </div>
-                        </div>
-                        <div class="grid-container">
-                            <!-- 左上：纪念日概览组件（由纪念日 App 驱动） -->
+                         <div class="header-widget">
+                             <div class="header-widget-left">
+                                 <div class="date-line" id="date-display">...</div>
+                                 <div class="time-line" id="time-display">...</div>
+                             </div>
+                         </div>
+
+                         <!-- 主屏顶部个人名片区域 -->
+                         <div class="home-profile-banner" id="home-profile-banner">
+                             <input type="file" id="home-profile-bg-input" accept="image/*" hidden>
+                             <input type="file" id="home-profile-avatar-input" accept="image/*" hidden>
+                             <div class="home-profile-banner-inner">
+                                 <div class="home-profile-avatar-wrap" id="home-profile-avatar-wrap">
+                                     <div class="home-profile-avatar" id="home-profile-avatar">
+                                         <!-- 默认头像为人物图标 -->
+                                         <svg viewBox="0 0 48 48" class="home-profile-avatar-icon" aria-hidden="true">
+                                             <circle cx="24" cy="16" r="9" fill="#f0d5c2" />
+                                             <path d="M12 40c0-6.6 5.4-12 12-12s12 5.4 12 12" fill="#f7e3d4" />
+                                         </svg>
+                                         <img id="home-profile-avatar-img" alt="头像" style="display:none;">
+                                     </div>
+                                      <div class="home-profile-username" id="home-profile-username" contenteditable="true">我的用户名</div>
+                                 </div>
+                                 <div class="home-profile-text">
+                                     <div class="home-profile-region" id="home-profile-region" contenteditable="true">日本-北海道</div>
+                                     <div class="home-profile-status" id="home-profile-status" contenteditable="true">我希望明天孵化出来的是我的真心</div>
+                                 </div>
+                             </div>
+                             <button class="home-profile-bg-btn" type="button" id="home-profile-bg-btn">背景</button>
+                         </div>
+
+                         <div class="grid-container">
+<!-- 左上：纪念日概览组件（由纪念日 App 驱动） -->
                             <div class="widget photo-widget anniversary-widget" id="photo-widget">
                                 <div class="anniv-title" id="anniv-main-title">纪念日</div>
                                 <div class="anniv-days" id="anniv-main-days">-- 天</div>
@@ -195,28 +231,35 @@
                     </div>
 
                      <div class="screen home-page love-screen" id="love-screen">
-                          <div class="love-screen-header">
-                              <div class="love-header-bar">
-                                  <div class="love-header-label">MESSAGE</div>
-                                  <div class="love-header-message" contenteditable="true" data-placeholder="写一句只属于今天的黑白留言，比如：&quot;今天也要好好相爱&quot;"></div>
-                              </div>
-                          </div>
-                          <!-- 第二屏中部 · 黑白简约日记长条 -->
-                          <div class="role-diary-strip">
-                              <div class="role-diary-avatar">
-                                  <select id="role-diary-select"></select>
-                              </div>
-                              <div class="role-diary-text" id="role-diary-text">“点右侧按钮，让角色对你说一句今天的暖心话。”</div>
-                              <button class="role-diary-action" type="button" onclick="generateWarmWordsForRole()">暖心一下</button>
-                          </div>
-
-                          <div class="love-board">
+                           <div class="love-screen-header">
+                               <div class="love-header-bar">
+                                   <div class="love-header-label">MESSAGE</div>
+                                   <div class="love-header-message" contenteditable="true" data-placeholder="写一句只属于今天的黑白留言，比如：&quot;今天也要好好相爱&quot;"></div>
+                               </div>
+                           </div>
+                           <!-- 第二屏中部 · 黑白简约日记长条 -->
+                            <div class="role-diary-strip">
+                                <div class="role-diary-avatar">
+                                    <div class="role-diary-avatar-circle" id="role-diary-avatar-circle">角</div>
+                                    <div class="role-diary-avatar-name" id="role-diary-avatar-name">选择角色</div>
+                                    <select id="role-diary-select" class="role-diary-select-hidden"></select>
+                                </div>
+                                <div class="role-diary-text" id="role-diary-text">“点左侧选择一个角色，然后戳一下，让 Ta 说一句属于自己的口头禅。”</div>
+                                <button class="role-diary-settings" type="button" onclick="openRoleDiarySettings()" aria-label="设置">
+                                    <svg viewBox="0 0 24 24" class="role-diary-settings-icon" aria-hidden="true">
+                                        <path d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7z"/>
+                                        <path d="M19.4 13a1 1 0 0 0 .2-1.1l-1-1.7a1 1 0 0 1-.1-.6l.2-2a1 1 0 0 0-.8-1.1l-2-.4a1 1 0 0 1-.5-.3L13.4 3a1 1 0 0 0-1.8 0L10 4.8a1 1 0 0 1-.5.3l-2 .4a1 1 0 0 0-.8 1.1l.2 2a1 1 0 0 1-.1.6l-1 1.7a1 1 0 0 0 .2 1.1l1.4 1.4a1 1 0 0 1 .3.5l.4 2a1 1 0 0 0 1 .8h2a1 1 0 0 0 1-.8l.4-2a1 1 0 0 1 .3-.5L19.4 13z"/>
+                                    </svg>
+                                </button>
+                                <button class="role-diary-action" type="button" onclick="generateWarmWordsForRole()">戳一下</button>
+                            </div>
+<div class="love-board">
                               <div class="love-canvas">
                                   <div class="love-top-group">
                                       <div class="love-apps-column">
                                            <div class="love-apps-row">
                                                <button class="home-app love-app" type="button" onclick="openPage('shop-page')">
-                                                   <div class="home-app-icon love-app-icon" data-component-id="shop">
+                                                   <div class="home-app-icon love-app-icon" id="icon-shop" data-component-id="shop">
                                                        <svg viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
                                                            <path d="M6 7l1.5-4h9L18 7" />
                                                            <path d="M5 7h14l-1 13H6L5 7z" />
@@ -227,7 +270,7 @@
                                                    <span class="home-app-name">购物</span>
                                                </button>
                                                <button class="home-app love-app" type="button" onclick="openLivePage()">
-                                                  <div class="home-app-icon love-app-icon" data-component-id="live">
+                                                  <div class="home-app-icon love-app-icon" id="icon-live" data-component-id="live">
                                                       <svg viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
                                                           <rect x="3" y="6" width="14" height="12" rx="3" />
                                                           <path d="M17 12l4-3v6l-4-3Z" />
@@ -240,7 +283,7 @@
                                           </div>
                                           <div class="love-apps-row">
                                                <button class="home-app love-app" type="button" onclick="openPage('tarot-page')">
-                                                   <div class="home-app-icon love-app-icon">
+                                                   <div class="home-app-icon love-app-icon" id="icon-tarot">
                                                        <svg viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
                                                            <rect x="5" y="3" width="14" height="18" rx="2" />
                                                            <path d="M12 8l1.2 2.4L16 11.2l-2 1.9.5 2.8L12 14.5 9.5 15.9 10 13.1 8 11.2l2.8-.8L12 8z" />
@@ -249,7 +292,7 @@
                                                    <span class="home-app-name">塔罗牌</span>
                                                </button>
                                                <button class="home-app love-app" type="button" onclick="openPage('bookstore-page')">
-                                                   <div class="home-app-icon love-app-icon">
+                                                   <div class="home-app-icon love-app-icon" id="icon-bookstore">
                                                        <svg viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
                                                            <path d="M5 4h7a2 2 0 0 1 2 2v14H7a2 2 0 0 0-2-2V4z" />
                                                            <path d="M12 4h7a2 2 0 0 1 2 2v14h-7a2 2 0 0 0-2-2V4z" />
@@ -278,7 +321,7 @@
                                       <div class="love-bottom-apps">
                                           <div class="love-bottom-col">
                                               <button class="home-app love-app" type="button" onclick="openPage('infinite-page')">
-                                                   <div class="home-app-icon love-app-icon">
+                                                   <div class="home-app-icon love-app-icon" id="icon-infinite">
                                                        <svg viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
                                                            <path d="M4 12c0-2.2 1.8-4 4-4 2.5 0 4 4 4 4s1.5 4 4 4c2.2 0 4-1.8 4-4s-1.8-4-4-4c-2.5 0-4 4-4 4s-1.5 4-4 4c-2.2 0-4-1.8-4-4z" />
                                                        </svg>
@@ -286,7 +329,7 @@
                                                    <span class="home-app-name">无限流</span>
                                                </button>
                                               <button class="home-app love-app" type="button" onclick="openPage('travel-page')">
-                                                  <div class="home-app-icon love-app-icon">
+                                                  <div class="home-app-icon love-app-icon" id="icon-travel">
                                                       <svg viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
                                                           <path d="M3 19l18-7-18-3 3 4 5 1-5 1-3 4z" />
                                                           <path d="M10 4.5a3.5 3.5 0 1 1 7 0V7" />
@@ -297,7 +340,7 @@
                                           </div>
                                             <div class="love-bottom-col">
                                                 <button class="home-app love-app" type="button" onclick="openPage('theatre-page')">
-                                                    <div class="home-app-icon love-app-icon">
+                                                    <div class="home-app-icon love-app-icon" id="icon-theatre">
                                                         <svg viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
                                                             <rect x="3" y="5" width="18" height="14" rx="2" />
                                                             <path d="M3 10h18" />
@@ -308,7 +351,7 @@
                                                     <span class="home-app-name">小剧场</span>
                                                 </button>
                                                <button class="home-app love-app" type="button" onclick="openPage('cooking-page')">
-                                                   <div class="home-app-icon love-app-icon">
+                                                   <div class="home-app-icon love-app-icon" id="icon-cooking">
                                                        <svg viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
                                                            <rect x="4" y="10" width="16" height="8" rx="2" />
                                                            <path d="M9 10V7a3 3 0 0 1 6 0v3" />
@@ -2238,8 +2281,7 @@
                     <span style="width: 50px;"></span>
                 </div>
                 <div class="scroll-content no-scrollbar">
-                    <div class="beautify-module-list">
-                        <button class="beautify-module-btn active" data-panel="wallpaper" onclick="switchBeautifyPanel('wallpaper')">
+                        <button class="beautify-module-btn" data-panel="wallpaper" onclick="switchBeautifyPanel('wallpaper')">
                             <div class="beautify-module-main">
                                 <span class="beautify-module-icon">🖼</span>
                                 <span class="beautify-module-title">壁纸类</span>
@@ -2275,140 +2317,366 @@
                             </div>
                             <span class="beautify-module-desc">CSS 方案与恢复默认</span>
                         </button>
+
+                    <div id="beautify-panel-wallpaper" class="beautify-panel" data-panel="wallpaper">
+                        <div class="setting-card appearance-card">
+                            <h4 class="appearance-section-title">壁纸资源</h4>
+                            <div class="appearance-resource-list">
+                                <div class="appearance-resource-row">
+                                    <div class="appearance-resource-main">
+                                        <div class="appearance-resource-name">锁屏壁纸</div>
+                                        <div class="appearance-resource-desc" id="appearance-status-wallpaper-lockWallpaper">当前使用默认资源</div>
+                                    </div>
+                                    <button class="btn-small appearance-change-btn" type="button" onclick="openAppearancePicker('wallpaper','lockWallpaper','锁屏壁纸')">更换</button>
+                                </div>
+                                <div class="appearance-resource-row">
+                                    <div class="appearance-resource-main">
+                                        <div class="appearance-resource-name">主屏壁纸</div>
+                                        <div class="appearance-resource-desc" id="appearance-status-wallpaper-mainWallpaper">当前使用默认资源</div>
+                                    </div>
+                                    <button class="btn-small appearance-change-btn" type="button" onclick="openAppearancePicker('wallpaper','mainWallpaper','主屏壁纸')">更换</button>
+                                </div>
+                                <div class="appearance-resource-row">
+                                    <div class="appearance-resource-main">
+                                        <div class="appearance-resource-name">聊天背景</div>
+                                        <div class="appearance-resource-desc" id="appearance-status-wallpaper-chatWallpaper">当前使用默认资源</div>
+                                    </div>
+                                    <button class="btn-small appearance-change-btn" type="button" onclick="openAppearancePicker('wallpaper','chatWallpaper','聊天背景')">更换</button>
+                                </div>
+                            </div>
+                            <div id="chat-bg-global-hint" class="appearance-help-text">提示：这里设置的是所有聊天页面默认使用的背景，单个聊天中的「聊天背景图」会覆盖全局设置。</div>
+                            <div class="appearance-hidden-inputs">
+                                <input type="text" id="lock-wp-url" class="appearance-hidden-input" placeholder="http://...">
+                                <input type="file" id="lock-wp-file" class="appearance-hidden-input" accept="image/*">
+                                <input type="text" id="wp-url" class="appearance-hidden-input" placeholder="http://...">
+                                <input type="file" id="wp-file" class="appearance-hidden-input" accept="image/*">
+                                <input type="text" id="chat-bg-global-url" class="appearance-hidden-input" placeholder="http://...">
+                                <input type="file" id="chat-bg-global-file" class="appearance-hidden-input" accept="image/*">
+                            </div>
+                            <div class="appearance-action-row">
+                                <button class="btn-small appearance-submit-btn" type="button" onclick="saveLockWallpaper()">应用锁屏壁纸</button>
+                                <button class="btn-small appearance-submit-btn" type="button" onclick="saveWallpaper()">应用主屏壁纸</button>
+                                <button class="btn-small appearance-submit-btn" type="button" onclick="saveGlobalChatBackground()">应用聊天背景</button>
+                            </div>
+                        </div>
+
+                        <div class="setting-card appearance-card">
+                            <div class="appearance-section-head">
+                                <div>
+                                    <h4 class="appearance-section-title">壁纸轮换</h4>
+                                    <div class="appearance-help-text">点击勾选后会展开内容，可分别为主屏和锁屏导入 3 张壁纸并设置对应时间段。</div>
+                                </div>
+                            </div>
+
+                            <div class="appearance-rotate-block">
+                                <div class="appearance-resource-row appearance-toggle-row">
+                                    <div class="appearance-resource-main">
+                                        <div class="appearance-resource-name">主屏轮换</div>
+                                        <div class="appearance-resource-desc">勾选后展开 3 张主屏壁纸与时间段设置</div>
+                                    </div>
+                                    <label class="appearance-toggle-control">
+                                            <input type="checkbox" id="main-rotate-enabled" onchange="toggleCollapse('main-rotate-container', this.checked)">
+                                        <span>启用</span>
+                                    </label>
+                                </div>
+                                <div id="main-rotate-container" class="collapse-container appearance-rotate-container">
+                                    <div class="appearance-rotate-slot">
+                                        <div class="appearance-slot-header">
+                                            <span class="appearance-slot-title">主屏壁纸 1</span>
+                                            <button class="btn-small appearance-change-btn" type="button" onclick="openAppearancePicker('wallpaper-slot','main-rotate-1','主屏壁纸 1')">更换</button>
+                                        </div>
+                                        <div class="appearance-resource-desc" id="appearance-status-wallpaper-slot-main-rotate-1">未选择图片</div>
+                                        <div class="appearance-time-row">
+                                            <input type="time" id="main-rotate-1-start" class="appearance-time-input">
+                                            <span>至</span>
+                                            <input type="time" id="main-rotate-1-end" class="appearance-time-input">
+                                        </div>
+                                        <input type="hidden" id="main-rotate-1-url" value="">
+                                        <input type="file" id="main-rotate-1-file" class="appearance-hidden-input" accept="image/*">
+                                    </div>
+                                    <div class="appearance-rotate-slot">
+                                        <div class="appearance-slot-header">
+                                            <span class="appearance-slot-title">主屏壁纸 2</span>
+                                            <button class="btn-small appearance-change-btn" type="button" onclick="openAppearancePicker('wallpaper-slot','main-rotate-2','主屏壁纸 2')">更换</button>
+                                        </div>
+                                        <div class="appearance-resource-desc" id="appearance-status-wallpaper-slot-main-rotate-2">未选择图片</div>
+                                        <div class="appearance-time-row">
+                                            <input type="time" id="main-rotate-2-start" class="appearance-time-input">
+                                            <span>至</span>
+                                            <input type="time" id="main-rotate-2-end" class="appearance-time-input">
+                                        </div>
+                                        <input type="hidden" id="main-rotate-2-url" value="">
+                                        <input type="file" id="main-rotate-2-file" class="appearance-hidden-input" accept="image/*">
+                                    </div>
+                                    <div class="appearance-rotate-slot">
+                                        <div class="appearance-slot-header">
+                                            <span class="appearance-slot-title">主屏壁纸 3</span>
+                                            <button class="btn-small appearance-change-btn" type="button" onclick="openAppearancePicker('wallpaper-slot','main-rotate-3','主屏壁纸 3')">更换</button>
+                                        </div>
+                                        <div class="appearance-resource-desc" id="appearance-status-wallpaper-slot-main-rotate-3">未选择图片</div>
+                                        <div class="appearance-time-row">
+                                            <input type="time" id="main-rotate-3-start" class="appearance-time-input">
+                                            <span>至</span>
+                                            <input type="time" id="main-rotate-3-end" class="appearance-time-input">
+                                        </div>
+                                        <input type="hidden" id="main-rotate-3-url" value="">
+                                        <input type="file" id="main-rotate-3-file" class="appearance-hidden-input" accept="image/*">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="appearance-rotate-block">
+                                <div class="appearance-resource-row appearance-toggle-row">
+                                    <div class="appearance-resource-main">
+                                        <div class="appearance-resource-name">锁屏轮换</div>
+                                        <div class="appearance-resource-desc">勾选后展开 3 张锁屏壁纸与时间段设置</div>
+                                    </div>
+                                    <label class="appearance-toggle-control">
+                                            <input type="checkbox" id="lock-rotate-enabled" onchange="toggleCollapse('lock-rotate-container', this.checked)">
+                                        <span>启用</span>
+                                    </label>
+                                </div>
+                                <div id="lock-rotate-container" class="collapse-container appearance-rotate-container">
+                                    <div class="appearance-rotate-slot">
+                                        <div class="appearance-slot-header">
+                                            <span class="appearance-slot-title">锁屏壁纸 1</span>
+                                            <button class="btn-small appearance-change-btn" type="button" onclick="openAppearancePicker('wallpaper-slot','lock-rotate-1','锁屏壁纸 1')">更换</button>
+                                        </div>
+                                        <div class="appearance-resource-desc" id="appearance-status-wallpaper-slot-lock-rotate-1">未选择图片</div>
+                                        <div class="appearance-time-row">
+                                            <input type="time" id="lock-rotate-1-start" class="appearance-time-input">
+                                            <span>至</span>
+                                            <input type="time" id="lock-rotate-1-end" class="appearance-time-input">
+                                        </div>
+                                        <input type="hidden" id="lock-rotate-1-url" value="">
+                                        <input type="file" id="lock-rotate-1-file" class="appearance-hidden-input" accept="image/*">
+                                    </div>
+                                    <div class="appearance-rotate-slot">
+                                        <div class="appearance-slot-header">
+                                            <span class="appearance-slot-title">锁屏壁纸 2</span>
+                                            <button class="btn-small appearance-change-btn" type="button" onclick="openAppearancePicker('wallpaper-slot','lock-rotate-2','锁屏壁纸 2')">更换</button>
+                                        </div>
+                                        <div class="appearance-resource-desc" id="appearance-status-wallpaper-slot-lock-rotate-2">未选择图片</div>
+                                        <div class="appearance-time-row">
+                                            <input type="time" id="lock-rotate-2-start" class="appearance-time-input">
+                                            <span>至</span>
+                                            <input type="time" id="lock-rotate-2-end" class="appearance-time-input">
+                                        </div>
+                                        <input type="hidden" id="lock-rotate-2-url" value="">
+                                        <input type="file" id="lock-rotate-2-file" class="appearance-hidden-input" accept="image/*">
+                                    </div>
+                                    <div class="appearance-rotate-slot">
+                                        <div class="appearance-slot-header">
+                                            <span class="appearance-slot-title">锁屏壁纸 3</span>
+                                            <button class="btn-small appearance-change-btn" type="button" onclick="openAppearancePicker('wallpaper-slot','lock-rotate-3','锁屏壁纸 3')">更换</button>
+                                        </div>
+                                        <div class="appearance-resource-desc" id="appearance-status-wallpaper-slot-lock-rotate-3">未选择图片</div>
+                                        <div class="appearance-time-row">
+                                            <input type="time" id="lock-rotate-3-start" class="appearance-time-input">
+                                            <span>至</span>
+                                            <input type="time" id="lock-rotate-3-end" class="appearance-time-input">
+                                        </div>
+                                        <input type="hidden" id="lock-rotate-3-url" value="">
+                                        <input type="file" id="lock-rotate-3-file" class="appearance-hidden-input" accept="image/*">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button class="btn-small appearance-save-wide" type="button" onclick="saveWallpaperRotation()">保存壁纸轮换</button>
+                        </div>
                     </div>
 
-                    <div id="beautify-panel-wallpaper" class="beautify-panel active">
-                        <div class="setting-card">
-                            <h4 style="margin: 10px 0 0 0; padding: 10px 0; border-bottom: 0.5px solid #eee;">修改锁屏壁纸</h4>
-                            <div class="setting-row">
-                                <label>网络链接</label>
-                                <input type="text" id="lock-wp-url" class="input-clean" placeholder="http://...">
+                    <div id="beautify-panel-icons" class="beautify-panel" data-panel="icons">
+                        <div class="setting-card appearance-card">
+                            <h4 class="appearance-section-title">自定义 App 图标</h4>
+                            <div class="appearance-help-text">每个 App 只保留一栏，右侧点击“更换”后可选择本地图片导入或 URL 替换；第二页应用也已全部加入。</div>
+                            <div class="appearance-resource-list">
+                                <div class="appearance-resource-row"><div class="appearance-resource-main"><div class="appearance-resource-name">QQ</div><div class="appearance-resource-desc" id="appearance-status-icon-qq">当前使用默认图标</div></div><button class="btn-small appearance-change-btn" type="button" onclick="openAppearancePicker('icon','qq','QQ 图标')">更换</button></div>
+                                <div class="appearance-resource-row"><div class="appearance-resource-main"><div class="appearance-resource-name">世界书</div><div class="appearance-resource-desc" id="appearance-status-icon-worldbook">当前使用默认图标</div></div><button class="btn-small appearance-change-btn" type="button" onclick="openAppearancePicker('icon','worldbook','世界书图标')">更换</button></div>
+                                <div class="appearance-resource-row"><div class="appearance-resource-main"><div class="appearance-resource-name">纪念日</div><div class="appearance-resource-desc" id="appearance-status-icon-anniversary">当前使用默认图标</div></div><button class="btn-small appearance-change-btn" type="button" onclick="openAppearancePicker('icon','anniversary','纪念日图标')">更换</button></div>
+                                <div class="appearance-resource-row"><div class="appearance-resource-main"><div class="appearance-resource-name">自律钟</div><div class="appearance-resource-desc" id="appearance-status-icon-clock">当前使用默认图标</div></div><button class="btn-small appearance-change-btn" type="button" onclick="openAppearancePicker('icon','clock','自律钟图标')">更换</button></div>
+                                <div class="appearance-resource-row"><div class="appearance-resource-main"><div class="appearance-resource-name">游戏大厅</div><div class="appearance-resource-desc" id="appearance-status-icon-game-center">当前使用默认图标</div></div><button class="btn-small appearance-change-btn" type="button" onclick="openAppearancePicker('icon','game-center','游戏大厅图标')">更换</button></div>
+                                <div class="appearance-resource-row"><div class="appearance-resource-main"><div class="appearance-resource-name">论坛</div><div class="appearance-resource-desc" id="appearance-status-icon-forum">当前使用默认图标</div></div><button class="btn-small appearance-change-btn" type="button" onclick="openAppearancePicker('icon','forum','论坛图标')">更换</button></div>
+                                <div class="appearance-resource-row"><div class="appearance-resource-main"><div class="appearance-resource-name">外观</div><div class="appearance-resource-desc" id="appearance-status-icon-appearance">当前使用默认图标</div></div><button class="btn-small appearance-change-btn" type="button" onclick="openAppearancePicker('icon','appearance','外观图标')">更换</button></div>
+                                <div class="appearance-resource-row"><div class="appearance-resource-main"><div class="appearance-resource-name">设置</div><div class="appearance-resource-desc" id="appearance-status-icon-settings">当前使用默认图标</div></div><button class="btn-small appearance-change-btn" type="button" onclick="openAppearancePicker('icon','settings','设置图标')">更换</button></div>
+                                <div class="appearance-resource-row"><div class="appearance-resource-main"><div class="appearance-resource-name">孵蛋室</div><div class="appearance-resource-desc" id="appearance-status-icon-hatchery">当前使用默认图标</div></div><button class="btn-small appearance-change-btn" type="button" onclick="openAppearancePicker('icon','hatchery','孵蛋室图标')">更换</button></div>
+                                <div class="appearance-resource-row"><div class="appearance-resource-main"><div class="appearance-resource-name">购物</div><div class="appearance-resource-desc" id="appearance-status-icon-shop">当前使用默认图标</div></div><button class="btn-small appearance-change-btn" type="button" onclick="openAppearancePicker('icon','shop','购物图标')">更换</button></div>
+                                <div class="appearance-resource-row"><div class="appearance-resource-main"><div class="appearance-resource-name">直播</div><div class="appearance-resource-desc" id="appearance-status-icon-live">当前使用默认图标</div></div><button class="btn-small appearance-change-btn" type="button" onclick="openAppearancePicker('icon','live','直播图标')">更换</button></div>
+                                <div class="appearance-resource-row"><div class="appearance-resource-main"><div class="appearance-resource-name">塔罗</div><div class="appearance-resource-desc" id="appearance-status-icon-tarot">当前使用默认图标</div></div><button class="btn-small appearance-change-btn" type="button" onclick="openAppearancePicker('icon','tarot','塔罗图标')">更换</button></div>
+                                <div class="appearance-resource-row"><div class="appearance-resource-main"><div class="appearance-resource-name">书城</div><div class="appearance-resource-desc" id="appearance-status-icon-bookstore">当前使用默认图标</div></div><button class="btn-small appearance-change-btn" type="button" onclick="openAppearancePicker('icon','bookstore','书城图标')">更换</button></div>
+                                <div class="appearance-resource-row"><div class="appearance-resource-main"><div class="appearance-resource-name">无限流</div><div class="appearance-resource-desc" id="appearance-status-icon-infinite">当前使用默认图标</div></div><button class="btn-small appearance-change-btn" type="button" onclick="openAppearancePicker('icon','infinite','无限流图标')">更换</button></div>
+                                <div class="appearance-resource-row"><div class="appearance-resource-main"><div class="appearance-resource-name">旅行</div><div class="appearance-resource-desc" id="appearance-status-icon-travel">当前使用默认图标</div></div><button class="btn-small appearance-change-btn" type="button" onclick="openAppearancePicker('icon','travel','旅行图标')">更换</button></div>
+                                <div class="appearance-resource-row"><div class="appearance-resource-main"><div class="appearance-resource-name">剧场</div><div class="appearance-resource-desc" id="appearance-status-icon-theatre">当前使用默认图标</div></div><button class="btn-small appearance-change-btn" type="button" onclick="openAppearancePicker('icon','theatre','剧场图标')">更换</button></div>
+                                <div class="appearance-resource-row"><div class="appearance-resource-main"><div class="appearance-resource-name">厨房</div><div class="appearance-resource-desc" id="appearance-status-icon-cooking">当前使用默认图标</div></div><button class="btn-small appearance-change-btn" type="button" onclick="openAppearancePicker('icon','cooking','厨房图标')">更换</button></div>
                             </div>
-                            <div class="setting-row">
-                                <label>本地图片</label>
-                                <input type="file" id="lock-wp-file" accept="image/*" style="font-size: 12px; width: 160px; outline: none; border: none;">
+                            <div class="appearance-hidden-inputs">
+                                <input type="text" id="icon-url-qq" class="appearance-hidden-input" placeholder="http://... / data:image...">
+                                <input type="file" id="icon-file-qq" class="appearance-hidden-input" accept="image/*">
+                                <input type="text" id="icon-url-worldbook" class="appearance-hidden-input" placeholder="http://... / data:image...">
+                                <input type="file" id="icon-file-worldbook" class="appearance-hidden-input" accept="image/*">
+                                <input type="text" id="icon-url-anniversary" class="appearance-hidden-input" placeholder="http://... / data:image...">
+                                <input type="file" id="icon-file-anniversary" class="appearance-hidden-input" accept="image/*">
+                                <input type="text" id="icon-url-clock" class="appearance-hidden-input" placeholder="http://... / data:image...">
+                                <input type="file" id="icon-file-clock" class="appearance-hidden-input" accept="image/*">
+                                <input type="text" id="icon-url-game-center" class="appearance-hidden-input" placeholder="http://... / data:image...">
+                                <input type="file" id="icon-file-game-center" class="appearance-hidden-input" accept="image/*">
+                                <input type="text" id="icon-url-forum" class="appearance-hidden-input" placeholder="http://... / data:image...">
+                                <input type="file" id="icon-file-forum" class="appearance-hidden-input" accept="image/*">
+                                <input type="text" id="icon-url-appearance" class="appearance-hidden-input" placeholder="http://... / data:image...">
+                                <input type="file" id="icon-file-appearance" class="appearance-hidden-input" accept="image/*">
+                                <input type="text" id="icon-url-settings" class="appearance-hidden-input" placeholder="http://... / data:image...">
+                                <input type="file" id="icon-file-settings" class="appearance-hidden-input" accept="image/*">
+                                <input type="text" id="icon-url-hatchery" class="appearance-hidden-input" placeholder="http://... / data:image...">
+                                <input type="file" id="icon-file-hatchery" class="appearance-hidden-input" accept="image/*">
+                                <input type="text" id="icon-url-shop" class="appearance-hidden-input" placeholder="http://... / data:image...">
+                                <input type="file" id="icon-file-shop" class="appearance-hidden-input" accept="image/*">
+                                <input type="text" id="icon-url-live" class="appearance-hidden-input" placeholder="http://... / data:image...">
+                                <input type="file" id="icon-file-live" class="appearance-hidden-input" accept="image/*">
+                                <input type="text" id="icon-url-tarot" class="appearance-hidden-input" placeholder="http://... / data:image...">
+                                <input type="file" id="icon-file-tarot" class="appearance-hidden-input" accept="image/*">
+                                <input type="text" id="icon-url-bookstore" class="appearance-hidden-input" placeholder="http://... / data:image...">
+                                <input type="file" id="icon-file-bookstore" class="appearance-hidden-input" accept="image/*">
+                                <input type="text" id="icon-url-infinite" class="appearance-hidden-input" placeholder="http://... / data:image...">
+                                <input type="file" id="icon-file-infinite" class="appearance-hidden-input" accept="image/*">
+                                <input type="text" id="icon-url-travel" class="appearance-hidden-input" placeholder="http://... / data:image...">
+                                <input type="file" id="icon-file-travel" class="appearance-hidden-input" accept="image/*">
+                                <input type="text" id="icon-url-theatre" class="appearance-hidden-input" placeholder="http://... / data:image...">
+                                <input type="file" id="icon-file-theatre" class="appearance-hidden-input" accept="image/*">
+                                <input type="text" id="icon-url-cooking" class="appearance-hidden-input" placeholder="http://... / data:image...">
+                                <input type="file" id="icon-file-cooking" class="appearance-hidden-input" accept="image/*">
                             </div>
-                            <button class="btn-small" style="width:100%; padding:10px; margin-top:10px;" onclick="saveLockWallpaper()">保存并应用锁屏</button>
-                        </div>
-                        <div class="setting-card">
-                            <h4 style="margin: 10px 0 0 0; padding: 10px 0; border-bottom: 0.5px solid #eee;">修改主屏幕壁纸</h4>
-                            <div class="setting-row">
-                                <label>网络链接</label>
-                                <input type="text" id="wp-url" class="input-clean" placeholder="http://...">
-                            </div>
-                            <div class="setting-row">
-                                <label>本地图片</label>
-                                <input type="file" id="wp-file" accept="image/*" style="font-size: 12px; width: 160px; outline: none; border: none;">
-                            </div>
-                            <button class="btn-small" style="width:100%; padding:10px; margin-top:10px;" onclick="saveWallpaper()">保存并应用主屏</button>
-                        </div>
-                        <div class="setting-card">
-                            <h4 style="margin: 10px 0 0 0; padding: 10px 0; border-bottom: 0.5px solid #eee;">修改聊天背景（全局）</h4>
-                            <div class="setting-row">
-                                <label>网络链接</label>
-                                <input type="text" id="chat-bg-global-url" class="input-clean" placeholder="http://...">
-                            </div>
-                            <div class="setting-row">
-                                <label>本地图片</label>
-                                <input type="file" id="chat-bg-global-file" accept="image/*" style="font-size: 12px; width: 160px; outline: none; border: none;">
-                            </div>
-                            <button class="btn-small" style="width:100%; padding:10px; margin-top:10px;" onclick="saveGlobalChatBackground()">保存并应用聊天背景</button>
-                            <div id="chat-bg-global-hint" style="font-size:11px; color:#888; margin-top:4px;">
-                                提示：这里设置的是所有聊天页面默认使用的背景，单个聊天中的「聊天背景图」会覆盖全局设置。
-                            </div>
-                        </div>
-                    </div>
-
-                    <div id="beautify-panel-icons" class="beautify-panel">
-                        <div class="setting-card">
-                            <h4 style="margin: 10px 0 0 0; padding: 10px 0; border-bottom: 0.5px solid #eee;">修改主屏幕图标</h4>
-                             <div class="setting-row"> <label>QQ</label> <input type="text" id="icon-url-qq" class="input-clean" placeholder="输入图片 URL"> </div>
-                             <div class="setting-row"> <label>世界书</label> <input type="text" id="icon-url-worldbook" class="input-clean" placeholder="输入图片 URL"> </div>
-                             <div class="setting-row"> <label>纪念日</label> <input type="text" id="icon-url-anniversary" class="input-clean" placeholder="输入图片 URL"> </div>
-                             <div class="setting-row"> <label>自律钟</label> <input type="text" id="icon-url-clock" class="input-clean" placeholder="输入图片 URL"> </div>
-                             <div class="setting-row"> <label>游戏大厅</label> <input type="text" id="icon-url-game-center" class="input-clean" placeholder="输入图片 URL"> </div>
-                             <div class="setting-row"> <label>论坛</label> <input type="text" id="icon-url-forum" class="input-clean" placeholder="输入图片 URL"> </div>
-                             <div class="setting-row"> <label>外观</label> <input type="text" id="icon-url-appearance" class="input-clean" placeholder="输入图片 URL"> </div>
-                             <div class="setting-row"> <label>设置</label> <input type="text" id="icon-url-settings" class="input-clean" placeholder="输入图片 URL"> </div>
                             <button class="btn-small" style="width:100%; padding:10px; margin-top:10px;" onclick="saveAppIcons()">保存并应用图标</button>
                         </div>
                     </div>
 
-                    <div id="beautify-panel-font" class="beautify-panel">
+                    <div id="beautify-panel-font" class="beautify-panel" data-panel="font">
                         <div class="setting-card">
-                            <h4 style="margin: 10px 0 0 0; padding: 10px 0; border-bottom: 0.5px solid #eee;">修改全局字体</h4>
+                            <h4 style="margin: 10px 0 0 0; padding: 10px 0; border-bottom: 0.5px solid #eee;">全局字体设置</h4>
                             <div class="setting-row">
                                 <label>字体链接</label>
-                                <input type="text" id="font-url" class="input-clean" placeholder="http://.../font.ttf">
+                                <input type="text" id="font-url" class="input-clean" placeholder="https://...woff2 / ttf / otf">
                             </div>
+                            <div style="font-size:11px; color:#888; line-height:1.6; margin-top:8px;">填写可直链访问的字体文件地址，保存后会立即应用到全局。</div>
                             <button class="btn-small" style="width:100%; padding:10px; margin-top:10px;" onclick="saveFont()">保存并应用字体</button>
                         </div>
                     </div>
 
-                    <!-- 新增：锁屏类设置面板 -->
-                    <div id="beautify-panel-lock" class="beautify-panel">
+                    <div id="beautify-panel-lock" class="beautify-panel" data-panel="lock">
                         <div class="setting-card">
-                            <h4 style="margin: 10px 0 0 0; padding: 10px 0; border-bottom: 0.5px solid #eee;">锁屏解锁方式</h4>
-                            <div class="setting-row" style="flex-direction:column; align-items:flex-start; gap:6px;">
-                                <label style="font-size:13px; font-weight:500;">选择解锁方式</label>
-                                <label style="font-size:13px;">
-                                    <input type="radio" name="lock-mode" value="slider" id="lock-mode-slider">
-                                    左滑滑轮锁屏（默认）
-                                </label>
-                                <label style="font-size:13px;">
-                                    <input type="radio" name="lock-mode" value="swipe" id="lock-mode-swipe">
-                                    上滑锁屏直接打开主屏幕
-                                </label>
-                                <label style="font-size:13px;">
-                                    <input type="radio" name="lock-mode" value="swipe_passcode" id="lock-mode-swipe-passcode">
-                                    上滑后进入密码界面（4 位数字）
-                                </label>
+                            <h4 style="margin: 10px 0 0 0; padding: 10px 0; border-bottom: 0.5px solid #eee;">锁屏方式</h4>
+                            <label class="setting-row" style="justify-content:flex-start; gap:10px;">
+                                <input type="radio" name="lock-mode" id="lock-mode-slider" value="slider" style="width:auto;">
+                                <span>经典滑块解锁</span>
+                            </label>
+                            <label class="setting-row" style="justify-content:flex-start; gap:10px;">
+                                <input type="radio" name="lock-mode" id="lock-mode-swipe" value="swipe" style="width:auto;">
+                                <span>上滑解锁</span>
+                            </label>
+                            <label class="setting-row" style="justify-content:flex-start; gap:10px;">
+                                <input type="radio" name="lock-mode" id="lock-mode-swipe-passcode" value="swipe_passcode" style="width:auto;">
+                                <span id="lock-mode-passcode-label">上滑后输入密码</span>
+                            </label>
+                            <label class="setting-row" style="justify-content:flex-start; gap:10px;">
+                                <input type="radio" name="lock-mode" id="lock-mode-pattern" value="pattern" style="width:auto;">
+                                <span>图案锁（九点画线）</span>
+                            </label>
+                            <label class="setting-row" style="justify-content:flex-start; gap:10px;">
+                                <input type="radio" name="lock-mode" id="lock-mode-double-tap" value="double_tap" style="width:auto;">
+                                <span>双击锁屏解锁</span>
+                            </label>
+                            <div class="setting-row" style="align-items:flex-start;">
+                                <label>密码位数</label>
+                                <div class="appearance-passcode-lengths">
+                                    <label class="appearance-length-option">
+                                        <input type="radio" name="lock-passcode-length" id="lock-passcode-length-4" value="4" checked>
+                                        <span>4 位密码</span>
+                                    </label>
+                                    <label class="appearance-length-option">
+                                        <input type="radio" name="lock-passcode-length" id="lock-passcode-length-6" value="6">
+                                        <span>6 位密码</span>
+                                    </label>
+                                </div>
                             </div>
-                        </div>
-                        <div class="setting-card">
-                            <h4 style="margin: 10px 0 0 0; padding: 10px 0; border-bottom: 0.5px solid #eee;">锁屏密码</h4>
                             <div class="setting-row">
-                                <label>4 位数字密码</label>
-                                <input type="password" id="lock-passcode-input" class="input-clean" maxlength="4" pattern="\d{4}" placeholder="例如：1234" inputmode="numeric">
+                                <label>锁屏密码</label>
+                                <input type="text" id="lock-passcode-input" class="input-clean" inputmode="numeric" maxlength="6" placeholder="4位或6位数字密码">
                             </div>
-                            <div style="font-size:11px; color:#888; margin-top:4px; text-align:left;">
-                                提示：仅在“上滑后进入密码界面”模式下生效，默认密码为 1234。
+                            <div class="setting-row" style="align-items:flex-start;">
+                                <label>图案密码</label>
+                                <div style="flex:1; display:flex; flex-direction:column; gap:8px;">
+                                    <div class="lock-pattern-preview-grid" id="lock-pattern-preview-grid">
+                                        <svg class="lock-pattern-preview-lines" id="lock-pattern-preview-lines" viewBox="0 0 300 300" preserveAspectRatio="none"></svg>
+                                        <button type="button" class="lock-pattern-preview-dot" data-dot="1"></button>
+                                        <button type="button" class="lock-pattern-preview-dot" data-dot="2"></button>
+                                        <button type="button" class="lock-pattern-preview-dot" data-dot="3"></button>
+                                        <button type="button" class="lock-pattern-preview-dot" data-dot="4"></button>
+                                        <button type="button" class="lock-pattern-preview-dot" data-dot="5"></button>
+                                        <button type="button" class="lock-pattern-preview-dot" data-dot="6"></button>
+                                        <button type="button" class="lock-pattern-preview-dot" data-dot="7"></button>
+                                        <button type="button" class="lock-pattern-preview-dot" data-dot="8"></button>
+                                        <button type="button" class="lock-pattern-preview-dot" data-dot="9"></button>
+                                    </div>
+                                    <div id="lock-pattern-preview-text" style="font-size:11px; color:#888; line-height:1.5;">按住并连线绘制至少 4 个点的图案，保存后即可用于解锁。</div>
+                                </div>
                             </div>
                             <button class="btn-small" style="width:100%; padding:10px; margin-top:10px;" onclick="saveLockSettings()">保存锁屏设置</button>
                         </div>
                     </div>
- 
-                    <div id="beautify-panel-global" class="beautify-panel">
+
+                    <div id="beautify-panel-global" class="beautify-panel" data-panel="global">
                         <div class="setting-card">
-                            <h4 style="margin: 10px 0 0 0; padding: 10px 0; border-bottom: 0.5px solid #eee;">修改全局美化</h4>
-                            <div class="setting-row" style="align-items:flex-start; flex-direction:column; gap:8px; border-bottom:none;">
-                                <label style="font-size:14px; font-weight:500; margin-bottom:4px;">全局 CSS</label>
-                                <textarea id="global-beautify-css-input"
-                                          class="input-clean"
-                                          placeholder="在这里写作用于全局的 CSS 样式，例如：\nbody { font-family: 'LXGW WenKai', system-ui; }\n.home-app-icon { border-radius: 18px; }"
-                                          style="width:100%; min-height:110px; font-size:13px; line-height:1.4; text-align:left; border:1px solid #eee; border-radius:10px; padding:8px; resize:vertical; background:#fafafa;"></textarea>
-                                <input type="text"
-                                       id="global-css-preset-name"
-                                       class="input-clean"
-                                       placeholder="给当前 CSS 起个名字，如：暗色圆角气泡"
-                                       style="width:100%; margin-top:6px; font-size:13px; text-align:left; border:1px solid #eee; border-radius:8px; padding:6px 8px; background:#fff;">
-                                <div style="display:flex; width:100%; gap:8px; margin-top:6px;">
-                                    <button class="btn-small" style="flex:1; padding:10px;" onclick="saveGlobalBeautifyCss()">保存并应用</button>
-                                    <button class="btn-small" style="flex:1; padding:10px;" onclick="saveGlobalCssPreset()">保存为方案</button>
+                            <h4 style="margin: 10px 0 0 0; padding: 10px 0; border-bottom: 0.5px solid #eee;">全局 CSS 美化</h4>
+                            <textarea id="global-beautify-css-input" class="input-clean" placeholder="输入你想应用到全局的 CSS..." style="width:100%; min-height:150px; resize:vertical; border:none; background:#fff; border-radius:12px; padding:12px; box-sizing:border-box; direction:ltr; text-align:left;"></textarea>
+                            <div class="setting-row" style="margin-top:10px;">
+                                <label>方案名</label>
+                                <input type="text" id="global-css-preset-name" class="input-clean" placeholder="例如：奶油暖棕 / 黑白极简">
+                            </div>
+                            <div style="display:flex; gap:8px; margin-top:10px; flex-wrap:wrap;">
+                                <button class="btn-small" style="flex:1; min-width:120px;" onclick="saveGlobalBeautifyCss()">保存并应用 CSS</button>
+                                <button class="btn-small" style="flex:1; min-width:120px;" onclick="saveGlobalCssPreset()">保存为方案</button>
+                                <button class="btn-small" style="flex:1; min-width:120px;" onclick="resetGlobalCssToDefault()">恢复默认 CSS</button>
+                            </div>
+                            <div id="global-css-preset-list" style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;"></div>
+                        </div>
+                        <div class="setting-card">
+                            <h4 style="margin: 10px 0 0 0; padding: 10px 0; border-bottom: 0.5px solid #eee;">恢复默认美化</h4>
+                            <div style="font-size:11px; color:#888; line-height:1.6; margin-top:6px;">可选择恢复主屏、锁屏、字体和图标等默认配置。</div>
+                            <button class="btn-small" style="width:100%; padding:10px; margin-top:10px;" onclick="openRestoreModal()">打开恢复默认面板</button>
+                        </div>
+                    </div>
+
+                    <!-- 统一的图片选择弹窗：供图标类、壁纸类等所有“更换”按钮共用 -->
+                    <div id="appearance-picker-modal" class="appearance-picker-modal">
+                        <div class="appearance-picker-dialog">
+                            <div class="appearance-picker-header">
+                                <div>
+                                    <div id="appearance-picker-title" class="appearance-picker-title">选择图片</div>
+                                    <div class="appearance-picker-subtitle">可以选择本地图片，或填写网络图片 URL</div>
                                 </div>
-                                <div id="global-css-preset-list" style="width:100%; display:flex; flex-wrap:wrap; gap:6px; margin-top:6px;"></div>
-                                <button class="btn-small" style="margin-top:6px; align-self:flex-start; padding:6px 10px;" onclick="resetGlobalCssToDefault()">恢复默认 CSS</button>
-                                <div style="font-size:11px; color:#888; margin-top:4px; width:100%; text-align:left;">
-                                    提示：这里的 CSS 会作用在全局页面上，包括主屏、QQ、世界书、游戏大厅等。如出现样式异常，可在这里清空并保存，或使用“恢复默认美化”。
+                                <button type="button" class="appearance-picker-close" onclick="closeAppearancePicker()">×</button>
+                            </div>
+
+                            <div class="appearance-picker-body">
+                                <div class="appearance-picker-actions">
+                                    <button type="button" class="btn-small appearance-picker-btn" onclick="triggerAppearanceLocalImport()">从本地导入图片</button>
+                                    <button type="button" class="btn-small appearance-picker-btn" onclick="toggleAppearanceUrlBox(true)">使用图片 URL</button>
+                                </div>
+
+                                <div id="appearance-picker-url-box" class="appearance-picker-url-box">
+                                    <input type="text" id="appearance-picker-url-input" class="input-clean" placeholder="https://... 或 data:image/png;base64,...">
+                                    <button type="button" class="btn-small" onclick="confirmAppearanceUrl()">确认 URL</button>
+                                </div>
+
+                                <div class="appearance-picker-footer">
+                                    <button type="button" class="btn-small btn-secondary appearance-picker-reset" onclick="resetAppearanceSelection()">恢复默认</button>
                                 </div>
                             </div>
-                        </div>
-                        <div style="padding: 15px 0;">
-                             <button class="btn-small" style="width:100%; padding:12px; margin-top:10px;" onclick="openRestoreModal()">恢复默认美化</button>
                         </div>
                     </div>
                 </div>
             </div>
+
+                        <!-- 原 chat 面板已删除，聊天背景已整合到壁纸类中 -->
 
             <!-- 孵蛋室（角色卡 / 世界书 / CSS 美化） -->
             <div class="app-page hatchery-page" id="hatchery-page">
@@ -2437,6 +2705,13 @@
                         <div class="hatchery-item-main">
                             <div class="hatchery-item-title">CSS 美化孵化</div>
                             <div class="hatchery-item-desc">生成任意主题：黑白、暖黄、海洋等</div>
+                        </div>
+                    </div>
+                    <div class="hatchery-item" onclick="openPage('hatchery-style-page')">
+                        <div class="hatchery-item-icon">文</div>
+                        <div class="hatchery-item-main">
+                            <div class="hatchery-item-title">文风设计孵化</div>
+                            <div class="hatchery-item-desc">句式结构 / 语言特点模板 + 预设管理</div>
                         </div>
                     </div>
                 </div>
@@ -2491,7 +2766,10 @@
                 <div class="scroll-content no-scrollbar hatchery-content">
                     <section class="hatchery-module-card">
                         <div class="hatchery-module-header">
-                            <div class="hatchery-module-title">世界书模板（可选）</div>
+                            <div class="hatchery-module-title-row">
+                                <div class="hatchery-module-title">世界书模板（可选）</div>
+                                <button type="button" id="hatchery-world-template-preset-btn" class="hatchery-btn hatchery-btn-small" onclick="openHatcheryWorldTemplatePresets()">预设</button>
+                            </div>
                             <div class="hatchery-module-subtitle">粘贴现有世界书片段，控制字段与写作风格</div>
                         </div>
                         <div class="hatchery-module-body">
@@ -2511,8 +2789,11 @@
                                     <option value="markdown">Markdown</option>
                                 </select>
                                 <button id="hatchery-world-btn" class="hatchery-btn" onclick="generateHatcheryWorldbook()">生成</button>
+                                <button id="hatchery-world-edit-btn" class="hatchery-btn" onclick="modifyHatcheryWorldbook()">修改</button>
+                                <button id="hatchery-world-copy-btn" class="hatchery-btn hatchery-btn-ghost" onclick="copyHatcheryWorldbook()">复制</button>
                             </div>
                             <textarea id="hatchery-world-output" class="hatchery-output" placeholder="这里会输出完整的 YAML / Markdown 世界书文本。"></textarea>
+<div id="hatchery-world-status" class="hatchery-status-text" style="display:none;">等待生成完毕</div>
                         </div>
                     </section>
                 </div>
@@ -2528,16 +2809,59 @@
                 <div class="scroll-content no-scrollbar hatchery-content">
                     <section class="hatchery-module-card">
                         <div class="hatchery-module-header">
-                            <div class="hatchery-module-title">风格描述</div>
+                            <div class="hatchery-module-title-row">
+                                <div class="hatchery-module-title">风格描述</div>
+                                <button type="button" id="hatchery-css-brief-preset-btn" class="hatchery-btn hatchery-btn-small" onclick="openHatcheryCssBriefPresets()">预设</button>
+                            </div>
                             <div class="hatchery-module-subtitle">描述你想要的小手机主题，例如黑白极简、日系暖黄、蓝色海洋等</div>
                         </div>
                         <div class="hatchery-module-body">
                             <textarea id="hatchery-css-input" class="hatchery-textarea" placeholder="可以指定主色调、界面氛围（暖、冷）、圆角程度、字体感觉等。"></textarea>
                             <div class="hatchery-actions">
                                 <button id="hatchery-css-btn" class="hatchery-btn" onclick="generateHatcheryCss()">生成</button>
-                                <button class="hatchery-btn hatchery-btn-ghost" onclick="applyHatcheryCssToGlobal()">一键应用到全局美化</button>
+                                <button id="hatchery-css-edit-btn" class="hatchery-btn" onclick="modifyHatcheryCss()">修改</button>
+                                <button id="hatchery-css-copy-btn" class="hatchery-btn hatchery-btn-ghost" onclick="copyHatcheryCss()">复制</button>
                             </div>
                             <textarea id="hatchery-css-output" class="hatchery-output" placeholder="这里会展示生成的 CSS 代码，可微调后再应用到全局。"></textarea>
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+            <!-- 孵蛋室 · 文风设计生成 -->
+            <div class="app-page hatchery-page" id="hatchery-style-page" data-parent-page="hatchery-page">
+                <div class="nav-header hatchery-nav">
+                    <button class="nav-btn" onclick="closePage('hatchery-style-page')">❮</button>
+                    <span>文风设计生成</span>
+                    <span style="width:50px;"></span>
+                </div>
+                <div class="scroll-content no-scrollbar hatchery-content">
+                    <section class="hatchery-module-card">
+                        <div class="hatchery-module-header">
+                            <div class="hatchery-module-title-row">
+                                <div class="hatchery-module-title">文风模板（可选）</div>
+                                <button type="button" id="hatchery-style-template-preset-btn" class="hatchery-btn hatchery-btn-small" onclick="openHatcheryStyleTemplatePresets()">预设</button>
+                            </div>
+                            <div class="hatchery-module-subtitle">粘贴你喜欢的文风规范或句式结构，AI 会参考其输出</div>
+                        </div>
+                        <div class="hatchery-module-body">
+                            <textarea id="hatchery-style-template" class="hatchery-textarea" placeholder="例如：句式结构清单、修辞偏好、叙述视角、节奏说明等。"></textarea>
+                        </div>
+                    </section>
+                    <section class="hatchery-module-card">
+                        <div class="hatchery-module-header">
+                            <div class="hatchery-module-title">文风设计说明</div>
+                            <div class="hatchery-module-subtitle">描述你想要的文风特点、目标读者与使用场景</div>
+                        </div>
+                        <div class="hatchery-module-body">
+                            <textarea id="hatchery-style-input" class="hatchery-textarea" placeholder="例如：克制细腻的一人称叙事，注重感官描写；句子长度较短，少用感叹词；适合治愈系日常..."></textarea>
+                            <div class="hatchery-actions">
+                                <button id="hatchery-style-btn" class="hatchery-btn" onclick="generateHatcheryStyle()">生成</button>
+                                <button id="hatchery-style-edit-btn" class="hatchery-btn" onclick="modifyHatcheryStyle()">修改</button>
+                                <button class="hatchery-btn hatchery-btn-ghost" onclick="copyHatcheryStyle()">复制</button>
+                            </div>
+                            <textarea id="hatchery-style-output" class="hatchery-output" placeholder="这里会展示生成的文风规范与示例片段。"></textarea>
+                            <div id="hatchery-style-status" class="hatchery-status-text" style="display:none;">等待生成完毕</div>
                         </div>
                     </section>
                 </div>
@@ -2615,6 +2939,49 @@
         <input type="range" id="api-temperature" min="0" max="2" step="0.1" class="temp-slider">
         <span id="temperature-value-display" class="slider-value">0.7</span>
     </div>
+</div>
+
+<!-- 副 API 设置（可选） -->
+<div class="setting-card">
+  <div class="setting-row">
+    <label>副 API</label>
+    <div style="flex:1; display:flex; align-items:center; gap:10px;">
+      <input type="checkbox" id="api2-enabled" style="width:auto;">
+      <span style="font-size:12px; color:#888;">启用副 API（用于特定场景或备用）</span>
+    </div>
+  </div>
+
+  <div class="setting-row" id="api2-provider-row">
+    <label>API 提供商</label>
+    <select id="api2-provider" class="input-clean api-provider-select">
+      <option value="custom">OpenAI（自定义）</option>
+      <option value="openai">OpenAI 官方</option>
+      <option value="google">Google Studio</option>
+      <option value="claude">Claude</option>
+    </select>
+  </div>
+
+  <div class="setting-row" id="api2-url-row">
+    <label>URL 地址</label>
+    <input type="text" id="api2-url" class="input-clean" placeholder="https://api.openai.com/v1">
+  </div>
+
+  <div class="setting-row" id="api2-key-row">
+    <label>API Key</label>
+    <input type="password" id="api2-key" class="input-clean" placeholder="sk-...">
+  </div>
+
+  <div class="setting-row" id="api2-model-row">
+    <label>模型</label>
+    <input type="text" id="api2-model" class="input-clean" placeholder="gpt-3.5-turbo">
+    <button class="btn-small" onclick="fetchModels2()">拉取</button>
+  </div>
+
+  <div class="setting-row slider-row">
+    <label>温度</label>
+    <input type="range" id="api2-temperature" min="0" max="2" step="0.1" class="temp-slider">
+    <span id="temperature2-value-display" class="slider-value">0.7</span>
+  </div>
 </div>
                     <div style="padding: 0 15px; margin-bottom: 20px;">
                         <button class="btn-small" style="width:100%; padding:10px;" onclick="testConnection()">🛠️ 测试连接</button>

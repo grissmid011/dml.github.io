@@ -179,6 +179,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (id === 'forum-page') { switchForumTab('posts'); renderForumFeed(); }
         if (id === 'api-page') initSettingsPage();
         if (id === 'infinite-page') initInfiniteApp();
+        if (id === 'beautify-page') initBeautifyPageLayout();
     }
          function closePage(id) {
         const page = document.getElementById(id);
@@ -215,25 +216,65 @@ document.addEventListener('DOMContentLoaded', function() {
         if (drawer) drawer.classList.remove('active');
     }
  
-    function createIconData(svgContent, viewBox = '0 0 24 24') {
-        const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}">${svgContent.trim()}</svg>`;
+    // 初始化：不主动展开任何模块，保持列表干净，由用户自行点击需要展开的条目
+    function initBeautifyPageLayout() {
+        const page = document.getElementById('beautify-page');
+        if (!page) return;
+        // 进入外观页时也不默认展开任何面板，只显示条目列表
+        page.querySelectorAll('.beautify-panel').forEach(dom => dom.classList.remove('active'));
+        page.querySelectorAll('.beautify-module-btn').forEach(btn => btn.classList.remove('active'));
+    }
+
+    // 外观设置：模块点击后，在各自条目“下方就地展开”对应卡片；
+    // 为避免面板混杂，这里采用“单展开模式”：点击一个分类时关闭其他分类；
+    function switchBeautifyPanel(panel) {
+        const page = document.getElementById('beautify-page');
+        if (!page) return;
+
+        const currentBtn = page.querySelector(`.beautify-module-btn[data-panel="${panel}"]`);
+        const panelDom = page.querySelector(`#beautify-panel-${panel}`);
+        if (!currentBtn || !panelDom) return;
+
+        // 先关闭所有面板与按钮高亮
+        page.querySelectorAll('.beautify-panel').forEach(dom => dom.classList.remove('active'));
+        page.querySelectorAll('.beautify-module-btn').forEach(btn => btn.classList.remove('active'));
+
+        // 激活当前
+        panelDom.classList.add('active');
+        currentBtn.classList.add('active');
+        // 取消自动滚动，避免点击条目时界面整体上滑
+        // try { panelDom.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {}
+    }
+
+    // 暴露到全局，供 HTML 中的 onclick="switchBeautifyPanel(...)" 使用
+    window.switchBeautifyPanel = switchBeautifyPanel;
+
+    // 旧的 DOMContentLoaded 内初始化会和主监听器重复，这里直接移除
+function createIconData(innerPath) {
+        const svg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'>${innerPath}</svg>`;
         return `data:image/svg+xml,${encodeURIComponent(svg)}`;
     }
  
-    // --- 1.3. 全局状态变量 (从localStorage加载) ---
-const iconSVGs = {
-    qq: createIconData("<path d='M17 7H7a2 2 0 0 0-2 2v8h14V9a2 2 0 0 0-2-2Zm0-3H7v2h10V4Zm-1 13H8v2h8v-2Z' fill='%23fff'/>"),
-    worldbook: createIconData("<path d='M18 3H6a2 2 0 0 0-2 2v14h1.5c1.2 0 2.3.5 3.1 1.3.8-.8 1.9-1.3 3.1-1.3 1.2 0 2.3.5 3.1 1.3.8-.8 1.9-1.3 3.1-1.3H20V5a2 2 0 0 0-2-2Zm-7 13.8c-1.5-.8-3-.9-4-.7V6h4v10.8Zm6-.7c-1-.2-2.5-.1-4 .7V6h4v10.1Z' fill='%23fff'/>"),
-    settings: createIconData("<path d='M19.4 12.9c.1-.3.1-.7.1-.9s0-.6-.1-.9l2.1-1.6c.2-.1.2-.4.1-.6l-2-3.5c-.1-.2-.4-.3-.6-.2l-2.5 1c-.5-.4-1.1-.7-1.7-1l-.4-2.6c0-.3-.2-.4-.5-.4h-4c-.3 0-.4.2-.4.4l-.4 2.6c-.6.2-1.2.6-1.7 1l-2.5-1c-.2-.1-.5 0-.6.2l-2 3.5c-.1.2-.1.5.1.6l2.1 1.6c-.1.3-.1.6-.1.9s0 .6.1.9l-2.1 1.6c-.2.1-.2.4-.1.6l2 3.5c.1.2.4.3.6.2l2.5-1c.5.4 1.1.7 1.7 1l.4 2.6c0 .2.2.4.4.4h4c.3 0 .4-.2.5-.4l.4-2.6c.6-.2 1.2-.6 1.7-1l2.5 1c.2.1.5 0 .6-.2l2-3.5c.1-.2.1-.5-.1-.6l-2.1-1.6Zm-7.4 3.6c-1.9 0-3.5-1.6-3.5-3.5s1.6-3.5 3.5-3.5 3.5 1.6 3.5 3.5-1.6 3.5-3.5 3.5Z' fill='%23fff'/>"),
-    appearance: createIconData("<path d='M12 3a9 9 0 0 0 0 18 9 9 0 0 0 0-18Zm0 14.5a2.5 2.5 0 0 1-2.4-1.8 5 5 0 0 1-3.6-3.7A6.5 6.5 0 0 1 12 5.5a6.5 6.5 0 0 1 6 6.5c0 3.6-2.9 5.5-6 5.5Z' fill='%23fff'/>"),
-    anniversary: createIconData("<path d='M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2Zm-2 6-6 3.8L6 10V8l6 3.8L18 8v2Z' fill='%23fff'/>"),
-    clock: createIconData("<path d='M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16Zm1 9H11V7h2v6l3.5 2.1-.8 1.3L13 13Z' fill='%23fff'/>"),
-    'game-center': createIconData("<path d='M21.6 16.1l-1.1-7.7A3.5 3.5 0 0 0 16.5 5h-9A3.5 3.5 0 0 0 3.5 8.4L2.4 16a2.7 2.7 0 0 0 2.8 3.2h1.7a2 2 0 0 0 1.9-1.5l.8-2.2h4.8l.8 2.2a2 2 0 0 0 1.9 1.5h1.7a2.7 2.7 0 0 0 2.8-2.6ZM8.5 13.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm7 0a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z' fill='%23fff'/>"),
-    forum: createIconData("<path d='M21 6h-3V3a1 1 0 0 0-2 0v3H8V3a1 1 0 0 0-2 0v3H3a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h18a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1Zm-12.5 9a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm4 0a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm4 0a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z' fill='%23fff'/>"),
-    hatchery: createIconData("<path d='M12 2.4c-3.4 0-6.2 4.5-6.2 8.8 0 4.6 2.8 8.4 6.2 8.4s6.2-3.8 6.2-8.4c0-4.3-2.8-8.8-6.2-8.8Z' fill='none' stroke='%233b2818' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/><path d='M8.2 14.2c1.1-1.4 2.5-2.1 3.8-2.1s2.7.7 3.8 2.1' fill='none' stroke='%233b2818' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/>")
-};
- 
-const myDefaultBeautifyConfig = {
+     const iconSVGs = {
+         qq: createIconData("<path d='M17 7H7a2 2 0 0 0-2 2v8h14V9a2 2 0 0 0-2-2Zm0-3H7v2h10V4Zm-1 13H8v2h8v-2Z' fill='%23fff' />"),
+         worldbook: createIconData("<path d='M18 3H6a2 2 0 0 0-2 2v14h1.5c1.2 0 2.3.5 3.1 1.3.8-.8 1.9-1.3 3.1-1.3 1.2 0 2.3.5 3.1 1.3.8-.8 1.9-1.3 3.1-1.3H20V5a2 2 0 0 0-2-2Zm-7 13.8c-1.5-.8-3-.9-4-.7V6h4v10.8Zm6-.7c-1-.2-2.5-.1-4 .7V6h4v10.1Z' fill='%23fff' />"),
+         settings: createIconData("<path d='M19.4 12.9c.1-.3.1-.7.1-.9s0-.6-.1-.9l2.1-1.6c.2-.1.2-.4.1-.6l-2-3.5c-.1-.2-.4-.3-.6-.2l-2.5 1c-.5-.4-1.1-.7-1.7-1l-.4-2.6c0-.3-.2-.4-.5-.4h-4c-.3 0-.4.2-.4.4l-.4 2.6c-.6.2-1.2.6-1.7 1l-2.5-1c-.2-.1-.5 0-.6.2l-2 3.5c-.1.2-.1.5.1.6l2.1 1.6c-.1.3-.1.6-.1.9s0 .6.1.9l-2.1 1.6c-.2.1-.2.4-.1.6l2 3.5c.1.2.4.3.6.2l2.5-1c.5.4 1.1.7 1.7 1l.4 2.6c0 .2.2.4.4.4h4c.3 0 .4-.2.5-.4l.4-2.6c.6-.2 1.2-.6 1.7-1l2.5 1c.2.1.5 0 .6-.2l2-3.5c.1-.2.1-.5-.1-.6l-2.1-1.6Zm-7.4 3.6c-1.9 0-3.5-1.6-3.5-3.5s1.6-3.5 3.5-3.5 3.5 1.6 3.5 3.5-1.6 3.5-3.5 3.5Z' fill='%23fff' />"),
+         appearance: createIconData("<path d='M12 3a9 9 0 0 0 0 18 9 9 0 0 0 0-18Zm0 14.5a2.5 2.5 0 0 1-2.4-1.8 5 5 0 0 1-3.6-3.7A6.5 6.5 0 0 1 12 5.5a6.5 6.5 0 0 1 6 6.5c0 3.6-2.9 5.5-6 5.5Z' fill='%23fff' />"),
+         anniversary: createIconData("<path d='M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2Zm-2 6-6 3.8L6 10V8l6 3.8L18 8v2Z' fill='%23fff' />"),
+         clock: createIconData("<path d='M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16Zm1 9H11V7h2v6l3.5 2.1-.8 1.3L13 13Z' fill='%23fff' />"),
+         'game-center': createIconData("<path d='M21.6 16.1l-1.1-7.7A3.5 3.5 0 0 0 16.5 5h-9A3.5 3.5 0 0 0 3.5 8.4L2.4 16a2.7 2.7 0 0 0 2.8 3.2h1.7a2 2 0 0 0 1.9-1.5l.8-2.2h4.8l.8 2.2a2 2 0 0 0 1.9 1.5h1.7a2.7 2.7 0 0 0 2.8-2.6ZM8.5 13.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm7 0a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z' fill='%23fff' />"),
+         forum: createIconData("<path d='M21 6h-3V3a1 1 0 0 0-2 0v3H8V3a1 1 0 0 0-2 0v3H3a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h18a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1Zm-12.5 9a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm4 0a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm4 0a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z' fill='%23fff' />"),
+         hatchery: createIconData("<path d='M12 2.4c-3.4 0-6.2 4.5-6.2 8.8 0 4.6 2.8 8.4 6.2 8.4s6.2-3.8 6.2-8.4c0-4.3-2.8-8.8-6.2-8.8Z' fill='none' stroke='%233b2818' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' /><path d='M8.2 14.2c1.1-1.4 2.5-2.1 3.8-2.1s2.7.7 3.8 2.1' fill='none' stroke='%233b2818' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round' />"),
+         shop: createIconData("<path d='M7 6.5 8.4 3h7.2L17 6.5' fill='none' stroke='%23fff' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' /><path d='M5.5 7h13l-1 12H6.5L5.5 7Z' fill='none' stroke='%23fff' stroke-width='1.8' stroke-linejoin='round' /><path d='M9.5 11.5v4M14.5 11.5v4' fill='none' stroke='%23fff' stroke-width='1.8' stroke-linecap='round' />"),
+         live: createIconData("<rect x='3.5' y='6.5' width='13.5' height='11' rx='3' fill='none' stroke='%23fff' stroke-width='1.8' /><path d='M17 12l3.5-2.5v5L17 12Z' fill='none' stroke='%23fff' stroke-width='1.8' stroke-linejoin='round' /><path d='M7.5 10.5h4M7.5 13.5h2.5' fill='none' stroke='%23fff' stroke-width='1.8' stroke-linecap='round' />"),
+         tarot: createIconData("<rect x='5' y='3.5' width='14' height='17' rx='2' fill='none' stroke='%23fff' stroke-width='1.8' /><path d='m12 8 1.1 2.2 2.5.7-1.8 1.7.5 2.6-2.3-1.2-2.3 1.2.5-2.6-1.8-1.7 2.5-.7L12 8Z' fill='none' stroke='%23fff' stroke-width='1.5' stroke-linejoin='round' />"),
+         bookstore: createIconData("<path d='M5 4.5h6.8a2 2 0 0 1 2 2V20H7a2 2 0 0 0-2-2V4.5Z' fill='none' stroke='%23fff' stroke-width='1.8' stroke-linejoin='round' /><path d='M12.2 4.5H19a2 2 0 0 1 2 2V20h-6.8a2 2 0 0 0-2-2V4.5Z' fill='none' stroke='%23fff' stroke-width='1.8' stroke-linejoin='round' /><path d='M7.5 8h3.5' fill='none' stroke='%23fff' stroke-width='1.8' stroke-linecap='round' />"),
+         infinite: createIconData("<path d='M4 12c0-2.2 1.8-4 4-4 2.5 0 4 4 4 4s1.5 4 4 4c2.2 0 4-1.8 4-4s-1.8-4-4-4c-2.5 0-4 4-4 4s-1.5 4-4 4c-2.2 0-4-1.8-4-4Z' fill='none' stroke='%23fff' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' />"),
+         travel: createIconData("<path d='M3.5 18.5 20 12 3.5 9l2.6 3 5 1-5 1-2.6 4.5Z' fill='none' stroke='%23fff' stroke-width='1.8' stroke-linejoin='round' /><path d='M10.5 5a3 3 0 1 1 6 0v2' fill='none' stroke='%23fff' stroke-width='1.8' stroke-linecap='round' />"),
+         theatre: createIconData("<rect x='3.5' y='5.5' width='17' height='13' rx='2' fill='none' stroke='%23fff' stroke-width='1.8' /><path d='M3.5 10h17M8 5.5v4.5M16 5.5v4.5' fill='none' stroke='%23fff' stroke-width='1.8' stroke-linecap='round' />"),
+         cooking: createIconData("<rect x='4' y='10' width='16' height='8' rx='2' fill='none' stroke='%23fff' stroke-width='1.8' /><path d='M9 10V7a3 3 0 0 1 6 0v3M6 18v2M18 18v2' fill='none' stroke='%23fff' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' />")
+     };
+ const myDefaultBeautifyConfig = {
     wpUrl: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1' height='1'%3E%3Crect width='1' height='1' fill='%23f3d2b3'/%3E%3C/svg%3E", // 默认主屏幕壁纸（更偏浅的暖棕色纯色）
     lockWpUrl: 'https://i.postimg.cc/KzpC6Pst/IMG-3941.jpg',
     icons: { ...iconSVGs },
@@ -277,9 +318,11 @@ if (!beautifyConfig.chatCssPresets) beautifyConfig.chatCssPresets = [];
 let config = getStorage('ai_phone_config', {});
 
 // 锁屏解锁模式 & 密码配置
-// lockMode: 'slider' | 'swipe' | 'swipe_passcode'
+// lockMode: 'slider' | 'swipe' | 'swipe_passcode' | 'pattern' | 'double_tap'
 config.lockMode = config.lockMode || 'slider';
 config.lockPasscode = config.lockPasscode || '1234';
+config.lockPasscodeLength = config.lockPasscodeLength === 6 ? 6 : 4;
+config.lockPattern = typeof config.lockPattern === 'string' ? config.lockPattern : '';
 let apiProfiles = getStorage('ai_api_profiles', []); // 保存所有命名的 API 配置
 let userProfiles = getStorage('ai_users_list', []);
 let aiList = getStorage('ai_list_v2', []);
@@ -437,7 +480,7 @@ let videoCallState = createDefaultVideoCallState();
 let phoneLookupCurrentStep = 'select';
 
 // --- 1.5. 全局常量与默认值 ---
-const appIconIds = ['qq', 'worldbook', 'anniversary', 'clock', 'game-center', 'forum', 'appearance', 'settings', 'hatchery'];
+const appIconIds = ['qq', 'worldbook', 'anniversary', 'clock', 'game-center', 'forum', 'appearance', 'settings', 'hatchery', 'shop', 'live', 'tarot', 'bookstore', 'infinite', 'travel', 'theatre', 'cooking'];
 const DEFAULT_USER_AVATAR_URL = 'https://i.postimg.cc/nzm1Jg3S/IMG-3886.jpg';
 const DEFAULT_AI_AVATAR_URL = 'https://i.postimg.cc/nzm1Jg3S/IMG-3886.jpg';
 const DEFAULT_FORUM_AVATAR_SVG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23e0e0e0'/%3E%3Ctext x='50' y='55' font-size='65' text-anchor='middle' dominant-baseline='middle' fill='white'%3E👤%3C/text%3E%3C/svg%3E";
@@ -468,27 +511,35 @@ const defaultClockData = {
         const lockWpUrlInput = document.getElementById('lock-wp-url');
         const fontUrlInput = document.getElementById('font-url');
         
-        document.getElementById('api-url').value = config.url || '';
-        document.getElementById('api-key').value = config.key || '';
-        document.getElementById('api-model').value = config.model || '';
+        const apiUrlInput = document.getElementById('api-url');
+        const apiKeyInput = document.getElementById('api-key');
+        const apiModelInput = document.getElementById('api-model');
+
+        if (apiUrlInput) apiUrlInput.value = config.url || '';
+        if (apiKeyInput) apiKeyInput.value = config.key || '';
+        if (apiModelInput) apiModelInput.value = config.model || '';
 
         // 外观配置不再把已有链接回填到输入框，只负责应用效果
-        wpUrlInput.value = '';
-        lockWpUrlInput.value = '';
-        if (beautifyConfig.wpData) {
+        if (wpUrlInput) wpUrlInput.value = '';
+        if (lockWpUrlInput) lockWpUrlInput.value = '';
+        if (beautifyConfig.wpData && mainScreen) {
             const wp = `url(${beautifyConfig.wpData})`;
             mainScreen.style.backgroundImage = wp;
             if (loveScreen) loveScreen.style.backgroundImage = wp;
-        } else if (beautifyConfig.wpUrl) {
+        } else if (beautifyConfig.wpUrl && mainScreen) {
             const wp = `url(${beautifyConfig.wpUrl})`;
             mainScreen.style.backgroundImage = wp;
             if (loveScreen) loveScreen.style.backgroundImage = wp;
         }
 
-        if (beautifyConfig.lockWpData) lockScreenElement.style.backgroundImage = `url(${beautifyConfig.lockWpData})`;
-        else if (beautifyConfig.lockWpUrl) lockScreenElement.style.backgroundImage = `url(${beautifyConfig.lockWpUrl})`;
+        if (lockScreenElement) {
+            if (beautifyConfig.lockWpData) lockScreenElement.style.backgroundImage = `url(${beautifyConfig.lockWpData})`;
+            else if (beautifyConfig.lockWpUrl) lockScreenElement.style.backgroundImage = `url(${beautifyConfig.lockWpUrl})`;
+        }
 
-        fontUrlInput.value = '';
+        if (fontUrlInput) {
+            fontUrlInput.value = '';
+        }
         if (beautifyConfig.fontUrl) applyFont(beautifyConfig.fontUrl);
 
         // 初始化全局 CSS 文本框与方案列表
@@ -498,6 +549,9 @@ const defaultClockData = {
         }
         renderGlobalCssPresetList();
         applyGlobalBeautifyCss();
+
+        // 初始化主屏顶部个人名片区域
+        initHomeProfileBanner();
 
         // 初始化全局聊天背景提示
         const chatBgGlobalHint = document.getElementById('chat-bg-global-hint');
@@ -536,9 +590,9 @@ const defaultClockData = {
         initHomePager();
         initLoveUploads();
         initBottomPhotoWidget();
-
+ 
         // 修复塔罗牌入口：为爱心页的“塔罗牌”图标额外绑定一次点击事件，
-        // 即使内联 onclick 因为某些原因失效，也能通过这里的事件监听打开塔罗页面。
+// 即使内联 onclick 因为某些原因失效，也能通过这里的事件监听打开塔罗页面。
         initTarotHomeButtonPatch();
 
         // 塔罗牌主功能初始化：绑定按钮事件和状态恢复
@@ -560,7 +614,7 @@ const defaultClockData = {
          // 旅游功能初始化
          initTravelApp();
  
-         // 反向电话查询与视频通话等功能：在这里做安全调用，避免函数未定义时中断整个初始化流程
+        // 反向电话查询与视频通话等功能：在这里做安全调用，避免函数未定义时中断整个初始化流程
          if (typeof initPhoneLookupFeature === 'function') {
              initPhoneLookupFeature();
          }
@@ -568,10 +622,221 @@ const defaultClockData = {
              initVideoCallFeature();
          }
  
-          // cleanAllBadData(true); // 已根据需求移除自动清洗头像
-       });
-
-    // 爱心页“塔罗牌”图标兜底事件绑定
+         // 初始化统一外观选择弹窗的状态（仅挂钩 DOM，不做任何阻塞逻辑）
+         initAppearancePickerState();
+     });
+ 
+     // ============================
+     //  外观弹窗：图标 / 壁纸统一选择
+     // ============================
+ 
+     const appearanceState = {
+         type: null,   // 'icon' | 'wallpaper' | 'wallpaper-slot'
+         target: null, // 对应的 id，如 'qq' / 'lockWallpaper' / 'main-rotate-1'
+         title: ''
+     };
+ 
+     function initAppearancePickerState() {
+         // 这里只是确保弹窗节点存在，真正的打开由 openAppearancePicker 控制
+         const modal = document.getElementById('appearance-picker-modal');
+         if (!modal) {
+             console.warn('[appearance] #appearance-picker-modal not found in DOM');
+         }
+         const urlBox = document.getElementById('appearance-picker-url-box');
+         if (urlBox) {
+             urlBox.style.display = 'none';
+         }
+     }
+ 
+     function mapAppearanceToInputIds() {
+         const { type, target } = appearanceState;
+         if (!type || !target) return null;
+ 
+         // 图标类：直接映射到 icon-url-xxx / icon-file-xxx
+         if (type === 'icon') {
+             return {
+                 urlInputId: `icon-url-${target}`,
+                 fileInputId: `icon-file-${target}`,
+                 statusTextId: `appearance-status-icon-${target}`
+             };
+         }
+ 
+         // 壁纸主资源：锁屏 / 主屏 / 聊天背景
+         if (type === 'wallpaper') {
+             if (target === 'lockWallpaper') {
+                 return {
+                     urlInputId: 'lock-wp-url',
+                     fileInputId: 'lock-wp-file',
+                     statusTextId: 'appearance-status-wallpaper-lockWallpaper'
+                 };
+             }
+             if (target === 'mainWallpaper') {
+                 return {
+                     urlInputId: 'wp-url',
+                     fileInputId: 'wp-file',
+                     statusTextId: 'appearance-status-wallpaper-mainWallpaper'
+                 };
+             }
+             if (target === 'chatWallpaper') {
+                 return {
+                     urlInputId: 'chat-bg-global-url',
+                     fileInputId: 'chat-bg-global-file',
+                     statusTextId: 'appearance-status-wallpaper-chatWallpaper'
+                 };
+             }
+         }
+ 
+         // 壁纸轮换 slot：main-rotate-1 / lock-rotate-1 等
+         if (type === 'wallpaper-slot') {
+             return {
+                 urlInputId: `${target}-url`,
+                 fileInputId: `${target}-file`,
+                 statusTextId: `appearance-status-wallpaper-slot-${target}`
+             };
+         }
+ 
+         return null;
+     }
+ 
+     function openAppearancePicker(type, target, title) {
+         appearanceState.type = type;
+         appearanceState.target = target;
+         appearanceState.title = title || '';
+ 
+         const modal = document.getElementById('appearance-picker-modal');
+         if (!modal) {
+             console.warn('[appearance] modal not found when openAppearancePicker');
+             return;
+         }
+ 
+         const titleEl = document.getElementById('appearance-picker-title');
+         if (titleEl) {
+             titleEl.textContent = title || '选择图片';
+         }
+ 
+         const urlInput = document.getElementById('appearance-picker-url-input');
+         if (urlInput) {
+             urlInput.value = '';
+         }
+         toggleAppearanceUrlBox(false);
+ 
+         modal.classList.add('active');
+     }
+ 
+     function closeAppearancePicker() {
+         const modal = document.getElementById('appearance-picker-modal');
+         if (modal) {
+             modal.classList.remove('active');
+         }
+         appearanceState.type = null;
+         appearanceState.target = null;
+         appearanceState.title = '';
+     }
+ 
+     function toggleAppearanceUrlBox(force) {
+         const urlBox = document.getElementById('appearance-picker-url-box');
+         if (!urlBox) return;
+         if (typeof force === 'boolean') {
+             urlBox.style.display = force ? 'flex' : 'none';
+             return;
+         }
+         urlBox.style.display = (urlBox.style.display === 'none' || !urlBox.style.display) ? 'flex' : 'none';
+     }
+ 
+     function triggerAppearanceLocalImport() {
+         const mapping = mapAppearanceToInputIds();
+         if (!mapping || !mapping.fileInputId) return;
+         const fileInput = document.getElementById(mapping.fileInputId);
+         if (!fileInput) {
+             console.warn('[appearance] file input not found:', mapping.fileInputId);
+             return;
+         }
+         fileInput.click();
+     }
+ 
+     function confirmAppearanceUrl() {
+         const mapping = mapAppearanceToInputIds();
+         if (!mapping || !mapping.urlInputId) return;
+ 
+         const urlInputEl = document.getElementById('appearance-picker-url-input');
+         const targetUrlInput = document.getElementById(mapping.urlInputId);
+         if (!urlInputEl || !targetUrlInput) return;
+ 
+         const value = (urlInputEl.value || '').trim();
+         if (!value) {
+             showToast('请先填写图片 URL');
+             return;
+         }
+ 
+         targetUrlInput.value = value;
+ 
+         const statusEl = document.getElementById(mapping.statusTextId);
+         if (statusEl) {
+             statusEl.textContent = '已设置自定义图片（URL）';
+         }
+ 
+         // 对图标类，尝试立即应用一次图标效果（保持和原来刷新逻辑一致）
+         if (appearanceState.type === 'icon') {
+             try {
+                 if (!beautifyConfig.icons) beautifyConfig.icons = { ...iconSVGs };
+                 const id = appearanceState.target;
+                 if (id) {
+                     beautifyConfig.icons[id] = value;
+                     setStorage('ai_beautify_config_v2', beautifyConfig);
+                     applyAppIcons();
+                 }
+             } catch (e) {
+                 console.warn('[appearance] apply icon url failed', e);
+             }
+         }
+ 
+         closeAppearancePicker();
+     }
+ 
+     function resetAppearanceSelection() {
+         const mapping = mapAppearanceToInputIds();
+         if (!mapping) return;
+ 
+         const urlInput = document.getElementById(mapping.urlInputId);
+         const fileInput = document.getElementById(mapping.fileInputId);
+         const statusEl = document.getElementById(mapping.statusTextId);
+ 
+         if (urlInput) urlInput.value = '';
+         if (fileInput) fileInput.value = '';
+ 
+         if (statusEl) {
+             if (appearanceState.type === 'icon') {
+                 statusEl.textContent = '当前使用默认图标';
+             } else {
+                 statusEl.textContent = '当前使用默认资源';
+             }
+         }
+ 
+         try {
+             if (appearanceState.type === 'icon') {
+                 if (!beautifyConfig.icons) beautifyConfig.icons = { ...iconSVGs };
+                 const id = appearanceState.target;
+                 if (id && iconSVGs[id]) {
+                     beautifyConfig.icons[id] = iconSVGs[id];
+                     setStorage('ai_beautify_config_v2', beautifyConfig);
+                     applyAppIcons();
+                 }
+             }
+         } catch (e) {
+             console.warn('[appearance] reset icon to default failed', e);
+         }
+ 
+         closeAppearancePicker();
+     }
+ 
+     // 将弹窗控制函数暴露到全局，供 HTML 中的 onclick 使用
+     window.openAppearancePicker = openAppearancePicker;
+     window.closeAppearancePicker = closeAppearancePicker;
+     window.toggleAppearanceUrlBox = toggleAppearanceUrlBox;
+     window.triggerAppearanceLocalImport = triggerAppearanceLocalImport;
+     window.confirmAppearanceUrl = confirmAppearanceUrl;
+     window.resetAppearanceSelection = resetAppearanceSelection;
+// 爱心页“塔罗牌”图标兜底事件绑定
     // 点击图标优先弹出「绑定角色」紫色弹窗，每次都允许重新选择角色；
     // 如果入口函数不可用，则退回到直接打开塔罗主页面。
     function initTarotHomeButtonPatch() {
@@ -602,6 +867,117 @@ const defaultClockData = {
         } catch (e) {
             console.error('initTarotHomeButtonPatch error', e);
         }
+    }
+
+    // 顶部个人名片区域：支持头像、本地背景图、地区与动态文字编辑
+    function initHomeProfileBanner() {
+        const banner = document.getElementById('home-profile-banner');
+        if (!banner) return;
+
+        const avatarWrap = document.getElementById('home-profile-avatar-wrap');
+        const avatarImg = document.getElementById('home-profile-avatar-img');
+        const avatarIcon = banner.querySelector('.home-profile-avatar-icon');
+        const avatarInput = document.getElementById('home-profile-avatar-input');
+        const bgInput = document.getElementById('home-profile-bg-input');
+        const bgBtn = document.getElementById('home-profile-bg-btn');
+        const regionEl = document.getElementById('home-profile-region');
+        const statusEl = document.getElementById('home-profile-status');
+        const usernameEl = document.getElementById('home-profile-username');
+        const avatarContainer = document.getElementById('home-profile-avatar');
+
+        if (!avatarWrap || !avatarImg || !avatarIcon || !avatarInput || !bgInput || !bgBtn || !regionEl || !statusEl || !usernameEl || !avatarContainer) {
+            return;
+        }
+
+        const STORAGE_KEY = 'home_profile_banner_state_v1';
+        const defaultState = {
+            avatarDataUrl: '',
+            bgDataUrl: '',
+            region: '日本-北海道',
+            status: '我希望明天孵化出来的是我的真心',
+            username: usernameEl.textContent || '我的用户名'
+        };
+
+        const saved = getStorage(STORAGE_KEY, defaultState) || defaultState;
+
+        // 恢复头像
+        if (saved.avatarDataUrl) {
+            avatarImg.src = saved.avatarDataUrl;
+            avatarImg.style.display = 'block';
+            avatarIcon.style.display = 'none';
+        }
+
+        // 恢复背景
+        if (saved.bgDataUrl) {
+            banner.style.backgroundImage = `url(${saved.bgDataUrl})`;
+        }
+
+        // 恢复文案
+        regionEl.textContent = saved.region || defaultState.region;
+        statusEl.textContent = saved.status || defaultState.status;
+        usernameEl.textContent = saved.username || defaultState.username;
+
+        function persist(partial) {
+            const next = Object.assign({}, saved, {
+                region: regionEl.textContent.trim() || defaultState.region,
+                status: statusEl.textContent.trim() || defaultState.status,
+                username: usernameEl.textContent.trim() || defaultState.username
+            }, partial || {});
+            setStorage(STORAGE_KEY, next);
+        }
+
+        function bindEditable(el) {
+            if (!el) return;
+            el.addEventListener('blur', () => persist());
+            el.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    el.blur();
+                }
+            });
+        }
+
+        bindEditable(regionEl);
+        bindEditable(statusEl);
+        bindEditable(usernameEl);
+
+        // 头像上传
+        avatarContainer.addEventListener('click', () => {
+            avatarInput.click();
+        });
+
+        avatarInput.addEventListener('change', (e) => {
+            const file = e.target.files && e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function (ev) {
+                const dataUrl = ev.target && ev.target.result;
+                if (!dataUrl) return;
+                avatarImg.src = dataUrl;
+                avatarImg.style.display = 'block';
+                avatarIcon.style.display = 'none';
+                persist({ avatarDataUrl: dataUrl });
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // 背景上传
+        bgBtn.addEventListener('click', () => {
+            bgInput.click();
+        });
+
+        bgInput.addEventListener('change', (e) => {
+            const file = e.target.files && e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function (ev) {
+                const dataUrl = ev.target && ev.target.result;
+                if (!dataUrl) return;
+                banner.style.backgroundImage = `url(${dataUrl})`;
+                persist({ bgDataUrl: dataUrl });
+            };
+            reader.readAsDataURL(file);
+        });
     }
 
     // 底部小图片组件初始化：支持点击上传本地图片，并持久化到本地存储
@@ -653,6 +1029,44 @@ const defaultClockData = {
         });
     }
  
+     function updateRoleDiaryStripSelectionUI() {
+         const selectEl = document.getElementById('role-diary-select');
+         const textEl = document.getElementById('role-diary-text');
+         const avatarCircleEl = document.getElementById('role-diary-avatar-circle');
+         const avatarNameEl = document.getElementById('role-diary-avatar-name');
+         if (!selectEl) return;
+ 
+         const ai = aiList.find(a => String(a.id) === String(selectEl.value)) || aiList[0] || null;
+         if (!ai) {
+             if (avatarCircleEl) {
+                 avatarCircleEl.textContent = '角';
+                 avatarCircleEl.style.backgroundImage = '';
+                 avatarCircleEl.classList.remove('has-image');
+             }
+             if (avatarNameEl) avatarNameEl.textContent = '暂无角色';
+             if (textEl && !textEl.textContent.trim()) {
+                 textEl.textContent = '"还没有可用角色，先去创建一个吧。"';
+             }
+             return;
+         }
+ 
+         const roleName = ai.name || ('角色' + ai.id);
+         const avatarUrl = sanitizeAvatar(ai.avatar || '') || '';
+         if (avatarNameEl) avatarNameEl.textContent = roleName;
+ 
+         if (avatarCircleEl) {
+             if (avatarUrl) {
+                 avatarCircleEl.textContent = '';
+                 avatarCircleEl.style.backgroundImage = `url(${avatarUrl})`;
+                 avatarCircleEl.classList.add('has-image');
+             } else {
+                 avatarCircleEl.textContent = roleName.slice(0, 1) || '角';
+                 avatarCircleEl.style.backgroundImage = '';
+                 avatarCircleEl.classList.remove('has-image');
+             }
+         }
+     }
+ 
      function initRoleDiaryStrip() {
          const selectEl = document.getElementById('role-diary-select');
          const textEl = document.getElementById('role-diary-text');
@@ -666,6 +1080,8 @@ const defaultClockData = {
              opt.textContent = '暂无角色';
              selectEl.appendChild(opt);
              selectEl.disabled = true;
+             textEl.textContent = '"还没有角色可以说话，先去创建一个吧。"';
+             updateRoleDiaryStripSelectionUI();
              return;
          }
  
@@ -675,37 +1091,303 @@ const defaultClockData = {
              opt.textContent = ai.name || ('角色' + ai.id);
              selectEl.appendChild(opt);
          });
+ 
+         selectEl.disabled = false;
+         if (!selectEl.value && aiList[0]) {
+             selectEl.value = aiList[0].id;
+         }
+         selectEl.onchange = () => {
+             updateRoleDiaryStripSelectionUI();
+             textEl.textContent = '"戳一下，让 Ta 说一句最像自己的话。"';
+         };
+ 
+         updateRoleDiaryStripSelectionUI();
      }
  
      async function generateWarmWordsForRole() {
-const selectEl = document.getElementById('role-diary-select');
-        const textEl = document.getElementById('role-diary-text');
-        if (!selectEl || !textEl) return;
+         const selectEl = document.getElementById('role-diary-select');
+         const textEl = document.getElementById('role-diary-text');
+         if (!selectEl || !textEl) return;
  
-        const selectedId = selectEl.value;
-        const ai = aiList.find(a => String(a.id) === String(selectedId)) || aiList[0];
-        if (!ai) return;
+         const selectedId = selectEl.value;
+         const ai = aiList.find(a => String(a.id) === String(selectedId)) || aiList[0];
+         if (!ai) return;
  
-        const persona = ai.prompt || ai.description || '';
-        const name = ai.name || '你的角色';
+         const persona = ai.prompt || ai.description || '';
+         const name = ai.name || '这个角色';
  
-        const prompt = `你是名为"${name}"的虚拟角色，角色设定为："${persona}"。请以这个角色的口吻，用中文说一句今天想对用户说的暖心话。\n要求：\n1. 控制在40字以内。\n2. 整句话整体用一对中文引号括起来，例如：“今天也要好好照顾自己呀”。\n3. 不要输出任何解释或前后缀，只输出这一句带引号的暖心话。`;
+         const prompt = `你现在要扮演名为“${name}”的角色。
+ 角色设定：${persona || '暂无详细设定，请根据名字与气质自然补完。'}
  
-        try {
-            textEl.textContent = '“正在为你组织语言...”';
-            const reply = await getCompletion(prompt, false);
-            if (reply) {
-                textEl.textContent = reply.trim();
-            } else {
-                textEl.textContent = '“今天也要温柔对待自己哦。”';
-            }
-        } catch (e) {
-            console.error('生成暖心话失败', e);
-            textEl.textContent = '“网络有点忙，下次再和你说悄悄话。”';
-        }
-    }
+ 任务：请只输出一句这个角色平时会说的口头禅、惯用表达，或者非常符合其性格的一句话。
+ 要求：
+ 1. 必须像这个角色自己会脱口而出的原生台词，不要写成安慰语、鸡汤、旁白或解释。
+ 2. 每次生成都要尽量换一种说法，即使是同一个角色，也不要总重复同一句。
+ 3. 控制在 8 到 28 个字之间，语言自然，有人物感。
+ 4. 最终结果必须使用英文双引号包裹，例如："别发呆，先把眼前这件事做完。"
+ 5. 不要输出任何解释、标签、前后缀或多句话，只输出这一句台词。`;
  
-    function filterAiFriendsForLive() {
+         try {
+             textEl.textContent = '"正在等 Ta 开口…"';
+             const reply = await getCompletion(prompt, false);
+             if (reply) {
+                 let finalText = reply.trim();
+                 finalText = finalText.replace(/[“”]/g, '"');
+                 finalText = finalText.replace(/^"+|"+$/g, '');
+                 textEl.textContent = `"${finalText}"`;
+             } else {
+                 textEl.textContent = '"哼，等我想好了再告诉你。"';
+             }
+         } catch (e) {
+             console.error('生成角色口头禅失败', e);
+             textEl.textContent = '"现在不想说，晚点再来戳我。"';
+         }
+      }
+ 
+      const ROLE_DIARY_SETTINGS_KEY = 'role_diary_style_v1';
+ 
+      function getRoleDiarySettings() {
+          try {
+              if (typeof getStorage === 'function') {
+                  return getStorage(ROLE_DIARY_SETTINGS_KEY) || {};
+              }
+          } catch (e) {
+              console.warn('读取角色日记样式配置失败，尝试从 localStorage 获取', e);
+          }
+          try {
+              const raw = window.localStorage.getItem(ROLE_DIARY_SETTINGS_KEY);
+              return raw ? JSON.parse(raw) : {};
+          } catch (e) {
+              console.warn('从 localStorage 读取角色日记样式配置失败', e);
+              return {};
+          }
+      }
+ 
+      function saveRoleDiarySettings(settings) {
+          const safeSettings = settings || {};
+          try {
+              if (typeof setStorage === 'function') {
+                  setStorage(ROLE_DIARY_SETTINGS_KEY, safeSettings);
+              } else {
+                  window.localStorage.setItem(ROLE_DIARY_SETTINGS_KEY, JSON.stringify(safeSettings));
+              }
+          } catch (e) {
+              console.warn('保存角色日记样式配置失败', e);
+          }
+      }
+ 
+      function applyRoleDiaryStyle(settings) {
+          const strip = document.querySelector('.role-diary-strip');
+          const textEl = document.getElementById('role-diary-text');
+          const actionBtn = document.querySelector('.role-diary-action');
+          if (!strip || !textEl || !actionBtn) return;
+ 
+          const s = settings || getRoleDiarySettings();
+ 
+          if (s.bgImage) {
+              strip.style.backgroundImage = `url("${s.bgImage}")`;
+              strip.style.backgroundSize = 'cover';
+              strip.style.backgroundPosition = 'center';
+          } else {
+              strip.style.backgroundImage = '';
+          }
+ 
+          strip.style.backgroundColor = s.stripBgColor || '';
+          textEl.style.backgroundColor = s.textBgColor || '';
+          textEl.style.color = s.textColor || '';
+ 
+          if (s.buttonText && typeof s.buttonText === 'string') {
+              actionBtn.textContent = s.buttonText;
+          }
+          if (s.buttonTextColor) {
+              actionBtn.style.color = s.buttonTextColor;
+          } else {
+              actionBtn.style.color = '';
+          }
+          if (s.buttonBgColor) {
+              actionBtn.style.backgroundColor = s.buttonBgColor;
+          } else {
+              actionBtn.style.backgroundColor = '';
+          }
+          if (s.buttonShape === 'pill') {
+              actionBtn.style.borderRadius = '999px';
+          } else if (s.buttonShape === 'square') {
+              actionBtn.style.borderRadius = '6px';
+          } else if (s.buttonShape === 'round') {
+              actionBtn.style.borderRadius = '999px';
+              const h = actionBtn.offsetHeight || 32;
+              actionBtn.style.width = h + 'px';
+              actionBtn.style.paddingInline = '0';
+          } else {
+              actionBtn.style.borderRadius = '';
+              actionBtn.style.width = '';
+              actionBtn.style.paddingInline = '';
+          }
+      }
+ 
+      function ensureRoleDiarySettingsModal() {
+          let modal = document.getElementById('role-diary-settings-modal');
+          if (modal) return modal;
+ 
+          modal = document.createElement('div');
+          modal.id = 'role-diary-settings-modal';
+          modal.className = 'role-diary-settings-root';
+          modal.innerHTML = `
+ <div class="role-diary-settings-backdrop" data-role="backdrop"></div>
+ <div class="role-diary-settings-panel">
+     <div class="role-diary-settings-header">
+         <span class="role-diary-settings-title">戳一下 · 外观设置</span>
+         <button type="button" class="role-diary-settings-close" data-role="close">×</button>
+     </div>
+     <div class="role-diary-settings-body">
+         <label class="role-diary-settings-row">
+             <span class="role-diary-settings-label">背景图 URL</span>
+             <input name="bgImage" class="role-diary-settings-input" placeholder="粘贴一张图片链接，留空则使用默认" />
+         </label>
+         <label class="role-diary-settings-row">
+             <span class="role-diary-settings-label">或本地图片</span>
+             <input type="file" accept="image/*" name="bgImageFile" class="role-diary-settings-input" />
+         </label>
+         <label class="role-diary-settings-row">
+             <span class="role-diary-settings-label">中间文本背景色</span>
+             <input type="color" name="textBgColor" class="role-diary-settings-color" />
+         </label>
+         <label class="role-diary-settings-row">
+             <span class="role-diary-settings-label">文本字体颜色</span>
+             <input type="color" name="textColor" class="role-diary-settings-color" />
+         </label>
+         <label class="role-diary-settings-row">
+             <span class="role-diary-settings-label">按钮文案</span>
+             <input name="buttonText" class="role-diary-settings-input" placeholder="例如：点我、say hi 等" />
+         </label>
+         <label class="role-diary-settings-row">
+             <span class="role-diary-settings-label">按钮背景色</span>
+             <input type="color" name="buttonBgColor" class="role-diary-settings-color" />
+         </label>
+         <label class="role-diary-settings-row">
+             <span class="role-diary-settings-label">按钮文字颜色</span>
+             <input type="color" name="buttonTextColor" class="role-diary-settings-color" />
+         </label>
+         <label class="role-diary-settings-row">
+             <span class="role-diary-settings-label">按钮形状</span>
+             <select name="buttonShape" class="role-diary-settings-input">
+                 <option value="">默认</option>
+                 <option value="pill">圆角胶囊</option>
+                 <option value="square">略方</option>
+                 <option value="round">正圆</option>
+             </select>
+         </label>
+     </div>
+     <div class="role-diary-settings-footer">
+         <button type="button" class="role-diary-settings-btn secondary" data-role="cancel">取消</button>
+         <button type="button" class="role-diary-settings-btn primary" data-role="save">保存</button>
+     </div>
+ </div>`;
+ 
+          document.body.appendChild(modal);
+ 
+          const closeBtn = modal.querySelector('[data-role="close"]');
+          const cancelBtn = modal.querySelector('[data-role="cancel"]');
+          const backdrop = modal.querySelector('[data-role="backdrop"]');
+          const saveBtn = modal.querySelector('[data-role="save"]');
+ 
+          const closeHandler = () => {
+              closeRoleDiarySettings();
+          };
+ 
+          [closeBtn, cancelBtn, backdrop].forEach(el => {
+              if (el) el.addEventListener('click', closeHandler);
+          });
+ 
+          if (saveBtn) {
+              saveBtn.addEventListener('click', async () => {
+                  const bgImageInput = modal.querySelector('input[name="bgImage"]');
+                  const bgFileInput = modal.querySelector('input[name="bgImageFile"]');
+                  const textBgInput = modal.querySelector('input[name="textBgColor"]');
+                  const textColorInput = modal.querySelector('input[name="textColor"]');
+                  const buttonTextInput = modal.querySelector('input[name="buttonText"]');
+                  const buttonBgInput = modal.querySelector('input[name="buttonBgColor"]');
+                  const buttonTextColorInput = modal.querySelector('input[name="buttonTextColor"]');
+                  const buttonShapeSelect = modal.querySelector('select[name="buttonShape"]');
+ 
+                  let bgImage = bgImageInput ? bgImageInput.value.trim() : '';
+ 
+                  if (bgFileInput && bgFileInput.files && bgFileInput.files[0]) {
+                      const file = bgFileInput.files[0];
+                      try {
+                          bgImage = await new Promise((resolve, reject) => {
+                              const reader = new FileReader();
+                              reader.onload = e => resolve(e.target && e.target.result ? String(e.target.result) : '');
+                              reader.onerror = () => reject(new Error('读取本地图片失败'));
+                              reader.readAsDataURL(file);
+                          });
+                      } catch (e) {
+                          console.warn('读取本地背景图失败', e);
+                      }
+                  }
+ 
+                  const next = {
+                      bgImage,
+                      textBgColor: textBgInput ? textBgInput.value : '',
+                      textColor: textColorInput ? textColorInput.value : '',
+                      buttonText: buttonTextInput ? buttonTextInput.value.trim() : '',
+                      buttonBgColor: buttonBgInput ? buttonBgInput.value : '',
+                      buttonTextColor: buttonTextColorInput ? buttonTextColorInput.value : '',
+                      buttonShape: buttonShapeSelect ? buttonShapeSelect.value : ''
+                  };
+ 
+                  saveRoleDiarySettings(next);
+                  applyRoleDiaryStyle(next);
+                  closeRoleDiarySettings();
+              });
+          }
+ 
+          return modal;
+      }
+ 
+      function openRoleDiarySettings() {
+          const modal = ensureRoleDiarySettingsModal();
+          const s = getRoleDiarySettings();
+ 
+          const bgImageInput = modal.querySelector('input[name="bgImage"]');
+          const textBgInput = modal.querySelector('input[name="textBgColor"]');
+          const textColorInput = modal.querySelector('input[name="textColor"]');
+          const buttonTextInput = modal.querySelector('input[name="buttonText"]');
+          const buttonBgInput = modal.querySelector('input[name="buttonBgColor"]');
+          const buttonTextColorInput = modal.querySelector('input[name="buttonTextColor"]');
+          const buttonShapeSelect = modal.querySelector('select[name="buttonShape"]');
+ 
+          if (bgImageInput) bgImageInput.value = s.bgImage || '';
+          if (textBgInput) textBgInput.value = s.textBgColor || '#000000';
+          if (textColorInput) textColorInput.value = s.textColor || '#ffffff';
+          if (buttonTextInput) buttonTextInput.value = s.buttonText || document.querySelector('.role-diary-action')?.textContent || '';
+          if (buttonBgInput) buttonBgInput.value = s.buttonBgColor || '#000000';
+          if (buttonTextColorInput) buttonTextColorInput.value = s.buttonTextColor || '#ffffff';
+          if (buttonShapeSelect) buttonShapeSelect.value = s.buttonShape || '';
+ 
+          modal.classList.add('visible');
+      }
+ 
+      function closeRoleDiarySettings() {
+          const modal = document.getElementById('role-diary-settings-modal');
+          if (!modal) return;
+          modal.classList.remove('visible');
+      }
+ 
+      window.generateWarmWordsForRole = generateWarmWordsForRole;
+      window.openRoleDiarySettings = openRoleDiarySettings;
+ 
+      if (window && window.addEventListener) {
+          window.addEventListener('load', () => {
+              try {
+                  applyRoleDiaryStyle();
+              } catch (e) {
+                  console.warn('初始化应用角色日记样式失败', e);
+              }
+          });
+      }
+ 
+  function filterAiFriendsForLive() {
         return (aiList || []).filter(ai => !ai.isArchived && !(ai.settings && ai.settings.hidden));
     }
 
@@ -7510,8 +8192,30 @@ const truthPool = [
         const sliderTrack = document.getElementById('lock-slider-track');
         const swipeHint = document.getElementById('lock-swipe-hint');
         const passcodePanel = document.getElementById('lock-passcode-panel');
-        const passcodeDots = Array.from(document.querySelectorAll('.lock-passcode-dot'));
+        const passcodeDotsContainer = document.getElementById('lock-passcode-dots');
         const keypad = document.querySelector('.lock-passcode-keypad');
+        const patternPanel = document.getElementById('lock-pattern-panel');
+        const patternGrid = document.getElementById('lock-pattern-grid');
+        const patternLines = document.getElementById('lock-pattern-lines');
+        const patternSubtitle = document.getElementById('lock-pattern-subtitle');
+        const previewPatternGrid = document.getElementById('lock-pattern-preview-grid');
+        const previewPatternLines = document.getElementById('lock-pattern-preview-lines');
+        const previewPatternText = document.getElementById('lock-pattern-preview-text');
+
+        let passcodeDots = [];
+
+        const buildPasscodeDots = () => {
+            if (!passcodeDotsContainer) return;
+            const len = (config.lockPasscodeLength === 6 ? 6 : 4);
+            passcodeDotsContainer.innerHTML = '';
+            passcodeDots = [];
+            for (let i = 0; i < len; i++) {
+                const dot = document.createElement('span');
+                dot.className = 'lock-passcode-dot';
+                passcodeDotsContainer.appendChild(dot);
+                passcodeDots.push(dot);
+            }
+        };
 
         let isDragging = false;
         let startX = 0;
@@ -7519,13 +8223,16 @@ const truthPool = [
         const unlockThreshold = 0.65; // 滑动超过 track 的 65% 即解锁
 
         let currentInput = '';
+        let lastTapAt = 0;
 
-        const applyLockModeUI = () => {
-            const mode = config.lockMode || 'slider';
-            if (slider) slider.style.display = mode === 'slider' ? 'block' : 'none';
-            if (swipeHint) swipeHint.classList.toggle('visible', mode !== 'slider');
-            if (passcodePanel) passcodePanel.classList.toggle('visible', mode === 'swipe_passcode');
-        };
+        function updateDots() {
+            const len = passcodeDots.length || (config.lockPasscodeLength === 6 ? 6 : 4);
+            if (!passcodeDots.length) buildPasscodeDots();
+            passcodeDots.forEach((dot, index) => {
+                if (!dot) return;
+                dot.classList.toggle('filled', index < currentInput.length);
+            });
+        }
 
         const handleUnlock = () => {
             lockScreenElement.classList.add('unlocked');
@@ -7540,6 +8247,44 @@ const truthPool = [
             currentX = 0;
             if (sliderThumb) sliderThumb.style.transform = 'translateX(0px)';
         };
+
+        const updatePatternPreviewText = (patternValue, message) => {
+            if (!previewPatternText) return;
+            const normalized = normalizeLockPatternValue(patternValue);
+            const count = normalized ? normalized.split('-').length : 0;
+            previewPatternText.textContent = message || (count >= 4
+                ? `当前图案：${normalized.replace(/-/g, ' → ')}`
+                : '按住并连线绘制至少 4 个点的图案，保存后即可用于解锁。');
+        };
+
+        const applyLockModeUI = () => {
+            const mode = config.lockMode || 'slider';
+            if (slider) slider.style.display = mode === 'slider' ? 'block' : 'none';
+            if (swipeHint) {
+                let hintText = '';
+                if (mode === 'swipe') hintText = '上滑解锁';
+                else if (mode === 'swipe_passcode') hintText = '上滑后输入密码';
+                else if (mode === 'double_tap') hintText = '双击解锁';
+                swipeHint.textContent = hintText || '上滑解锁';
+                swipeHint.classList.toggle('visible', !!hintText);
+            }
+            if (passcodePanel) passcodePanel.classList.toggle('visible', mode === 'swipe_passcode');
+            if (patternPanel) patternPanel.classList.toggle('visible', mode === 'pattern');
+            if (mode === 'swipe_passcode') {
+                buildPasscodeDots();
+                updateDots();
+            } else {
+                currentInput = '';
+                updateDots();
+            }
+            if (mode === 'pattern') {
+                if (patternSubtitle) patternSubtitle.textContent = '请按已保存的图案连接九点';
+                renderLockPatternState(patternGrid, patternLines, '', { stroke: 'rgba(255,255,255,0.88)' });
+            }
+            resetThumb();
+        };
+
+        window.applyCurrentLockModeUI = applyLockModeUI;
 
         const onDragMove = (clientX) => {
             if (!isDragging || !sliderTrack || !sliderThumb) return;
@@ -7616,11 +8361,13 @@ const truthPool = [
 
         const onTouchEnd = () => {
             const mode = config.lockMode || 'slider';
-            if (mode === 'slider') return;
+            if (mode !== 'swipe' && mode !== 'swipe_passcode') return;
             if (deltaY > swipeThreshold) {
                 if (mode === 'swipe') {
                     handleUnlock();
                 } else if (mode === 'swipe_passcode') {
+                    buildPasscodeDots();
+                    updateDots();
                     if (passcodePanel) passcodePanel.classList.add('visible');
                 }
             }
@@ -7630,22 +8377,15 @@ const truthPool = [
         lockScreenElement.addEventListener('touchmove', onTouchMove, { passive: true });
         lockScreenElement.addEventListener('touchend', onTouchEnd, { passive: true });
 
-        // 密码输入逻辑
-        const updateDots = () => {
-            passcodeDots.forEach((dot, index) => {
-                if (!dot) return;
-                dot.classList.toggle('filled', index < currentInput.length);
-            });
-        };
-
         const checkPasscode = () => {
-            const correct = (config.lockPasscode || '1234').slice(0, 4);
-            if (currentInput === correct) {
+            const length = (config.lockPasscodeLength === 6 ? 6 : 4);
+            const saved = (config.lockPasscode || '1234');
+            const ok = (saved.length === length) && (currentInput === saved);
+            if (ok) {
                 handleUnlock();
                 currentInput = '';
                 updateDots();
             } else {
-                // 错误时轻微抖动
                 if (passcodePanel) {
                     passcodePanel.classList.add('shake');
                     setTimeout(() => passcodePanel.classList.remove('shake'), 300);
@@ -7668,14 +8408,74 @@ const truthPool = [
                     return;
                 }
                 if (!/^[0-9]$/.test(key)) return;
-                if (currentInput.length >= 4) return;
+                const length = (config.lockPasscodeLength === 6 ? 6 : 4);
+                if (currentInput.length >= length) return;
                 currentInput += key;
                 updateDots();
-                if (currentInput.length === 4) {
+                if (currentInput.length === length) {
                     setTimeout(checkPasscode, 120);
                 }
             });
         }
+
+        bindLockPatternGrid(previewPatternGrid, previewPatternLines, (patternValue, sequence) => {
+            renderLockPatternState(previewPatternGrid, previewPatternLines, patternValue, { stroke: '#111111' });
+            updatePatternPreviewText(patternValue, sequence.length >= 4 ? '' : '图案至少需要连接 4 个点。');
+        }, { stroke: '#111111' });
+
+        const savedPreviewPattern = normalizeLockPatternValue((config || {}).lockPattern || '');
+        renderLockPatternState(previewPatternGrid, previewPatternLines, savedPreviewPattern, { stroke: '#111111' });
+        updatePatternPreviewText(savedPreviewPattern);
+
+        bindLockPatternGrid(patternGrid, patternLines, (patternValue) => {
+            const savedPattern = normalizeLockPatternValue((config || {}).lockPattern || '');
+            if (!savedPattern) {
+                if (patternSubtitle) patternSubtitle.textContent = '请先在外观设置里保存图案锁';
+                setTimeout(() => {
+                    renderLockPatternState(patternGrid, patternLines, '', { stroke: 'rgba(255,255,255,0.88)' });
+                }, 260);
+                return;
+            }
+
+            if (patternValue === savedPattern) {
+                if (patternSubtitle) patternSubtitle.textContent = '图案正确，正在解锁';
+                setTimeout(handleUnlock, 120);
+                return;
+            }
+
+            if (patternPanel) {
+                patternPanel.classList.add('shake');
+                setTimeout(() => patternPanel.classList.remove('shake'), 300);
+            }
+            if (patternSubtitle) patternSubtitle.textContent = '图案不正确，请重试';
+            setTimeout(() => {
+                if ((config.lockMode || 'slider') === 'pattern' && patternSubtitle) {
+                    patternSubtitle.textContent = '请按已保存的图案连接九点';
+                }
+                renderLockPatternState(patternGrid, patternLines, '', { stroke: 'rgba(255,255,255,0.88)' });
+            }, 320);
+        }, { stroke: 'rgba(255,255,255,0.88)' });
+
+        lockScreenElement.addEventListener('dblclick', () => {
+            if ((config.lockMode || 'slider') === 'double_tap') {
+                handleUnlock();
+            }
+        });
+
+        lockScreenElement.addEventListener('touchend', () => {
+            if ((config.lockMode || 'slider') !== 'double_tap') return;
+            if (Math.abs(deltaY) > 16) {
+                lastTapAt = 0;
+                return;
+            }
+            const now = Date.now();
+            if (now - lastTapAt < 320) {
+                lastTapAt = 0;
+                handleUnlock();
+                return;
+            }
+            lastTapAt = now;
+        }, { passive: true });
 
         applyLockModeUI();
     }
@@ -8245,19 +9045,6 @@ const truthPool = [
         };
     }
 
-    function switchBeautifyPanel(panel) {
-        const buttons = document.querySelectorAll('#beautify-page .beautify-module-btn');
-        const panels = document.querySelectorAll('#beautify-page .beautify-panel');
-
-        buttons.forEach(btn => {
-            const target = btn.getAttribute('data-panel');
-            btn.classList.toggle('active', target === panel);
-        });
-
-        panels.forEach(dom => {
-            dom.classList.toggle('active', dom.id === `beautify-panel-${panel}`);
-        });
-    }
 
     function loadMomentsData() {
         const mainUser = userProfiles[0] || {};
@@ -13175,6 +13962,241 @@ function selectAvatarFromUserManager(element, avatarUrl) {
             showToast('保存失败: 图片可能过大');
         }
     }
+
+    // ---------------- 壁纸轮换（主屏/锁屏，最多 3 张，按时间段）----------------
+    var wallpaperRotationTimer = null;
+
+    function timeToMins(s) {
+        if (!s || typeof s !== 'string' || !/^[0-2]?\d:[0-5]\d$/.test(s)) return null;
+        const [h, m] = s.split(':').map(n => parseInt(n, 10));
+        return (h % 24) * 60 + (m % 60);
+    }
+
+    function isTimeInRange(nowMins, startMins, endMins) {
+        if (startMins == null || endMins == null) return false;
+        if (startMins === endMins) return false; // 空区间
+        if (startMins < endMins) {
+            return nowMins >= startMins && nowMins < endMins;
+        }
+        // 跨夜：22:00-06:00
+        return nowMins >= startMins || nowMins < endMins;
+    }
+
+    function pickActiveSlot(slots) {
+        if (!Array.isArray(slots) || slots.length === 0) return null;
+        const now = new Date();
+        const nowMins = now.getHours() * 60 + now.getMinutes();
+        for (const s of slots) {
+            const sm = timeToMins(s && s.start);
+            const em = timeToMins(s && s.end);
+            if (isTimeInRange(nowMins, sm, em)) return s;
+        }
+        return null;
+    }
+
+    function resolveSrc(slot, fallbackData, fallbackUrl) {
+        if (slot) {
+            if (slot.data) return slot.data;
+            if (slot.url) return slot.url;
+        }
+        if (fallbackData) return fallbackData;
+        if (fallbackUrl) return fallbackUrl;
+        return '';
+    }
+
+    function applyWallpaperRotationNow() {
+        try {
+            const mainEl = document.getElementById('main-screen');
+            const lockEl = document.getElementById('lock-screen');
+            if (!mainEl || !lockEl) return;
+
+            const cfg = beautifyConfig || {};
+
+            // 主屏
+            let mainSrc = '';
+            if (cfg.rotateMainEnabled && Array.isArray(cfg.rotateMain)) {
+                const active = pickActiveSlot(cfg.rotateMain);
+                mainSrc = resolveSrc(active, cfg.wpData, cfg.wpUrl);
+            } else {
+                mainSrc = resolveSrc(null, cfg.wpData, cfg.wpUrl);
+            }
+            if (mainSrc) {
+                mainEl.style.backgroundImage = `url(${mainSrc})`;
+                mainEl.style.backgroundColor = 'transparent';
+            }
+
+            // 锁屏
+            let lockSrc = '';
+            if (cfg.rotateLockEnabled && Array.isArray(cfg.rotateLock)) {
+                const activeL = pickActiveSlot(cfg.rotateLock);
+                lockSrc = resolveSrc(activeL, cfg.lockWpData, cfg.lockWpUrl);
+            } else {
+                lockSrc = resolveSrc(null, cfg.lockWpData, cfg.lockWpUrl);
+            }
+            lockEl.style.backgroundImage = lockSrc ? `url(${lockSrc})` : 'none';
+        } catch (e) {
+            console.warn('applyWallpaperRotationNow error:', e);
+        }
+    }
+
+    function startWallpaperRotationTimer() {
+        if (wallpaperRotationTimer) {
+            try { clearInterval(wallpaperRotationTimer); } catch(_) {}
+            wallpaperRotationTimer = null;
+        }
+        // 立即应用一次
+        applyWallpaperRotationNow();
+        // 每分钟检查一次
+        wallpaperRotationTimer = setInterval(applyWallpaperRotationNow, 60 * 1000);
+    }
+
+    function readFileAsDataURL(input) {
+        return new Promise(resolve => {
+            try {
+                const f = input && input.files && input.files[0];
+                if (!f) return resolve('');
+                const r = new FileReader();
+                r.onload = ev => resolve(ev.target.result || '');
+                r.onerror = () => resolve('');
+                r.readAsDataURL(f);
+            } catch (_) { resolve(''); }
+        });
+    }
+
+    async function saveWallpaperRotation() {
+        const mainEnabled = !!document.getElementById('main-rotate-enabled')?.checked;
+        const mainSlots = [];
+        for (let i = 1; i <= 3; i++) {
+            const start = document.getElementById(`main-rotate-${i}-start`)?.value || '';
+            const end   = document.getElementById(`main-rotate-${i}-end`)?.value || '';
+            const urlInput = document.getElementById(`main-rotate-${i}-url`);
+            const url   = urlInput?.value.trim() || '';
+            const fileEl= document.getElementById(`main-rotate-${i}-file`);
+            const data  = await readFileAsDataURL(fileEl);
+            if (!start && !end && !url && !data) continue;
+            if (timeToMins(start) === null || timeToMins(end) === null) continue;
+            if (!data && !url) continue;
+            mainSlots.push({ start, end, url, data });
+        }
+
+        const lockEnabled = !!document.getElementById('lock-rotate-enabled')?.checked;
+        const lockSlots = [];
+        for (let i = 1; i <= 3; i++) {
+            const start = document.getElementById(`lock-rotate-${i}-start`)?.value || '';
+            const end   = document.getElementById(`lock-rotate-${i}-end`)?.value || '';
+            const urlInput = document.getElementById(`lock-rotate-${i}-url`);
+            const url   = urlInput?.value.trim() || '';
+            const fileEl= document.getElementById(`lock-rotate-${i}-file`);
+            const data  = await readFileAsDataURL(fileEl);
+            if (!start && !end && !url && !data) continue;
+            if (timeToMins(start) === null || timeToMins(end) === null) continue;
+            if (!data && !url) continue;
+            lockSlots.push({ start, end, url, data });
+        }
+
+        beautifyConfig = {
+            ...(beautifyConfig || {}),
+            rotateMainEnabled: mainEnabled,
+            rotateLockEnabled: lockEnabled,
+            rotateMain: mainSlots,
+            rotateLock: lockSlots
+        };
+        setStorage('ai_beautify_config_v2', beautifyConfig);
+
+        for (let i = 1; i <= 3; i++) {
+            const f1 = document.getElementById(`main-rotate-${i}-file`);
+            const f2 = document.getElementById(`lock-rotate-${i}-file`);
+            if (f1) f1.value = '';
+            if (f2) f2.value = '';
+        }
+
+        startWallpaperRotationTimer();
+        showToast('壁纸轮换设置已保存');
+    }
+
+    function fillWallpaperRotationInputs() {
+        try {
+            const cfg = beautifyConfig || {};
+            const mEnabled = !!cfg.rotateMainEnabled;
+            const lEnabled = !!cfg.rotateLockEnabled;
+            const m = Array.isArray(cfg.rotateMain) ? cfg.rotateMain : [];
+            const l = Array.isArray(cfg.rotateLock) ? cfg.rotateLock : [];
+
+            const mEn = document.getElementById('main-rotate-enabled');
+            const lEn = document.getElementById('lock-rotate-enabled');
+            if (mEn) mEn.checked = mEnabled;
+            if (lEn) lEn.checked = lEnabled;
+
+            for (let i = 1; i <= 3; i++) {
+                const ms = m[i-1] || {};
+                const ls = l[i-1] || {};
+                const msStart = document.getElementById(`main-rotate-${i}-start`);
+                const msEnd   = document.getElementById(`main-rotate-${i}-end`);
+                const msUrl   = document.getElementById(`main-rotate-${i}-url`);
+                if (msStart) msStart.value = ms.start || '';
+                if (msEnd)   msEnd.value   = ms.end   || '';
+                if (msUrl)   msUrl.value   = ms.url   || '';
+
+                const lsStart = document.getElementById(`lock-rotate-${i}-start`);
+                const lsEnd   = document.getElementById(`lock-rotate-${i}-end`);
+                const lsUrl   = document.getElementById(`lock-rotate-${i}-url`);
+                if (lsStart) lsStart.value = ls.start || '';
+                if (lsEnd)   lsEnd.value   = ls.end   || '';
+                if (lsUrl)   lsUrl.value   = ls.url   || '';
+            }
+
+            initWallpaperRotationCollapse();
+        } catch (e) {
+            // 忽略 UI 回填错误
+        }
+    }
+
+    function initWallpaperRotationCollapse() {
+        const bindings = [
+            ['main-rotate-enabled', 'main-rotate-container'],
+            ['lock-rotate-enabled', 'lock-rotate-container']
+        ];
+
+        bindings.forEach(([checkboxId, containerId]) => {
+            const checkbox = document.getElementById(checkboxId);
+            const container = document.getElementById(containerId);
+            if (!checkbox || !container) return;
+
+            toggleCollapse(containerId, !!checkbox.checked);
+
+            if (checkbox.dataset.collapseBound === '1') {
+                if (checkbox.checked) {
+                    requestAnimationFrame(() => {
+                        container.style.maxHeight = container.scrollHeight + 'px';
+                    });
+                }
+                return;
+            }
+
+            checkbox.dataset.collapseBound = '1';
+            checkbox.addEventListener('change', () => {
+                toggleCollapse(containerId, !!checkbox.checked);
+                if (checkbox.checked) {
+                    requestAnimationFrame(() => {
+                        container.style.maxHeight = container.scrollHeight + 'px';
+                    });
+                }
+            });
+        });
+    }
+
+    // 页面加载后回填一次输入并启动定时
+    if (document && document.addEventListener) {
+        document.addEventListener('DOMContentLoaded', () => {
+            fillWallpaperRotationInputs();
+            initWallpaperRotationCollapse();
+            startWallpaperRotationTimer();
+        });
+    } else {
+        // 兜底：直接启动
+        try { startWallpaperRotationTimer(); } catch(_) {}
+    }
+
     // 聊天界面美化：应用背景与自定义 CSS
     function applyChatAppearance() {
         const chatArea = document.getElementById('msg-area');
@@ -14308,7 +15330,128 @@ function sendTakeoutMessage() {
         showToast('全局 CSS 已恢复默认');
     }
 
+    const LOCK_PATTERN_POINT_MAP = {
+        '1': [50, 50],
+        '2': [150, 50],
+        '3': [250, 50],
+        '4': [50, 150],
+        '5': [150, 150],
+        '6': [250, 150],
+        '7': [50, 250],
+        '8': [150, 250],
+        '9': [250, 250]
+    };
+
+    function normalizeLockPatternValue(pattern) {
+        const raw = Array.isArray(pattern)
+            ? pattern.map(v => String(v || '').trim())
+            : String(pattern || '').split(/[^1-9]+/).map(v => v.trim());
+        const unique = [];
+        raw.forEach(v => {
+            if (!/^[1-9]$/.test(v)) return;
+            if (!unique.includes(v)) unique.push(v);
+        });
+        return unique.join('-');
+    }
+
+    function renderLockPatternState(gridEl, linesEl, patternValue, options = {}) {
+        if (!gridEl || !linesEl) return;
+        const normalized = normalizeLockPatternValue(patternValue);
+        const stroke = options.stroke || 'rgba(255,255,255,0.88)';
+        gridEl.dataset.pattern = normalized;
+        gridEl.style.setProperty('--lock-pattern-line-color', stroke);
+
+        const dots = Array.from(gridEl.querySelectorAll('[data-dot]'));
+        const activeSet = new Set(normalized ? normalized.split('-') : []);
+        dots.forEach(dot => {
+            dot.classList.toggle('active', activeSet.has(dot.dataset.dot || ''));
+        });
+
+        const points = normalized ? normalized.split('-').map(key => LOCK_PATTERN_POINT_MAP[key]).filter(Boolean) : [];
+        if (points.length < 2) {
+            linesEl.innerHTML = '';
+            return;
+        }
+
+        const polylinePoints = points.map(([x, y]) => `${x},${y}`).join(' ');
+        linesEl.innerHTML = `<polyline points="${polylinePoints}" fill="none" stroke="var(--lock-pattern-line-color, ${stroke})" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"></polyline>`;
+    }
+
+    function bindLockPatternGrid(gridEl, linesEl, onComplete, options = {}) {
+        if (!gridEl || !linesEl || gridEl.dataset.patternBound === '1') return;
+        gridEl.dataset.patternBound = '1';
+        const stroke = options.stroke || 'rgba(255,255,255,0.88)';
+        let drawing = false;
+        let sequence = [];
+
+        const resolveDot = (target) => {
+            if (!target) return null;
+            const dot = target.closest('[data-dot]');
+            return dot && gridEl.contains(dot) ? dot : null;
+        };
+
+        const addDot = (dotEl) => {
+            if (!dotEl) return;
+            const dotValue = dotEl.dataset.dot || '';
+            if (!/^[1-9]$/.test(dotValue) || sequence.includes(dotValue)) return;
+            sequence.push(dotValue);
+            renderLockPatternState(gridEl, linesEl, sequence.join('-'), { stroke });
+        };
+
+        const startDrawing = (dotEl) => {
+            if (!dotEl) return;
+            drawing = true;
+            sequence = [];
+            addDot(dotEl);
+        };
+
+        const pickDotFromPoint = (clientX, clientY) => {
+            const pointEl = document.elementFromPoint(clientX, clientY);
+            return resolveDot(pointEl);
+        };
+
+        const finishDrawing = () => {
+            if (!drawing) return;
+            drawing = false;
+            const patternValue = sequence.join('-');
+            if (typeof onComplete === 'function') onComplete(patternValue, sequence.slice());
+            sequence = [];
+        };
+
+        gridEl.addEventListener('mousedown', (e) => {
+            const dot = resolveDot(e.target);
+            if (!dot) return;
+            e.preventDefault();
+            startDrawing(dot);
+        });
+        window.addEventListener('mousemove', (e) => {
+            if (!drawing) return;
+            addDot(pickDotFromPoint(e.clientX, e.clientY));
+        });
+        window.addEventListener('mouseup', finishDrawing);
+
+        gridEl.addEventListener('touchstart', (e) => {
+            const touch = e.touches && e.touches[0];
+            if (!touch) return;
+            const dot = pickDotFromPoint(touch.clientX, touch.clientY);
+            if (!dot) return;
+            startDrawing(dot);
+        }, { passive: true });
+        gridEl.addEventListener('touchmove', (e) => {
+            if (!drawing) return;
+            const touch = e.touches && e.touches[0];
+            if (!touch) return;
+            addDot(pickDotFromPoint(touch.clientX, touch.clientY));
+        }, { passive: true });
+        gridEl.addEventListener('touchend', finishDrawing, { passive: true });
+        gridEl.addEventListener('touchcancel', finishDrawing, { passive: true });
+    }
+
     // --- 11.4. 图标设置 ---
+    // =========================================================================
+    // ------------------ XI. APPEARANCE SETTINGS (ICONS & WALLPAPERS) ---------
+    // =========================================================================
+
     function applyAppIcons() {
         const icons = beautifyConfig.icons || {};
         appIconIds.forEach(id => {
@@ -14330,17 +15473,6 @@ function sendTakeoutMessage() {
 
             iconEl.style.backgroundColor = '#fbe5d3';
 
-            // 孵蛋室：强制使用原始内联 SVG，隐藏 img，避免因为 dataURL 或自定义配置导致图标不可见
-            if (id === 'hatchery') {
-                if (img) {
-                    img.style.display = 'none';
-                }
-                if (svg) {
-                    svg.style.display = 'block';
-                }
-                return;
-            }
-
             if (source) {
                 img.src = source;
                 img.style.display = 'block';
@@ -14355,21 +15487,41 @@ function sendTakeoutMessage() {
         });
     }
 
-    function saveAppIcons() {
+
+    async function saveAppIcons() {
         if (!beautifyConfig.icons) beautifyConfig.icons = {};
-        appIconIds.forEach(id => {
-            const inputEl = document.getElementById(`icon-url-${id}`);
-            if (inputEl) {
-                const url = inputEl.value.trim();
-                beautifyConfig.icons[id] = url;
+
+        try {
+            for (const id of appIconIds) {
+                const inputEl = document.getElementById(`icon-url-${id}`);
+                const fileEl = document.getElementById(`icon-file-${id}`);
+                const url = inputEl ? inputEl.value.trim() : '';
+                const file = fileEl && fileEl.files && fileEl.files[0] ? fileEl.files[0] : null;
+
+                if (file) {
+                    beautifyConfig.icons[id] = await new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onload = (ev) => resolve(String(ev.target && ev.target.result ? ev.target.result : ''));
+                        reader.onerror = () => reject(new Error(`读取 ${id} 图标失败`));
+                        reader.readAsDataURL(file);
+                    });
+                } else {
+                    beautifyConfig.icons[id] = url;
+                }
             }
-        });
+        } catch (e) {
+            showToast('图标读取失败，请重试');
+            return;
+        }
+
         setStorage('ai_beautify_config_v2', beautifyConfig);
         applyAppIcons();
         // 应用完成后清空所有图标输入框
         appIconIds.forEach(id => {
             const inputEl = document.getElementById(`icon-url-${id}`);
+            const fileEl = document.getElementById(`icon-file-${id}`);
             if (inputEl) inputEl.value = '';
+            if (fileEl) fileEl.value = '';
         });
         showToast('图标已保存并应用');
     }
@@ -14435,13 +15587,31 @@ function sendTakeoutMessage() {
     const model = document.getElementById('api-model').value.trim();
     const temp  = parseFloat(document.getElementById('api-temperature').value || '0.7');
 
+    // 副 API 字段
+    const api2EnabledEl = document.getElementById('api2-enabled');
+    const api2ProviderSelect = document.getElementById('api2-provider');
+    const api2Provider = api2ProviderSelect ? api2ProviderSelect.value : ((config.api2 && config.api2.provider) || 'custom');
+
+    const url2   = (document.getElementById('api2-url')?.value || '').trim();
+    const key2   = (document.getElementById('api2-key')?.value || '').trim();
+    const model2 = (document.getElementById('api2-model')?.value || '').trim();
+    const temp2  = parseFloat(document.getElementById('api2-temperature')?.value || '0.7');
+
     config = {
         ...(config || {}),
         provider,
         url,
         key,
         model,
-        temperature: isNaN(temp) ? 0.7 : temp
+        temperature: isNaN(temp) ? 0.7 : temp,
+        api2: {
+            enabled: !!(api2EnabledEl && api2EnabledEl.checked),
+            provider: api2Provider,
+            url: url2,
+            key: key2,
+            model: model2,
+            temperature: isNaN(temp2) ? 0.7 : temp2
+        }
     };
 
     setStorage('ai_phone_config', config);
@@ -14455,25 +15625,45 @@ function saveLockSettings() {
     modeRadios.forEach(r => { if (r.checked) selectedMode = r.value; });
 
     const passInput = document.getElementById('lock-passcode-input');
+    const patternGrid = document.getElementById('lock-pattern-preview-grid');
     let passcode = (passInput?.value || '').trim();
+    const patternValue = normalizeLockPatternValue((patternGrid && patternGrid.dataset ? patternGrid.dataset.pattern : '') || (config.lockPattern || ''));
+    const patternCount = patternValue ? patternValue.split('-').length : 0;
+
+    const len4El = document.getElementById('lock-passcode-length-4');
+    const len6El = document.getElementById('lock-passcode-length-6');
+    let passLen = 4;
+    if (len6El && len6El.checked) passLen = 6;
+
     if (selectedMode === 'swipe_passcode') {
-        if (!/^\d{4}$/.test(passcode)) {
-            showToast('请填写 4 位数字密码');
+        const regex = passLen === 6 ? /^\d{6}$/ : /^\d{4}$/;
+        if (!regex.test(passcode)) {
+            showToast(passLen === 6 ? '请填写 6 位数字密码' : '请填写 4 位数字密码');
             return;
         }
     } else {
-        // 非密码模式时，如果没填密码就保持原来的设置
-        if (!/^\d{4}$/.test(passcode)) {
+        const regex = passLen === 6 ? /^\d{6}$/ : /^\d{4}$/;
+        if (!regex.test(passcode)) {
             passcode = config.lockPasscode || '1234';
         }
+    }
+
+    if (selectedMode === 'pattern' && patternCount < 4) {
+        showToast('请先绘制至少 4 个点的图案密码');
+        return;
     }
 
     config = {
         ...(config || {}),
         lockMode: selectedMode,
-        lockPasscode: passcode || (config.lockPasscode || '1234')
+        lockPasscode: passcode || (config.lockPasscode || '1234'),
+        lockPasscodeLength: passLen,
+        lockPattern: patternCount >= 4 ? patternValue : (config.lockPattern || '')
     };
     setStorage('ai_phone_config', config);
+    if (typeof window.applyCurrentLockModeUI === 'function') {
+        window.applyCurrentLockModeUI();
+    }
     showToast('锁屏设置已保存');
 }
 
@@ -14604,17 +15794,47 @@ function initSettingsPage() {
     // 初始化锁屏设置模块：回填解锁方式与密码
     const mode = cfg.lockMode || 'slider';
     const passcode = cfg.lockPasscode || '1234';
+    const passLen = cfg.lockPasscodeLength === 6 ? 6 : 4;
+    const savedPattern = normalizeLockPatternValue(cfg.lockPattern || '');
     const modeSlider = document.getElementById('lock-mode-slider');
     const modeSwipe = document.getElementById('lock-mode-swipe');
     const modeSwipePass = document.getElementById('lock-mode-swipe-passcode');
+    const modePattern = document.getElementById('lock-mode-pattern');
+    const modeDoubleTap = document.getElementById('lock-mode-double-tap');
     if (modeSlider && modeSwipe && modeSwipePass) {
         if (mode === 'swipe') modeSwipe.checked = true;
         else if (mode === 'swipe_passcode') modeSwipePass.checked = true;
+        else if (mode === 'pattern' && modePattern) modePattern.checked = true;
+        else if (mode === 'double_tap' && modeDoubleTap) modeDoubleTap.checked = true;
         else modeSlider.checked = true;
     }
     const passInput = document.getElementById('lock-passcode-input');
     if (passInput && passcode) {
         passInput.value = passcode;
+        passInput.maxLength = passLen;
+        passInput.placeholder = passLen === 6 ? '6位数字密码' : '4位或6位数字密码';
+    }
+    const len4 = document.getElementById('lock-passcode-length-4');
+    const len6 = document.getElementById('lock-passcode-length-6');
+    if (len4 && len6) {
+        if (passLen === 6) {
+            len6.checked = true;
+        } else {
+            len4.checked = true;
+        }
+    }
+    const modePassLabel = document.getElementById('lock-mode-passcode-label');
+    if (modePassLabel) {
+        modePassLabel.textContent = passLen === 6 ? '上滑后输入 6 位密码' : '上滑后输入 4 位密码';
+    }
+    const previewGrid = document.getElementById('lock-pattern-preview-grid');
+    const previewLines = document.getElementById('lock-pattern-preview-lines');
+    const previewText = document.getElementById('lock-pattern-preview-text');
+    renderLockPatternState(previewGrid, previewLines, savedPattern, { stroke: '#111111' });
+    if (previewText) {
+        previewText.textContent = savedPattern
+            ? `当前图案：${savedPattern.replace(/-/g, ' → ')}`
+            : '按住并连线绘制至少 4 个点的图案，保存后即可用于解锁。';
     }
 
     // 1. 恢复基础配置
@@ -14641,6 +15861,53 @@ function initSettingsPage() {
             applyProviderDefaults(providerSelect.value, { urlInput, modelInput }, true);
             updateProviderFieldVisibility(providerSelect.value);
         };
+    }
+
+    // 2.1 副 API 初始化与联动
+    const api2EnabledEl = document.getElementById('api2-enabled');
+    const provider2Select = document.getElementById('api2-provider');
+    const url2Input   = document.getElementById('api2-url');
+    const key2Input   = document.getElementById('api2-key');
+    const model2Input = document.getElementById('api2-model');
+    const slider2     = document.getElementById('api2-temperature');
+    const display2    = document.getElementById('temperature2-value-display');
+
+    const cfg2 = (cfg.api2 || {});
+    if (api2EnabledEl) api2EnabledEl.checked = !!cfg2.enabled;
+    if (provider2Select) provider2Select.value = cfg2.provider || 'custom';
+    if (url2Input)   url2Input.value   = cfg2.url   || '';
+    if (key2Input)   key2Input.value   = cfg2.key   || '';
+    if (model2Input) model2Input.value = cfg2.model || '';
+    if (slider2 && display2) {
+        const saved2 = cfg2.temperature === undefined ? 0.7 : cfg2.temperature;
+        slider2.value = saved2;
+        display2.textContent = parseFloat(saved2).toFixed(1);
+        slider2.oninput = (e) => {
+            display2.textContent = parseFloat(e.target.value).toFixed(1);
+        };
+    }
+
+    // 2.2 副 API 提供商预设与可见性
+    if (provider2Select) {
+        applyProviderDefaults2(provider2Select.value, { urlInput: url2Input, modelInput: model2Input }, false);
+        updateProviderFieldVisibility2(provider2Select.value);
+        provider2Select.onchange = () => {
+            applyProviderDefaults2(provider2Select.value, { urlInput: url2Input, modelInput: model2Input }, true);
+            updateProviderFieldVisibility2(provider2Select.value);
+        };
+    }
+
+    // 2.3 副 API 开关控制禁用状态
+    function setApi2Disabled(disabled) {
+        if (provider2Select) provider2Select.disabled = disabled;
+        if (url2Input) url2Input.disabled = disabled;
+        if (key2Input) key2Input.disabled = disabled;
+        if (model2Input) model2Input.disabled = disabled;
+        if (slider2) slider2.disabled = disabled;
+    }
+    if (api2EnabledEl) {
+        setApi2Disabled(!api2EnabledEl.checked);
+        api2EnabledEl.onchange = () => setApi2Disabled(!api2EnabledEl.checked);
     }
 
     // 3. 渲染配置管理中的列表
@@ -14738,6 +16005,10 @@ function applyProviderDefaults(provider, fields, overwriteUserInput) {
 }
 
     function getEndpoint(base) {
+        if (!base || typeof base !== 'string') {
+            alert('请先在设置里配置 API 地址和 Key，然后再试一次。');
+            throw new Error('API 地址未配置或格式错误');
+        }
         base = base.replace(/\/+$/, '');
         if (base.endsWith('/v1')) return base;
         return base + '/v1';
@@ -14781,6 +16052,60 @@ function applyProviderDefaults(provider, fields, overwriteUserInput) {
         const baseUrl = document.getElementById('api-url').value.trim();
         alert(`测试请求将发送到: ${getEndpoint(baseUrl)}/models`);
         fetchModels();
+    }
+
+    // --- 副 API 的模型拉取与显示控制 ---
+    function fetchModels2() {
+        const baseUrl = (document.getElementById('api2-url')?.value || '').trim();
+        const apiKey  = (document.getElementById('api2-key')?.value || '').trim();
+        if (!baseUrl || !apiKey) return showToast('请填写地址和 Key');
+
+        fetch(getEndpoint(baseUrl) + '/models', {
+            method: 'GET',
+            headers: { 'Authorization': `Bearer ${apiKey}` }
+        }).then(async res => {
+            if (!res.ok) throw new Error(`${res.status} ${await res.text()}`);
+            const data = await res.json();
+            const list = Array.isArray(data.data) ? data.data : [];
+            const ids = list.map(m => m.id).filter(Boolean);
+            if (ids.length === 0) return showToast('未获取到模型列表');
+            const first = ids[0];
+            const input = document.getElementById('api2-model');
+            if (input) input.value = first;
+            showToast(`已获取到 ${ids.length} 个模型，已填入第一个：${first}`);
+        }).catch(err => {
+            console.error('fetchModels2 error:', err);
+            showToast('拉取失败：' + err.message);
+        });
+    }
+
+    function updateProviderFieldVisibility2(provider) {
+        const urlRow   = document.getElementById('api2-url-row');
+        const keyRow   = document.getElementById('api2-key-row');
+        const modelRow = document.getElementById('api2-model-row');
+        const usage = {
+            custom: { url: true,  key: true, model: true },
+            openai: { url: false, key: true, model: true },
+            google: { url: true,  key: true, model: true },
+            claude: { url: false, key: true, model: true }
+        };
+        const u = usage[provider] || usage.custom;
+        if (urlRow)   urlRow.style.display   = u.url   ? 'flex' : 'none';
+        if (keyRow)   keyRow.style.display   = u.key   ? 'flex' : 'none';
+        if (modelRow) modelRow.style.display = u.model ? 'flex' : 'none';
+    }
+
+    function applyProviderDefaults2(provider, fields, overwriteUserInput) {
+        const { urlInput, modelInput } = fields;
+        const presets = {
+            custom: { url: '', model: '' },
+            openai: { url: 'https://api.openai.com/v1', model: 'gpt-3.5-turbo' },
+            google: { url: 'https://generativelanguage.googleapis.com/v1beta', model: 'gemini-1.5-flash' },
+            claude: { url: 'https://api.anthropic.com/v1', model: 'claude-3-5-sonnet-latest' }
+        };
+        const preset = presets[provider] || presets.custom;
+        if (urlInput && (overwriteUserInput || !urlInput.value)) urlInput.value = preset.url;
+        if (modelInput && (overwriteUserInput || !modelInput.value)) modelInput.value = preset.model;
     }
 
     function closeModelPicker() {
@@ -17257,6 +18582,7 @@ async function generateHatcheryWorldbook() {
     const formatEl = document.getElementById('hatchery-world-format');
     const outputEl = document.getElementById('hatchery-world-output');
     const btn = document.getElementById('hatchery-world-btn');
+    const statusEl = document.getElementById('hatchery-world-status');
 
     if (!briefEl || !outputEl) return;
     const brief = briefEl.value.trim();
@@ -17269,6 +18595,10 @@ async function generateHatcheryWorldbook() {
         if (btn) {
             btn.disabled = true;
             btn.classList.add('loading');
+        }
+        if (statusEl) {
+            statusEl.textContent = '等待生成完毕';
+            statusEl.style.display = 'block';
         }
         showToast('正在生成世界书...');
 
@@ -17293,6 +18623,9 @@ async function generateHatcheryWorldbook() {
             btn.disabled = false;
             btn.classList.remove('loading');
         }
+        if (statusEl) {
+            statusEl.style.display = 'none';
+        }
     }
 }
 
@@ -17300,6 +18633,7 @@ async function generateHatcheryCss() {
     const inputEl = document.getElementById('hatchery-css-input');
     const outputEl = document.getElementById('hatchery-css-output');
     const btn = document.getElementById('hatchery-css-btn');
+    const statusEl = document.getElementById('hatchery-css-status');
 
     if (!inputEl || !outputEl) return;
     const brief = inputEl.value.trim();
@@ -17310,6 +18644,10 @@ async function generateHatcheryCss() {
         if (btn) {
             btn.disabled = true;
             btn.classList.add('loading');
+        }
+        if (statusEl) {
+            statusEl.textContent = '等待生成完毕';
+            statusEl.style.display = 'block';
         }
         showToast('正在生成 CSS 美化方案...');
 
@@ -17334,6 +18672,9 @@ async function generateHatcheryCss() {
             btn.disabled = false;
             btn.classList.remove('loading');
         }
+        if (statusEl) {
+            statusEl.style.display = 'none';
+        }
     }
 }
 
@@ -17352,6 +18693,903 @@ function applyHatcheryCssToGlobal() {
     applyGlobalBeautifyCss();
     showToast('已将孵蛋室生成的 CSS 应用于全局美化');
 }
+
+// ==========================
+// 孵蛋室 · 文风设计生成 & 预设管理
+// ==========================
+const HATCHERY_STYLE_TEMPLATE_PRESET_KEY = 'hatchery_style_template_presets_v1';
+
+function getHatcheryStyleTemplatePresets() {
+    return getStorage(HATCHERY_STYLE_TEMPLATE_PRESET_KEY, []);
+}
+
+function setHatcheryStyleTemplatePresets(list) {
+    setStorage(HATCHERY_STYLE_TEMPLATE_PRESET_KEY, list || []);
+}
+
+async function generateHatcheryStyle() {
+    const briefEl = document.getElementById('hatchery-style-input');
+    const templateEl = document.getElementById('hatchery-style-template');
+    const outputEl = document.getElementById('hatchery-style-output');
+    const btn = document.getElementById('hatchery-style-btn');
+    const statusEl = document.getElementById('hatchery-style-status');
+
+    if (!briefEl || !outputEl) return;
+    const brief = briefEl.value.trim();
+    const template = templateEl ? templateEl.value.trim() : '';
+    if (!brief) return showToast('请先写一点文风需求说明');
+    if (!config.key || !config.url) return showToast('请先在「设置」中配置 API！');
+
+    let success = false;
+    try {
+        if (btn) {
+            btn.disabled = true;
+            btn.classList.add('loading');
+        }
+        if (statusEl) {
+            statusEl.textContent = '等待生成完毕';
+            statusEl.style.display = 'block';
+        }
+        showToast('正在生成文风设计...');
+
+        const prompt = `你现在是一名「中文文风设计师」。\n`
+            + `请根据用户的需求，产出一份可落地的“文风设计规范”。\n\n`
+            + `【（可选）文风模板或规范】\n${template || '（未提供模板，可自行组织合理结构）'}\n\n`
+            + `【文风需求说明】\n${brief}\n\n`
+            + `【输出要求】\n`
+            + `1. 只输出 Markdown 文本，不要使用代码块标记，不要加解释性前言。\n`
+            + `2. 推荐包含的章节：定位与基调 / 叙述视角 / 句式与节奏 / 词汇与措辞 / 修辞偏好 / 禁忌 / 风格检查清单 / 句式模板清单 / 示例片段（50-120 字）。\n`
+            + `3. 若提供了模板，请尽量沿用其结构与字段，仅替换内容并补充必要细项。`;
+
+        const raw = await getCompletion(prompt, false);
+        outputEl.value = raw.trim();
+        outputEl.scrollTop = 0;
+        success = true;
+    } catch (e) {
+        console.error('生成文风设计失败:', e);
+        showToast('生成文风设计失败：' + e.message);
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.classList.remove('loading');
+        }
+        if (statusEl) {
+            statusEl.style.display = 'none';
+        }
+        if (success && briefEl) {
+            briefEl.value = '';
+        }
+    }
+}
+
+async function modifyHatcheryStyle() {
+    const briefEl = document.getElementById('hatchery-style-input');
+    const templateEl = document.getElementById('hatchery-style-template');
+    const outputEl = document.getElementById('hatchery-style-output');
+    const btn = document.getElementById('hatchery-style-edit-btn');
+    const statusEl = document.getElementById('hatchery-style-status');
+
+    if (!briefEl || !outputEl) return;
+    const instructions = briefEl.value.trim();
+    const original = outputEl.value.trim();
+    const template = templateEl ? templateEl.value.trim() : '';
+
+    if (!original) return showToast('请先生成一份文风设计，再尝试修改');
+    if (!instructions) return showToast('请在文风说明中写下你想修改或补充的内容');
+    if (!config.key || !config.url) return showToast('请先在「设置」中配置 API！');
+
+    let success = false;
+    try {
+        if (btn) {
+            btn.disabled = true;
+            btn.classList.add('loading');
+        }
+        if (statusEl) {
+            statusEl.textContent = '等待修改完毕';
+            statusEl.style.display = 'block';
+        }
+        showToast('正在修改文风设计...');
+
+        const prompt = `你现在是一名“文风设计修改器”。\n`
+            + `请在尽量保持原有结构与章节不变的前提下，根据用户需求对文风规范进行增删改，并输出完整结果。\n\n`
+            + `【（可能存在的）文风模板】\n${template || '（若为空，则以原稿结构为准）'}\n\n`
+            + `【原始文风设计】\n${original}\n\n`
+            + `【修改需求】\n${instructions}\n\n`
+            + `【输出要求】\n`
+            + `1. 输出一份完整的 Markdown 文本，保持原有的章节顺序为主，可在需要处新增。\n`
+            + `2. 不要添加任何解释文字或代码块标记。`;
+
+        const raw = await getCompletion(prompt, false);
+        outputEl.value = raw.trim();
+        outputEl.scrollTop = 0;
+        success = true;
+    } catch (e) {
+        console.error('修改文风设计失败:', e);
+        showToast('修改文风设计失败：' + e.message);
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.classList.remove('loading');
+        }
+        if (statusEl) {
+            statusEl.style.display = 'none';
+        }
+        if (success && briefEl) {
+            briefEl.value = '';
+        }
+    }
+}
+
+function copyHatcheryStyle() {
+    const outputEl = document.getElementById('hatchery-style-output');
+    if (!outputEl) return;
+    const text = outputEl.value.trim();
+    if (!text) {
+        showToast('当前还没有可复制的文风内容');
+        return;
+    }
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text)
+            .then(() => showToast('文风内容已复制到剪贴板'))
+            .catch(() => {
+                fallbackCopyHatcheryStyle(text);
+            });
+    } else {
+        fallbackCopyHatcheryStyle(text);
+    }
+}
+
+function fallbackCopyHatcheryStyle(text) {
+    try {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.left = '-9999px';
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        showToast('文风内容已复制到剪贴板');
+    } catch (e) {
+        console.error('复制文风失败:', e);
+        showToast('复制失败，请手动选择文本复制');
+    }
+}
+
+function openHatcheryStyleTemplatePresets() {
+    const root = document.getElementById('popup-layers') || document.body;
+
+    let overlay = document.getElementById('hatchery-style-template-overlay');
+    let container = document.getElementById('hatchery-style-template-modal');
+
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'hatchery-style-template-overlay';
+        overlay.className = 'modal-overlay active';
+        overlay.addEventListener('click', function(e) {
+            if (e.target === overlay) {
+                closeHatcheryStyleTemplatePresets();
+            }
+        });
+        root.appendChild(overlay);
+    } else {
+        overlay.classList.add('active');
+    }
+
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'hatchery-style-template-modal';
+        container.className = 'modal-container active';
+        container.innerHTML = `
+            <div class="modal-content" style="width:92%; max-width:460px; background:#fff; border-radius:12px;">
+                <div class="modal-header" style="padding:14px 16px; font-weight:700; border-bottom:1px solid #e5e5e5; display:flex; justify-content:space-between; align-items:center;">
+                    <span>文风模板预设</span>
+                    <button type="button" class="close-button" onclick="closeHatcheryStyleTemplatePresets()" style="background:none; border:none; font-size:20px; cursor:pointer;">×</button>
+                </div>
+                <div class="modal-body" id="hatchery-style-template-preset-body" style="padding:16px; max-height:60vh; overflow:auto;"></div>
+            </div>`;
+        root.appendChild(container);
+    } else {
+        container.classList.add('active');
+    }
+
+    renderHatcheryStyleTemplatePresets();
+}
+
+function renderHatcheryStyleTemplatePresets() {
+    const body = document.getElementById('hatchery-style-template-preset-body');
+    if (!body) return;
+
+    const presets = getHatcheryStyleTemplatePresets();
+    const templateEl = document.getElementById('hatchery-style-template');
+    const currentTemplate = templateEl ? templateEl.value.trim() : '';
+
+    const formHtml = `
+        <div class="setting-card" style="margin-bottom:12px;">
+            <div class="setting-row">
+                <label class="setting-label">保存当前模板为预设</label>
+            </div>
+            <div class="setting-row sub-row">
+                <label>名称</label>
+                <input id="hatchery-style-template-preset-name" class="neo-input" placeholder="例如：克制一人称规范" />
+            </div>
+            <div class="setting-row sub-row" style="font-size:12px; color:#666;">
+                当前会保存「文风模板」输入框中的全部内容。
+            </div>
+            <div class="setting-row sub-row" style="display:flex; gap:8px;">
+                <button type="button" class="neo-btn-small" id="hatchery-style-template-save-btn">保存/更新预设</button>
+            </div>
+        </div>`;
+
+    const listItems = presets.map(p => {
+        const preview = (p.template || '').slice(0, 40).replace(/\n/g, ' ');
+        return `
+            <div class="worldbook-bind-item" style="justify-content:space-between;">
+                <div style="display:flex; flex-direction:column;">
+                    <strong>${escapeHTML(p.name || '')}</strong>
+                    <span style="font-size:12px; color:#666;">${escapeHTML(preview)}${p.template && p.template.length > 40 ? '…' : ''}</span>
+                </div>
+                <div style="display:flex; gap:6px;">
+                    <button type="button" class="neo-btn-small" onclick="applyHatcheryStyleTemplatePreset('${p.id}')">填入</button>
+                    <button type="button" class="neo-btn-small" onclick="deleteHatcheryStyleTemplatePreset('${p.id}')">删除</button>
+                </div>
+            </div>`;
+    }).join('');
+
+    const listHtml = `
+        <div class="setting-card">
+            <div class="setting-row">
+                <label class="setting-label">我的文风模板预设</label>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:10px;">
+                ${listItems || '<div style="color:#999; text-align:center; padding:10px;">暂无预设，先在上方保存一个</div>'}
+            </div>
+        </div>`;
+
+    body.innerHTML = formHtml + listHtml;
+
+    const saveBtn = document.getElementById('hatchery-style-template-save-btn');
+    if (saveBtn) {
+        saveBtn.onclick = saveHatcheryStyleTemplatePresetFromModal;
+    }
+
+    // 如果当前模板有内容但名称为空，提供一个默认建议名称
+    const nameInput = document.getElementById('hatchery-style-template-preset-name');
+    if (nameInput && currentTemplate && !nameInput.value) {
+        nameInput.placeholder = '例如：当前模板 ' + new Date().toLocaleTimeString();
+    }
+}
+
+function saveHatcheryStyleTemplatePresetFromModal() {
+    const nameInput = document.getElementById('hatchery-style-template-preset-name');
+    const templateEl = document.getElementById('hatchery-style-template');
+    if (!nameInput || !templateEl) return;
+
+    const name = nameInput.value.trim();
+    const template = templateEl.value.trim();
+    if (!template) {
+        showToast('当前模板为空，无法保存为预设');
+        return;
+    }
+    if (!name) {
+        showToast('请先给模板预设起一个名字');
+        return;
+    }
+
+    let presets = getHatcheryStyleTemplatePresets();
+    const existing = presets.find(p => p.name === name);
+    if (existing) {
+        existing.template = template;
+        showToast('已更新同名模板预设');
+    } else {
+        presets.push({ id: 'hst_' + Date.now(), name, template });
+        showToast('模板预设已保存');
+    }
+    setHatcheryStyleTemplatePresets(presets);
+    renderHatcheryStyleTemplatePresets();
+}
+
+function applyHatcheryStyleTemplatePreset(id) {
+    const presets = getHatcheryStyleTemplatePresets();
+    const target = presets.find(p => p.id === id);
+    if (!target) return;
+
+    const templateEl = document.getElementById('hatchery-style-template');
+    if (templateEl) {
+        templateEl.value = target.template || '';
+    }
+    closeHatcheryStyleTemplatePresets();
+    showToast('已应用模板预设：' + (target.name || ''));
+}
+
+function deleteHatcheryStyleTemplatePreset(id) {
+    if (!confirm('确定删除这个模板预设吗？此操作不可恢复')) return;
+    let presets = getHatcheryStyleTemplatePresets();
+    presets = presets.filter(p => p.id !== id);
+    setHatcheryStyleTemplatePresets(presets);
+    renderHatcheryStyleTemplatePresets();
+}
+
+function closeHatcheryStyleTemplatePresets() {
+    const overlay = document.getElementById('hatchery-style-template-overlay');
+    const container = document.getElementById('hatchery-style-template-modal');
+    if (overlay) overlay.remove();
+    if (container) container.remove();
+}
+
+// 显式挂到全局，确保内联 onclick 可用
+window.openHatcheryStyleTemplatePresets = openHatcheryStyleTemplatePresets;
+window.saveHatcheryStyleTemplatePresetFromModal = saveHatcheryStyleTemplatePresetFromModal;
+window.applyHatcheryStyleTemplatePreset = applyHatcheryStyleTemplatePreset;
+window.deleteHatcheryStyleTemplatePreset = deleteHatcheryStyleTemplatePreset;
+window.closeHatcheryStyleTemplatePresets = closeHatcheryStyleTemplatePresets;
+
+// 文风页面核心动作（供 index.html 内联 onclick 使用）
+window.generateHatcheryStyle = generateHatcheryStyle;
+window.modifyHatcheryStyle = modifyHatcheryStyle;
+window.copyHatcheryStyle = copyHatcheryStyle;
+
+// ==========================
+// 孵蛋室 · 世界书模板预设管理
+// ==========================
+const HATCHERY_WORLD_TEMPLATE_PRESET_KEY = 'hatchery_world_template_presets_v1';
+function getHatcheryWorldTemplatePresets() { return getStorage(HATCHERY_WORLD_TEMPLATE_PRESET_KEY, []); }
+function setHatcheryWorldTemplatePresets(list) { setStorage(HATCHERY_WORLD_TEMPLATE_PRESET_KEY, list || []); }
+
+function openHatcheryWorldTemplatePresets() {
+    const root = document.getElementById('popup-layers') || document.body;
+    let overlay = document.getElementById('hatchery-world-template-overlay');
+    let container = document.getElementById('hatchery-world-template-modal');
+
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'hatchery-world-template-overlay';
+        overlay.className = 'modal-overlay active';
+        overlay.addEventListener('click', function(e) { if (e.target === overlay) closeHatcheryWorldTemplatePresets(); });
+        root.appendChild(overlay);
+    } else {
+        overlay.classList.add('active');
+    }
+
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'hatchery-world-template-modal';
+        container.className = 'modal-container active';
+        container.innerHTML = `
+            <div class="modal-content" style="width:92%; max-width:460px; background:#fff; border-radius:12px;">
+                <div class="modal-header" style="padding:14px 16px; font-weight:700; border-bottom:1px solid #e5e5e5; display:flex; justify-content:space-between; align-items:center;">
+                    <span>世界书模板预设</span>
+                    <button type="button" class="close-button" onclick="closeHatcheryWorldTemplatePresets()" style="background:none; border:none; font-size:20px; cursor:pointer;">×</button>
+                </div>
+                <div class="modal-body" id="hatchery-world-template-preset-body" style="padding:16px; max-height:60vh; overflow:auto;"></div>
+            </div>`;
+        root.appendChild(container);
+    } else {
+        container.classList.add('active');
+    }
+
+    renderHatcheryWorldTemplatePresets();
+}
+
+function renderHatcheryWorldTemplatePresets() {
+    const body = document.getElementById('hatchery-world-template-preset-body');
+    if (!body) return;
+
+    const presets = getHatcheryWorldTemplatePresets();
+    const templateEl = document.getElementById('hatchery-world-template');
+    const currentTemplate = templateEl ? templateEl.value.trim() : '';
+
+    const formHtml = `
+        <div class="setting-card" style="margin-bottom:12px;">
+            <div class="setting-row"><label class="setting-label">保存当前模板为预设</label></div>
+            <div class="setting-row sub-row">
+                <label>名称</label>
+                <input id="hatchery-world-template-preset-name" class="neo-input" placeholder="例如：规则怪谈 YAML 模板" />
+            </div>
+            <div class="setting-row sub-row" style="font-size:12px; color:#666;">当前会保存「世界书模板」输入框中的全部内容。</div>
+            <div class="setting-row sub-row" style="display:flex; gap:8px;">
+                <button type="button" class="neo-btn-small" id="hatchery-world-template-save-btn">保存/更新预设</button>
+            </div>
+        </div>`;
+
+    const listItems = presets.map(p => {
+        const preview = (p.template || '').slice(0, 40).replace(/\n/g, ' ');
+        return `
+            <div class="worldbook-bind-item" style="justify-content:space-between;">
+                <div style="display:flex; flex-direction:column;">
+                    <strong>${escapeHTML(p.name || '')}</strong>
+                    <span style="font-size:12px; color:#666;">${escapeHTML(preview)}${p.template && p.template.length > 40 ? '…' : ''}</span>
+                </div>
+                <div style="display:flex; gap:6px;">
+                    <button type="button" class="neo-btn-small" onclick="applyHatcheryWorldTemplatePreset('${p.id}')">填入</button>
+                    <button type="button" class="neo-btn-small" onclick="deleteHatcheryWorldTemplatePreset('${p.id}')">删除</button>
+                </div>
+            </div>`;
+    }).join('');
+
+    const listHtml = `
+        <div class="setting-card">
+            <div class="setting-row"><label class="setting-label">我的世界书模板预设</label></div>
+            <div style="display:flex; flex-direction:column; gap:10px;">
+                ${listItems || '<div style="color:#999; text-align:center; padding:10px;">暂无预设，先在上方保存一个</div>'}
+            </div>
+        </div>`;
+
+    body.innerHTML = formHtml + listHtml;
+
+    const saveBtn = document.getElementById('hatchery-world-template-save-btn');
+    if (saveBtn) saveBtn.onclick = saveHatcheryWorldTemplatePresetFromModal;
+
+    const nameInput = document.getElementById('hatchery-world-template-preset-name');
+    if (nameInput && currentTemplate && !nameInput.value) {
+        nameInput.placeholder = '例如：当前模板 ' + new Date().toLocaleTimeString();
+    }
+}
+
+function saveHatcheryWorldTemplatePresetFromModal() {
+    const nameInput = document.getElementById('hatchery-world-template-preset-name');
+    const templateEl = document.getElementById('hatchery-world-template');
+    if (!nameInput || !templateEl) return;
+
+    const name = nameInput.value.trim();
+    const template = templateEl.value.trim();
+    if (!template) return showToast('当前模板为空，无法保存为预设');
+    if (!name) return showToast('请先给模板预设起一个名字');
+
+    let presets = getHatcheryWorldTemplatePresets();
+    const existing = presets.find(p => p.name === name);
+    if (existing) {
+        existing.template = template;
+        showToast('已更新同名模板预设');
+    } else {
+        presets.push({ id: 'hwt_' + Date.now(), name, template });
+        showToast('模板预设已保存');
+    }
+    setHatcheryWorldTemplatePresets(presets);
+    renderHatcheryWorldTemplatePresets();
+}
+
+function applyHatcheryWorldTemplatePreset(id) {
+    const presets = getHatcheryWorldTemplatePresets();
+    const target = presets.find(p => p.id === id);
+    if (!target) return;
+    const templateEl = document.getElementById('hatchery-world-template');
+    if (templateEl) templateEl.value = target.template || '';
+    closeHatcheryWorldTemplatePresets();
+    showToast('已应用模板预设：' + (target.name || ''));
+}
+
+function deleteHatcheryWorldTemplatePreset(id) {
+    if (!confirm('确定删除这个模板预设吗？此操作不可恢复')) return;
+    let presets = getHatcheryWorldTemplatePresets();
+    presets = presets.filter(p => p.id !== id);
+    setHatcheryWorldTemplatePresets(presets);
+    renderHatcheryWorldTemplatePresets();
+}
+
+function closeHatcheryWorldTemplatePresets() {
+    const overlay = document.getElementById('hatchery-world-template-overlay');
+    const container = document.getElementById('hatchery-world-template-modal');
+    if (overlay) overlay.remove();
+    if (container) container.remove();
+}
+
+// 显式挂到全局（世界书）
+window.openHatcheryWorldTemplatePresets = openHatcheryWorldTemplatePresets;
+window.saveHatcheryWorldTemplatePresetFromModal = saveHatcheryWorldTemplatePresetFromModal;
+window.applyHatcheryWorldTemplatePreset = applyHatcheryWorldTemplatePreset;
+window.deleteHatcheryWorldTemplatePreset = deleteHatcheryWorldTemplatePreset;
+window.closeHatcheryWorldTemplatePresets = closeHatcheryWorldTemplatePresets;
+
+// ==========================
+// 世界书 · 修改与复制
+// ==========================
+async function modifyHatcheryWorldbook() {
+    const briefEl = document.getElementById('hatchery-world-input');
+    const templateEl = document.getElementById('hatchery-world-template');
+    const formatEl = document.getElementById('hatchery-world-format');
+    const outputEl = document.getElementById('hatchery-world-output');
+    const btn = document.getElementById('hatchery-world-edit-btn');
+    const statusEl = document.getElementById('hatchery-world-status');
+
+    if (!briefEl || !outputEl) return;
+    const instructions = briefEl.value.trim();
+    const original = outputEl.value.trim();
+    const template = templateEl ? templateEl.value.trim() : '';
+    const format = formatEl ? formatEl.value : 'yaml';
+
+    if (!original) return showToast('请先生成一份世界书，再尝试修改');
+    if (!instructions) return showToast('请在输入框中写下你想修改或补充的内容');
+    if (!config.key || !config.url) return showToast('请先在「设置」中配置 API！');
+
+    try {
+        if (btn) { btn.disabled = true; btn.classList.add('loading'); }
+        if (statusEl) { statusEl.textContent = '等待修改完毕'; statusEl.style.display = 'block'; }
+        showToast('正在修改世界书...');
+
+        const formatLabel = format === 'markdown' ? 'Markdown' : 'YAML';
+        const prompt = `你现在是一名“世界书编辑器”。\n`
+            + `请在尽量保持原有结构与字段语义不变的前提下，根据用户的修改需求，对世界书内容进行增删改，并输出完整结果。\n\n`
+            + `【（可能存在的）世界书模板】\n${template || '（若为空，则以原始世界书的结构为准）'}\n\n`
+            + `【原始世界书】\n${original}\n\n`
+            + `【修改需求】\n${instructions}\n\n`
+            + `【输出要求】\n`
+            + `1. 只输出一段 ${formatLabel} 文本，不要添加任何解释或代码块标记。\n`
+            + `2. 尽量保留原有条目（地点/组织/术语/规则等）的命名与层级，必要时可新增或调整。`;
+
+        const raw = await getCompletion(prompt, false);
+        outputEl.value = raw.trim();
+        outputEl.scrollTop = 0;
+    } catch (e) {
+        console.error('修改世界书失败:', e);
+        showToast('修改世界书失败：' + e.message);
+    } finally {
+        if (btn) { btn.disabled = false; btn.classList.remove('loading'); }
+        if (statusEl) { statusEl.style.display = 'none'; }
+    }
+}
+
+function copyHatcheryWorldbook() {
+    const outputEl = document.getElementById('hatchery-world-output');
+    if (!outputEl) return;
+    const text = outputEl.value.trim();
+    if (!text) return showToast('当前还没有可复制的世界书内容');
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text)
+            .then(() => showToast('世界书内容已复制到剪贴板'))
+            .catch(() => { fallbackCopyHatcheryWorldbook(text); });
+    } else {
+        fallbackCopyHatcheryWorldbook(text);
+    }
+}
+
+function fallbackCopyHatcheryWorldbook(text) {
+    try {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.left = '-9999px';
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        showToast('世界书内容已复制到剪贴板');
+    } catch (e) {
+        console.error('复制世界书失败:', e);
+        showToast('复制失败，请手动选择文本复制');
+    }
+}
+
+// ==========================
+// CSS · 修改与复制
+// ==========================
+async function modifyHatcheryCss() {
+    const inputEl = document.getElementById('hatchery-css-input');
+    const outputEl = document.getElementById('hatchery-css-output');
+    const btn = document.getElementById('hatchery-css-edit-btn');
+    const statusEl = document.getElementById('hatchery-css-status');
+
+    if (!inputEl || !outputEl) return;
+    const instructions = inputEl.value.trim();
+    const originalCss = outputEl.value.trim();
+
+    if (!originalCss) return showToast('请先生成一段 CSS，再尝试修改');
+    if (!instructions) return showToast('请在描述框中写下你想修改或补充的内容');
+    if (!config.key || !config.url) return showToast('请先在「设置」中配置 API！');
+
+    try {
+        if (btn) { btn.disabled = true; btn.classList.add('loading'); }
+        if (statusEl) { statusEl.textContent = '等待修改完毕'; statusEl.style.display = 'block'; }
+        showToast('正在修改 CSS ...');
+
+        const prompt = `你现在是一名“前端样式修改器”。\n`
+            + `请在尽量保留原选择器命名与结构（如 .screen、.dock-bar、.bubble 等）的前提下，根据用户的修改需求对 CSS 进行调整，输出完整的 CSS。\n\n`
+            + `【原始 CSS】\n${originalCss}\n\n`
+            + `【修改需求】\n${instructions}\n\n`
+            + `【输出要求】\n`
+            + `1. 只输出纯 CSS 代码，不要包裹在 code block 里，不要写任何解释文字。\n`
+            + `2. 保证在移动端阅读性良好，可适度使用变量、阴影与过渡。`;
+
+        const css = await getCompletion(prompt, false);
+        outputEl.value = css.trim();
+        outputEl.scrollTop = 0;
+    } catch (e) {
+        console.error('修改 CSS 失败:', e);
+        showToast('修改 CSS 失败：' + e.message);
+    } finally {
+        if (btn) { btn.disabled = false; btn.classList.remove('loading'); }
+        if (statusEl) { statusEl.style.display = 'none'; }
+    }
+}
+
+function copyHatcheryCss() {
+    const outputEl = document.getElementById('hatchery-css-output');
+    if (!outputEl) return;
+    const text = outputEl.value.trim();
+    if (!text) return showToast('当前还没有可复制的 CSS 内容');
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text)
+            .then(() => showToast('CSS 内容已复制到剪贴板'))
+            .catch(() => { fallbackCopyHatcheryCss(text); });
+    } else {
+        fallbackCopyHatcheryCss(text);
+    }
+}
+
+function fallbackCopyHatcheryCss(text) {
+    try {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.left = '-9999px';
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        showToast('CSS 内容已复制到剪贴板');
+    } catch (e) {
+        console.error('复制 CSS 失败:', e);
+        showToast('复制失败，请手动选择文本复制');
+    }
+}
+
+// 导出世界书与 CSS 的动作到全局（供内联 onclick 使用）
+window.generateHatcheryWorldbook = generateHatcheryWorldbook;
+window.modifyHatcheryWorldbook = modifyHatcheryWorldbook;
+window.copyHatcheryWorldbook = copyHatcheryWorldbook;
+
+window.generateHatcheryCss = generateHatcheryCss;
+window.modifyHatcheryCss = modifyHatcheryCss;
+window.copyHatcheryCss = copyHatcheryCss;
+
+// ==========================
+// 孵蛋室 · CSS 风格描述预设管理
+// ==========================
+const HATCHERY_CSS_BRIEF_PRESET_KEY = 'hatchery_css_brief_presets_v1';
+function getHatcheryCssBriefPresets() { return getStorage(HATCHERY_CSS_BRIEF_PRESET_KEY, []); }
+function setHatcheryCssBriefPresets(list) { setStorage(HATCHERY_CSS_BRIEF_PRESET_KEY, list || []); }
+
+function openHatcheryCssBriefPresets() {
+    const root = document.getElementById('popup-layers') || document.body;
+    let overlay = document.getElementById('hatchery-css-brief-overlay');
+    let container = document.getElementById('hatchery-css-brief-modal');
+
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'hatchery-css-brief-overlay';
+        overlay.className = 'modal-overlay active';
+        overlay.addEventListener('click', function(e) { if (e.target === overlay) closeHatcheryCssBriefPresets(); });
+        root.appendChild(overlay);
+    } else {
+        overlay.classList.add('active');
+    }
+
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'hatchery-css-brief-modal';
+        container.className = 'modal-container active';
+        container.innerHTML = `
+            <div class="modal-content" style="width:92%; max-width:460px; background:#fff; border-radius:12px;">
+                <div class="modal-header" style="padding:14px 16px; font-weight:700; border-bottom:1px solid #e5e5e5; display:flex; justify-content:space-between; align-items:center;">
+                    <span>风格描述预设</span>
+                    <button type="button" class="close-button" onclick="closeHatcheryCssBriefPresets()" style="background:none; border:none; font-size:20px; cursor:pointer;">×</button>
+                </div>
+                <div class="modal-body" id="hatchery-css-brief-preset-body" style="padding:16px; max-height:60vh; overflow:auto;"></div>
+            </div>`;
+        root.appendChild(container);
+    } else {
+        container.classList.add('active');
+    }
+
+    renderHatcheryCssBriefPresets();
+}
+
+function renderHatcheryCssBriefPresets() {
+    const body = document.getElementById('hatchery-css-brief-preset-body');
+    if (!body) return;
+
+    const presets = getHatcheryCssBriefPresets();
+    const inputEl = document.getElementById('hatchery-css-input');
+    const current = inputEl ? inputEl.value.trim() : '';
+
+    const formHtml = `
+        <div class="setting-card" style="margin-bottom:12px;">
+            <div class="setting-row"><label class="setting-label">保存当前描述为预设</label></div>
+            <div class="setting-row sub-row">
+                <label>名称</label>
+                <input id="hatchery-css-brief-preset-name" class="neo-input" placeholder="例如：日系暖黄主题" />
+            </div>
+            <div class="setting-row sub-row" style="font-size:12px; color:#666;">当前会保存下方「风格描述」输入框中的全部内容。</div>
+            <div class="setting-row sub-row" style="display:flex; gap:8px;">
+                <button type="button" class="neo-btn-small" id="hatchery-css-brief-save-btn">保存/更新预设</button>
+            </div>
+        </div>`;
+
+    const listItems = presets.map(p => {
+        const preview = (p.text || '').slice(0, 40).replace(/\n/g, ' ');
+        return `
+            <div class="worldbook-bind-item" style="justify-content:space-between;">
+                <div style="display:flex; flex-direction:column;">
+                    <strong>${escapeHTML(p.name || '')}</strong>
+                    <span style="font-size:12px; color:#666;">${escapeHTML(preview)}${p.text && p.text.length > 40 ? '…' : ''}</span>
+                </div>
+                <div style="display:flex; gap:6px;">
+                    <button type="button" class="neo-btn-small" onclick="applyHatcheryCssBriefPreset('${p.id}')">填入</button>
+                    <button type="button" class="neo-btn-small" onclick="deleteHatcheryCssBriefPreset('${p.id}')">删除</button>
+                </div>
+            </div>`;
+    }).join('');
+
+    const listHtml = `
+        <div class="setting-card">
+            <div class="setting-row"><label class="setting-label">我的风格描述预设</label></div>
+            <div style="display:flex; flex-direction:column; gap:10px;">
+                ${listItems || '<div style="color:#999; text-align:center; padding:10px;">暂无预设，先在上方保存一个</div>'}
+            </div>
+        </div>`;
+
+    body.innerHTML = formHtml + listHtml;
+
+    const saveBtn = document.getElementById('hatchery-css-brief-save-btn');
+    if (saveBtn) saveBtn.onclick = saveHatcheryCssBriefPresetFromModal;
+
+    const nameInput = document.getElementById('hatchery-css-brief-preset-name');
+    if (nameInput && current && !nameInput.value) {
+        nameInput.placeholder = '例如：当前描述 ' + new Date().toLocaleTimeString();
+    }
+}
+
+function saveHatcheryCssBriefPresetFromModal() {
+    const nameInput = document.getElementById('hatchery-css-brief-preset-name');
+    const inputEl = document.getElementById('hatchery-css-input');
+    if (!nameInput || !inputEl) return;
+
+    const name = nameInput.value.trim();
+    const text = inputEl.value.trim();
+    if (!text) return showToast('当前描述为空，无法保存为预设');
+    if (!name) return showToast('请先给预设起一个名字');
+
+    let presets = getHatcheryCssBriefPresets();
+    const existing = presets.find(p => p.name === name);
+    if (existing) {
+        existing.text = text;
+        showToast('已更新同名描述预设');
+    } else {
+        presets.push({ id: 'hcb_' + Date.now(), name, text });
+        showToast('描述预设已保存');
+    }
+    setHatcheryCssBriefPresets(presets);
+    renderHatcheryCssBriefPresets();
+}
+
+function applyHatcheryCssBriefPreset(id) {
+    const presets = getHatcheryCssBriefPresets();
+    const target = presets.find(p => p.id === id);
+    if (!target) return;
+    const inputEl = document.getElementById('hatchery-css-input');
+    if (inputEl) inputEl.value = target.text || '';
+    closeHatcheryCssBriefPresets();
+    showToast('已应用风格描述预设：' + (target.name || ''));
+}
+
+function deleteHatcheryCssBriefPreset(id) {
+    if (!confirm('确定删除这个描述预设吗？此操作不可恢复')) return;
+    let presets = getHatcheryCssBriefPresets();
+    presets = presets.filter(p => p.id !== id);
+    setHatcheryCssBriefPresets(presets);
+    renderHatcheryCssBriefPresets();
+}
+
+function closeHatcheryCssBriefPresets() {
+    const overlay = document.getElementById('hatchery-css-brief-overlay');
+    const container = document.getElementById('hatchery-css-brief-modal');
+    if (overlay) overlay.remove();
+    if (container) container.remove();
+}
+
+// 显式挂到全局（CSS 描述）
+window.openHatcheryCssBriefPresets = openHatcheryCssBriefPresets;
+window.saveHatcheryCssBriefPresetFromModal = saveHatcheryCssBriefPresetFromModal;
+window.applyHatcheryCssBriefPreset = applyHatcheryCssBriefPreset;
+window.deleteHatcheryCssBriefPreset = deleteHatcheryCssBriefPreset;
+window.closeHatcheryCssBriefPresets = closeHatcheryCssBriefPresets;
+
+// ==========================
+// 文本域（输入/输出）移动端拖拽缩放支持
+// 作用范围：.hatchery-textarea, .hatchery-output
+// 说明：为每个编辑框包裹一个 ta-resize-wrapper，并注入右下角手柄，
+//       通过触控/鼠标拖拽调整宽度与高度；限制在可视范围内。
+// ==========================
+function ensureTextareaResizeStyles() {
+    if (document.getElementById('ta-resize-styles')) return;
+    const style = document.createElement('style');
+    style.id = 'ta-resize-styles';
+    style.textContent = `
+        .ta-resize-wrapper{position:relative;display:inline-block;max-width:100%;}
+        .ta-resize-wrapper .ta-resize-handle{position:absolute;right:6px;bottom:6px;width:16px;height:16px;border-radius:4px;background:rgba(0,0,0,.25);cursor:nwse-resize;touch-action:none;z-index:1;}
+        .ta-resize-wrapper .ta-resize-handle:active{background:rgba(0,0,0,.35);}
+        .no-select, .no-select * { user-select: none !important; }
+    `;
+    document.head.appendChild(style);
+}
+
+function wrapTextareaForResize(textarea){
+    if (!textarea || textarea.closest('.ta-resize-wrapper')) return;
+    const wrapper = document.createElement('div');
+    wrapper.className = 'ta-resize-wrapper';
+    const parent = textarea.parentNode;
+    const rect = textarea.getBoundingClientRect();
+    const initWidth = rect.width || textarea.offsetWidth || 300;
+    wrapper.style.width = Math.min(initWidth, document.documentElement.clientWidth - 24) + 'px';
+
+    // 让 textarea 跟随容器宽度，并禁用原生 resize，保持当前高度
+    textarea.style.width = '100%';
+    if (!textarea.style.height) {
+        textarea.style.height = Math.max(120, textarea.scrollHeight) + 'px';
+    }
+    textarea.style.resize = 'none';
+
+    parent.insertBefore(wrapper, textarea);
+    wrapper.appendChild(textarea);
+
+    const handle = document.createElement('div');
+    handle.className = 'ta-resize-handle';
+    wrapper.appendChild(handle);
+
+    let dragging = false;
+    let startX = 0, startY = 0;
+    let startW = 0, startH = 0;
+
+    const onDown = (e) => {
+        dragging = true;
+        document.body.classList.add('no-select');
+        const p = ('touches' in e) ? e.touches[0] : e;
+        startX = p.clientX;
+        startY = p.clientY;
+        startW = wrapper.getBoundingClientRect().width;
+        startH = textarea.getBoundingClientRect().height;
+        e.preventDefault && e.preventDefault();
+    };
+    const onMove = (e) => {
+        if (!dragging) return;
+        const p = ('touches' in e) ? e.touches[0] : e;
+        const dx = p.clientX - startX;
+        const dy = p.clientY - startY;
+        const parentW = (wrapper.parentElement?.getBoundingClientRect().width || window.innerWidth);
+        const maxW = Math.min(parentW - 8, window.innerWidth - 8);
+        const minW = 220;
+        const minH = 100;
+        const maxH = Math.max(window.innerHeight * 0.9, minH);
+        const newW = Math.max(minW, Math.min(startW + dx, maxW));
+        const newH = Math.max(minH, Math.min(startH + dy, maxH));
+        wrapper.style.width = newW + 'px';
+        textarea.style.height = newH + 'px';
+        e.preventDefault && e.preventDefault();
+    };
+    const onUp = () => {
+        if (!dragging) return;
+        dragging = false;
+        document.body.classList.remove('no-select');
+    };
+
+    handle.addEventListener('mousedown', onDown, { passive: false });
+    handle.addEventListener('touchstart', onDown, { passive: false });
+    window.addEventListener('mousemove', onMove, { passive: false });
+    window.addEventListener('touchmove', onMove, { passive: false });
+    window.addEventListener('mouseup', onUp, { passive: true });
+    window.addEventListener('touchend', onUp, { passive: true });
+}
+
+function enableMobileTextareaResize(){
+    ensureTextareaResizeStyles();
+    const selector = '.hatchery-textarea, .hatchery-output';
+    document.querySelectorAll(selector).forEach(wrapTextareaForResize);
+}
+
+document.addEventListener('DOMContentLoaded', enableMobileTextareaResize);
 
 function openForumPostCreator() {
     document.getElementById('forum-post-input').value = '';
@@ -19536,9 +21774,8 @@ window.openWorldbookBinder = openWorldbookBinder;
     window.openDrawer = openDrawer;
     window.closeDrawer = closeDrawer;
     window.closeModelPicker = closeModelPicker;
-window.saveCurrentApiProfile = saveCurrentApiProfile;
-window.applyApiProfile = applyApiProfile;
-window.closeModelPicker = closeModelPicker;
+    window.saveCurrentApiProfile = saveCurrentApiProfile;
+    window.applyApiProfile = applyApiProfile;
 
 
 
@@ -19623,7 +21860,6 @@ window.saveCharacterBinding = saveCharacterBinding;
 window.openCategoryEditor = openCategoryEditor;
 window.updateCategories = updateCategories;
 window.addCategory = addCategory;
-window.addCategory = addCategory;
 window.openUserAvatarManager = openUserAvatarManager;
 window.uploadToUserAvatarManager = uploadToUserAvatarManager;
 window.selectAvatarFromUserManager = selectAvatarFromUserManager;
@@ -19706,12 +21942,17 @@ window.flipImageCard = flipImageCard;
     window.confirmRestore = confirmRestore;
     window.saveGlobalBeautifyCss = saveGlobalBeautifyCss;
     window.saveGlobalCssPreset = saveGlobalCssPreset;
-    window.resetGlobalCssToDefault = resetGlobalCssToDefault;
     window.saveGlobalChatBackground = saveGlobalChatBackground;
     window.saveChatCssPresetFromModal = saveChatCssPresetFromModal;
     window.resetChatCssToDefault = resetChatCssToDefault;
     window.switchBeautifyPanel = switchBeautifyPanel;
     window.saveLockSettings = saveLockSettings;
+    window.openAppearancePicker = openAppearancePicker;
+    window.closeAppearancePicker = closeAppearancePicker;
+    window.toggleAppearanceUrlBox = toggleAppearanceUrlBox;
+    window.triggerAppearanceLocalImport = triggerAppearanceLocalImport;
+    window.confirmAppearanceUrl = confirmAppearanceUrl;
+    window.resetAppearanceSelection = resetAppearanceSelection;
 
     // --- 孵蛋室 ---
     window.generateHatcheryCharacter = generateHatcheryCharacter;
@@ -19723,12 +21964,12 @@ window.flipImageCard = flipImageCard;
     window.deleteHatcheryCharTemplatePreset = deleteHatcheryCharTemplatePreset;
     window.generateHatcheryWorldbook = generateHatcheryWorldbook;
     window.generateHatcheryCss = generateHatcheryCss;
-    window.generateHatcheryCss = generateHatcheryCss;
     window.applyHatcheryCssToGlobal = applyHatcheryCssToGlobal;
 
     // --- 通用设置 ---
     window.saveApiConfig = saveApiConfig;
     window.fetchModels = fetchModels;
+    window.fetchModels2 = fetchModels2;
     window.testConnection = testConnection;
     window.closeModelPicker = closeModelPicker;
     window.cleanAllBadData = cleanAllBadData;
@@ -19768,11 +22009,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const dmBackBtn = document.getElementById('dm-back-btn');
     if (dmBackBtn) {
         dmBackBtn.addEventListener('click', goBackInDm);
-    }
-
-    const dmGenerateBtn = document.getElementById('dm-generate-btn');
-    if (dmGenerateBtn) {
-        dmGenerateBtn.addEventListener('click', generatePrivateMessages);
     }
 
     const dmSendBtn = document.getElementById('dm-send-btn');

@@ -205,6 +205,108 @@ body {
     gap: 10px;
 }
 
+.lock-pattern-panel {
+    position: absolute;
+    left: 50%;
+    bottom: 120px;
+    transform: translateX(-50%);
+    width: min(82vw, 320px);
+    padding: 18px 18px 20px;
+    border-radius: 24px;
+    background: rgba(0,0,0,0.28);
+    border: 1px solid rgba(255,255,255,0.16);
+    backdrop-filter: blur(12px);
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.lock-pattern-panel.visible {
+    display: flex;
+}
+
+.lock-pattern-title {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+}
+
+.lock-pattern-subtitle {
+    font-size: 12px;
+    color: rgba(255,255,255,0.82);
+    text-align: center;
+    line-height: 1.5;
+    min-height: 18px;
+}
+
+.lock-pattern-grid,
+.lock-pattern-preview-grid {
+    --lock-pattern-line-color: rgba(255,255,255,0.88);
+    position: relative;
+    width: 210px;
+    height: 210px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    place-items: center;
+    touch-action: none;
+    user-select: none;
+}
+
+.lock-pattern-lines,
+.lock-pattern-preview-lines {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    pointer-events: none;
+}
+
+.lock-pattern-dot,
+.lock-pattern-preview-dot {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: none;
+    padding: 0;
+    margin: 0;
+    background: rgba(255,255,255,0.32);
+    box-shadow: 0 0 0 7px rgba(255,255,255,0.12);
+    transition: transform 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+    pointer-events: auto;
+}
+
+.lock-pattern-dot.active,
+.lock-pattern-preview-dot.active {
+    transform: scale(1.05);
+    background: rgba(255,255,255,0.98);
+    box-shadow: 0 0 0 9px rgba(255,255,255,0.22);
+}
+
+.lock-pattern-preview-grid {
+    width: 156px;
+    height: 156px;
+    background: #f8f8f8;
+    border-radius: 18px;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.06);
+}
+
+.lock-pattern-preview-dot {
+    width: 14px;
+    height: 14px;
+    background: rgba(0,0,0,0.26);
+    box-shadow: 0 0 0 6px rgba(0,0,0,0.08);
+}
+
+.lock-pattern-preview-dot.active {
+    background: rgba(0,0,0,0.92);
+    box-shadow: 0 0 0 8px rgba(0,0,0,0.12);
+}
+
 .lock-key {
     height: 40px;
     border-radius: 999px;
@@ -313,6 +415,135 @@ body {
     position: relative;
 }
 
+/* 主屏顶部个人名片区域 */
+.home-profile-banner {
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    margin: 12px auto 4px;
+    padding: 16px 18px 18px;
+    border-radius: 26px;
+    background-color: #fdf7f1; /* 暖白色底色 */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    box-shadow: 0 12px 26px rgba(0, 0, 0, 0.12);
+    overflow: hidden;
+    min-height: 110px;
+}
+
+.home-profile-banner-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.home-profile-avatar-wrap {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-right: 0;
+}
+
+.home-profile-avatar {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: #fbe3d3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.9);
+}
+
+.home-profile-avatar-icon {
+    width: 56px;
+    height: 56px;
+}
+
+.home-profile-avatar img,
+#home-profile-avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.home-profile-username {
+    position: absolute;
+    right: -2px;
+    bottom: -4px;
+    max-width: 90px;
+    padding: 2px 7px;
+    font-size: 11px;
+    color: #7b5b41;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 999px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.home-profile-text {
+    flex: 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 4px;
+}
+
+.home-profile-region {
+    font-size: 13px;
+    color: #8a674b;
+    letter-spacing: 0.06em;
+}
+
+.home-profile-status {
+    font-size: 13px;
+    line-height: 1.5;
+    color: #3e2a1b;
+}
+
+.home-profile-region[contenteditable="true"],
+.home-profile-status[contenteditable="true"],
+.home-profile-username[contenteditable="true"] {
+    outline: none;
+}
+
+.home-profile-region[contenteditable="true"]:focus,
+.home-profile-status[contenteditable="true"]:focus,
+.home-profile-username[contenteditable="true"]:focus {
+    text-decoration: underline;
+    text-decoration-style: dashed;
+}
+
+.home-profile-bg-btn {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    padding: 4px 10px;
+    font-size: 11px;
+    color: #7b5b41;
+    border-radius: 999px;
+    border: 0;
+    background: rgba(255, 255, 255, 0.92);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+}
+
+.home-profile-bg-btn:active {
+    transform: scale(0.96);
+}
+
 .header-live-btn {
     position: absolute;
     top: 28px;
@@ -360,16 +591,16 @@ body {
 .grid-container {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    grid-template-rows: 150px 90px 90px; /* 行高整体加一点，让图标变大后不显拥挤 */
-    gap: 20px;
+    grid-template-rows: 130px 75px 75px; /* 再略微缩小行高，让下方组件整体继续向上收紧 */
+    gap: 12px;
     flex-grow: 0;
-    margin-bottom: 30px;
+    margin-bottom: 10px;
     padding: 0 10px;
 }
 
 #main-screen .grid-container {
-    margin-top: 110px;
-    margin-bottom: 16px;
+    margin-top: 0;
+    margin-bottom: 6px;
 }
 
 .widget {
@@ -392,7 +623,7 @@ body {
     align-self: flex-start;
     border: 1px solid rgba(0,0,0,0.1);
     padding: 0;
-    margin-top: 32px;
+    margin-top: 12px;
 }
 
 #main-screen #photo-widget.anniversary-widget {
@@ -477,7 +708,7 @@ body {
     grid-row: 2/4;
     justify-self: center;              /* 在网格单元内水平居中 */
     align-self: center;                /* 在跨两行的区域中垂直居中 */
-    width: 90%;                        /* 略微加宽一些，但仍比整列窄一点 */
+    width: 78%;                        /* 略微缩小宽度，让整体更精致但不显得太小 */
     aspect-ratio: 1 / 1;               /* 整个玻璃组件保持正方形 */
     display: flex;
     align-items: center;
@@ -1883,8 +2114,8 @@ body {
 #beautify-page .beautify-module-list {
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    margin-bottom: 18px;
+    gap: 18px;
+    margin-bottom: 22px;
 }
 
 #beautify-page .beautify-module-btn {
@@ -1949,6 +2180,21 @@ body {
     display: block;
 }
 
+/* 强制非激活面板不可见，避免偶发样式覆盖导致多面板同时露出 */
+#beautify-page .beautify-panel:not(.active) {
+    display: none !important;
+}
+
+/* 让外观设置整个页面成为单一滚动容器，避免面板不在可滚动区域内导致“看不见、滚不动” */
+#beautify-page {
+    overflow-y: auto;
+}
+/* 外观页内的列表区域不再单独产生嵌套滚动，避免双层滚动导致的内容无法到达 */
+#beautify-page .scroll-content {
+    overflow: visible;
+    flex: 0 0 auto;
+}
+
 /* 外观设置页按钮用白底 + 阴影风格 */
 #beautify-page .btn-small {
     background: #ffffff;
@@ -1976,6 +2222,12 @@ body {
     margin-bottom: 20px; 
     box-shadow: 0 2px 8px rgba(0,0,0,0.03); 
 }
+/* 外观面板专用卡片，稍微加大留白 */
+.appearance-card {
+    margin: 10px 14px 20px;
+    padding: 10px 14px 12px;
+}
+
 .setting-row { 
     display: flex; 
     justify-content: space-between; 
@@ -1991,14 +2243,19 @@ body {
     min-width: 80px; 
     font-weight: 500; 
 }
-.input-clean { 
-    flex: 1; 
-    border: none; 
-    font-size: 14px; 
-    text-align: right; 
-    outline: none; 
-    background: transparent; 
-    color: #555; 
+.input-clean {
+    flex: 1;
+    border: none;
+    font-size: 14px;
+    text-align: right;
+    outline: none;
+    background: transparent;
+    color: #555;
+}
+
+#global-beautify-css-input {
+    direction: ltr;
+    text-align: left;
 }
 .btn-small { 
     padding: 6px 12px; 
@@ -2012,18 +2269,262 @@ body {
     font-weight: bold; 
 }
 
-/* API 设置页按钮使用白底样式，避免影响其他页面 */
-#api-page .btn-small {
-    background: #ffffff;
-    border: 1px solid #ddd;
+/* 外观页面的资源列表行样式 */
+.appearance-resource-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 6px;
 }
 
+.appearance-resource-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 0.5px solid #f1f1f1;
+}
+
+.appearance-resource-row:last-child {
+    border-bottom: none;
+}
+
+.appearance-resource-main {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.appearance-resource-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: #111;
+}
+
+.appearance-resource-desc {
+    font-size: 11px;
+    color: #888;
+}
+
+.appearance-change-btn {
+    margin-left: 0;
+    white-space: nowrap;
+}
+
+.appearance-help-text {
+    font-size: 11px;
+    color: #888;
+    line-height: 1.5;
+    margin-top: 6px;
+}
+
+.appearance-hidden-inputs {
+    position: absolute;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.appearance-hidden-input {
+    display: block;
+    width: 0;
+    height: 0;
+    border: none;
+    padding: 0;
+    margin: 0;
+}
+
+.appearance-action-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.appearance-action-row .appearance-submit-btn {
+    flex: 1;
+}
+
+.appearance-save-wide {
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+}
+
+/* 壁纸轮换块 */
+.appearance-rotate-block {
+    margin-top: 10px;
+}
+
+.appearance-toggle-row {
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+.appearance-toggle-control {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #555;
+}
+
+.appearance-toggle-control input[type="checkbox"] {
+    width: auto;
+}
+
+.appearance-rotate-container {
+    margin-top: 4px;
+}
+
+.appearance-rotate-slot {
+    padding: 10px 0 6px 0;
+    border-bottom: 0.5px dashed #eee;
+}
+
+.appearance-rotate-slot:last-child {
+    border-bottom: none;
+}
+
+.appearance-slot-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.appearance-slot-title {
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.appearance-time-row {
+    margin-top: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.appearance-time-input {
+    flex: 0 0 110px;
+    font-size: 12px;
+}
+
+/* 锁屏密码长度选择 */
+.appearance-passcode-lengths {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.appearance-length-option {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: #555;
+}
+
+/* 外观统一弹窗 */
+.appearance-picker-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.appearance-picker-modal.active {
+    display: flex;
+}
+
+.appearance-picker-dialog {
+    width: 82%;
+    max-width: 360px;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 18px 40px rgba(0,0,0,0.25);
+    padding: 12px 14px 14px;
+}
+
+.appearance-picker-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.appearance-picker-title {
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.appearance-picker-subtitle {
+    font-size: 11px;
+    color: #777;
+}
+
+.appearance-picker-close {
+    border: none;
+    background: transparent;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+.appearance-picker-body {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.appearance-picker-option {
+    border-radius: 999px;
+    border: 1px solid #111;
+    background: #fff;
+    padding: 8px 10px;
+    font-size: 13px;
+    text-align: center;
+}
+
+.appearance-picker-url-box {
+    display: none;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.appearance-picker-url-input {
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    padding: 6px 8px;
+    font-size: 13px;
+}
+
+.appearance-picker-confirm {
+    margin-left: 0;
+}
+
+.appearance-picker-reset {
+    border-radius: 999px;
+    border: 1px solid #e53935;
+    background: #fff5f5;
+    color: #d32f2f;
+    padding: 6px 10px;
+    font-size: 12px;
+    align-self: flex-start;
+}
 /* 游戏大厅 / 自律钟 / 纪念日 主界面整体偏白，接近世界书 */
 #game-center-page,
 #anniversary-page,
 #clock-page {
     background-color: #f7f8fa;
 }
+
 
 /* 相关条目的卡片化阴影与边框 */
 #game-center-page .neo-card,
@@ -2776,11 +3277,34 @@ body {
 .hatchery-status-text {
     margin-top: 4px;
     font-size: 12px;
-    background: linear-gradient(90deg, #000000, #888888);
+    font-weight: 600;
+    /* 黑色与灰色交替条纹，移动端可见且更醒目 */
+    background: repeating-linear-gradient(90deg,
+        #000000 0%, #888888 12.5%,
+        #000000 25%, #888888 37.5%,
+        #000000 50%, #888888 62.5%,
+        #000000 75%, #888888 87.5%,
+        #000000 100%
+    );
+    background-size: 300% 100%;
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
     color: transparent;
+    /* 加快渐变移动速度 */
+    animation: statusGradientMove 2.7s linear infinite;
+}
+
+@keyframes statusGradientMove {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 100% 50%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .hatchery-status-text {
+        animation: none;
+        background-position: 50% 50%;
+    }
 }
 
 .hatchery-btn.hatchery-btn-small {
@@ -5315,21 +5839,52 @@ input:checked + .slider:before {
     font-weight: 500; 
 }
 
-/* 自律钟 个人中心 */
-.focus-chart-container { 
-    display: flex; 
-    flex-direction: column; 
-    align-items: center; 
-    margin-bottom: 20px; 
+.beautify-panel {
+    display: none;
 }
-.focus-pie-chart {
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    display: grid;
-    place-items: center;
-    background: conic-gradient(#4CAF50 0deg, #f0f0f0 0deg);
-    transition: background 0.5s;
+
+.beautify-panel.active {
+    display: block;
+}
+
+.beautify-module-btn {
+    width: 100%;
+    text-align: left;
+    border: none;
+    background: #fff;
+    padding: 12px 14px;
+    margin: 6px 0;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+.beautify-module-btn.active {
+    outline: 2px solid #000;
+}
+
+.setting-card {
+    margin: 10px 14px;
+    padding: 12px 10px 16px;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.setting-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin: 6px 0;
+}
+
+.setting-row > label {
+    min-width: 70px;
+    font-size: 12px;
+    color: #555;
 }
 
 .love-screen {
@@ -5343,6 +5898,7 @@ input:checked + .slider:before {
     flex: 0 0 20%;
     display: flex;
     align-items: center;
+    margin-top: 10px;
 }
 
 .love-header-bar {
@@ -5412,50 +5968,371 @@ input:checked + .slider:before {
 
 /* 第二屏中部 · 黑白简约日记长条（中下区放大版） */
 .role-diary-strip {
-    position: absolute;
-    left: 50%;
-    top: 54%;               /* 再往上提一点，让「暖心一下」板块整体更靠中部 */
-    transform: translateX(-50%);
-    z-index: 2;
+    position: relative;
+}
 
-    /* 略微拉宽「暖心一下」长条，让视觉更充实但仍保留左右留白 */
-    width: 92%;
-    max-width: 380px;
-    box-sizing: border-box;
-    margin: 0 auto;
-    padding: 8px 12px;
-    border-radius: 14px;
-    border: 1px solid #111;
-    background: #ffffff;
+.role-diary-settings {
+    position: absolute;
+    right: 8px;
+    top: 8px;
+    width: 24px;
+    height: 24px;
+    border-radius: 999px;
+    border: none;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.04);
+    cursor: pointer;
+}
+
+.role-diary-settings-icon {
+    width: 16px;
+    height: 16px;
+    fill: #888;
+}
+
+.role-diary-settings-root {
+    position: fixed;
+    inset: 0;
     display: flex;
     align-items: center;
+    justify-content: center;
+    z-index: 2600;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.role-diary-settings-root.visible {
+    pointer-events: auto;
+    opacity: 1;
+}
+
+.role-diary-settings-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+}
+
+.role-diary-settings-panel {
+    position: relative;
+    z-index: 1;
+    width: 280px;
+    max-width: calc(100% - 40px);
+    border-radius: 18px;
+    background: #fff;
+    box-shadow: 0 18px 45px rgba(0,0,0,0.35);
+    padding: 14px 14px 12px;
+    font-size: 13px;
+}
+
+.role-diary-settings-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.role-diary-settings-title {
+    font-weight: 600;
+}
+
+.role-diary-settings-close {
+    border: none;
+    background: none;
+    font-size: 18px;
+    line-height: 1;
+    padding: 0 2px;
+    cursor: pointer;
+}
+
+.role-diary-settings-body {
+    display: flex;
+    flex-direction: column;
     gap: 8px;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.18);
+    margin-bottom: 10px;
 }
 
-.role-diary-avatar {
-    flex: 0 0 auto;
+.role-diary-settings-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }
 
-.role-diary-avatar select {
-    max-width: 80px;
+.role-diary-settings-label {
+    flex: 0 0 92px;
+    color: #555;
+}
+
+.role-diary-settings-input {
+    flex: 1;
+    max-width: 160px;
+    height: 28px;
+    padding: 4px 8px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    font-size: 12px;
+}
+
+.role-diary-settings-color {
+    width: 40px;
+    height: 24px;
+    padding: 0;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+}
+
+.role-diary-settings-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.role-diary-settings-btn {
+    min-width: 68px;
+    height: 28px;
     border-radius: 999px;
-    border: 1px solid #111;
-    padding: 2px 6px;
-    font-size: 10px;
+    border: none;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.role-diary-settings-btn.secondary {
+    background: #f2f2f2;
+}
+
+.role-diary-settings-btn.primary {
     background: #000;
     color: #fff;
-    outline: none;
+}
+
+ .love-screen .role-diary-strip {
+     position: absolute;
+     left: 50%;
+     top: 54%;               /* 再往上提一点，让「暖心一下」板块整体更靠中部 */
+     transform: translateX(-50%);
+     z-index: 2;
+ 
+     /* 略微拉宽「暖心一下」长条，让视觉更充实但仍保留左右留白 */
+     width: 92%;
+     max-width: 380px;
+     box-sizing: border-box;
+     margin: 0 auto;
+     padding: 8px 12px;
+     border-radius: 14px;
+     border: 1px solid #111;
+     background: #ffffff;
+     display: flex;
+     align-items: center;
+     gap: 8px;
+     box-shadow: 0 6px 18px rgba(0,0,0,0.18);
+ }
+ 
+ .role-diary-strip {
+     position: relative;
+ }
+ 
+ .role-diary-settings {
+     position: absolute;
+     right: 8px;
+     top: 8px;
+     width: 24px;
+     height: 24px;
+     border-radius: 999px;
+     border: none;
+     padding: 0;
+     display: inline-flex;
+     align-items: center;
+     justify-content: center;
+     background: rgba(0,0,0,0.04);
+     cursor: pointer;
+ }
+ 
+ .role-diary-settings-icon {
+     width: 16px;
+     height: 16px;
+     fill: #888;
+ }
+ 
+ .role-diary-settings-root {
+     position: fixed;
+     inset: 0;
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     z-index: 2600;
+     pointer-events: none;
+     opacity: 0;
+     transition: opacity 0.2s ease;
+ }
+ 
+ .role-diary-settings-root.visible {
+     pointer-events: auto;
+     opacity: 1;
+ }
+ 
+ .role-diary-settings-backdrop {
+     position: absolute;
+     inset: 0;
+     background: rgba(0,0,0,0.4);
+ }
+ 
+ .role-diary-settings-panel {
+     position: relative;
+     z-index: 1;
+     width: 280px;
+     max-width: calc(100% - 40px);
+     border-radius: 18px;
+     background: #fff;
+     box-shadow: 0 18px 45px rgba(0,0,0,0.35);
+     padding: 14px 14px 12px;
+     font-size: 13px;
+ }
+ 
+ .role-diary-settings-header {
+     display: flex;
+     align-items: center;
+     justify-content: space-between;
+     margin-bottom: 8px;
+ }
+ 
+ .role-diary-settings-title {
+     font-weight: 600;
+ }
+ 
+ .role-diary-settings-close {
+     border: none;
+     background: none;
+     font-size: 18px;
+     line-height: 1;
+     padding: 0 2px;
+     cursor: pointer;
+ }
+ 
+ .role-diary-settings-body {
+     display: flex;
+     flex-direction: column;
+     gap: 8px;
+     margin-bottom: 10px;
+ }
+ 
+ .role-diary-settings-row {
+     display: flex;
+     align-items: center;
+     gap: 6px;
+ }
+ 
+ .role-diary-settings-label {
+     flex: 0 0 92px;
+     color: #555;
+ }
+ 
+ .role-diary-settings-input {
+     flex: 1;
+     height: 28px;
+     padding: 4px 8px;
+     border-radius: 8px;
+     border: 1px solid #ddd;
+     font-size: 12px;
+ }
+ 
+ .role-diary-settings-color {
+     width: 40px;
+     height: 24px;
+     padding: 0;
+     border-radius: 6px;
+     border: 1px solid #ddd;
+ }
+ 
+ .role-diary-settings-footer {
+     display: flex;
+     justify-content: flex-end;
+     gap: 8px;
+ }
+ 
+ .role-diary-settings-btn {
+     min-width: 68px;
+     height: 28px;
+     border-radius: 999px;
+     border: none;
+     font-size: 12px;
+     cursor: pointer;
+ }
+ 
+ .role-diary-settings-btn.secondary {
+     background: #f2f2f2;
+ }
+ 
+ .role-diary-settings-btn.primary {
+     background: #000;
+     color: #fff;
+ }
+ 
+ .role-diary-avatar {
+     flex: 0 0 auto;
+     position: relative;
+     display: flex;
+     flex-direction: column;
+     align-items: center;
+    justify-content: center;
+    width: 60px;
+}
+
+.role-diary-avatar-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #fbe5d3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: #4c2f21;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.role-diary-avatar-circle.has-image {
+    color: transparent;
+}
+
+.role-diary-avatar-name {
+    margin-top: 4px;
+    font-size: 10px;
+    color: #5a3c1f;
+    max-width: 64px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.role-diary-avatar select,
+.role-diary-select-hidden {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    border: none;
+    background: transparent;
+    color: transparent;
+    cursor: pointer;
 }
 
 .role-diary-text {
     flex: 1;
     font-size: 11px;
-    line-height: 1.3;
-    color: #5a3c1f;
-    background: #fff5da; /* 暖黄色日记纸质感 */
-    padding: 3px 6px;
-    border-radius: 8px;
+    line-height: 1.45;
+    color: #ffffff;
+    background: #111111; /* 中间改为黑色条块，承载白色台词文本 */
+    padding: 8px 10px;
+    border-radius: 10px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
 }
 
 .role-diary-action {
@@ -5464,9 +6341,10 @@ input:checked + .slider:before {
     border: 1px solid #111;
     background: #000;
     color: #fff;
-    padding: 3px 8px;
-    font-size: 10px;
+    padding: 6px 10px;
+    font-size: 11px;
     cursor: pointer;
+    min-width: 56px;
 }
 
 .role-diary-action:active {
@@ -5536,15 +6414,18 @@ input:checked + .slider:before {
     opacity: 0;
 }
 
-.love-canvas {
+ .love-canvas {
     flex: 1;
     position: relative;
     min-height: 360px;
+    padding-top: 10px;    /* 轻微压缩上下留白，让上下两块再稍微靠近一点 */
     padding-right: 6px; /* 原 10px，让右侧爱心组件整体向右贴近一点，但仍保留少量留白 */
+    padding-bottom: 10px; /* 与顶部对称，保证下半部分也同步上移一点 */
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-}
+    justify-content: space-between; /* 保持原有结构，只做温和收紧 */
+ }
+
 
 .love-top-group {
     display: flex;
@@ -5658,24 +6539,23 @@ input:checked + .slider:before {
      box-shadow: none !important;
  }
  
- .love-circle {
-     position: relative;
-     width: 120px;   /* 圆形组件更大一些，贴近左下角但保留一点喘息空间 */
-     height: 120px;
-     border-radius: 50%;
-     display: flex;
-     align-items: center;
-     justify-content: center;
-     font-size: 13px;
-     color: #4c2f21;
-     text-align: center;
-     padding: 8px;
-     z-index: 1;
-     margin-left: 20px;       /* 再向右轻微移动（原 12px），和图标列偏移保持统一 */
-     margin-bottom: 28px;  /* 整体向上再抬高一截，让位置更高一些 */
- }
- 
- .love-heart-svg {
+  .love-circle {
+      position: relative;
+      width: 145px;   /* 圆形组件更大一些，贴近左下角但保留一点喘息空间 */
+      height: 145px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      color: #4c2f21;
+      text-align: center;
+      padding: 8px;
+      z-index: 1;
+      margin-left: 20px;       /* 再向右轻微移动（原 12px），和图标列偏移保持统一 */
+      margin-bottom: 36px;  /* 整体向上再抬高一截，让位置更高一些 */
+  }
+.love-heart-svg {
      width: 100%;
      height: 100%;
      display: block;
@@ -5697,12 +6577,149 @@ input:checked + .slider:before {
      column-gap: 52px; /* 原 44px，两列之间再拉开一点 */
  }
  
- /* 将「暖心一下」板块略微上移，让整体视觉重心更靠上 */
- .role-diary-strip {
-     top: 50%; /* 原约 54% 左右，向上提一小截 */
- }
- 
- /* 首页两个图片组件内的白色文本全部隐藏，仅保留图片区域 */
+  /* 调整「暖心一下」板块位置与高度：略微上移，并整体加高，预留头像空间 */
+  .role-diary-strip {
+    position: relative;
+}
+
+.role-diary-settings {
+    position: absolute;
+    right: 8px;
+    top: 8px;
+    width: 24px;
+    height: 24px;
+    border-radius: 999px;
+    border: none;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.04);
+    cursor: pointer;
+}
+
+.role-diary-settings-icon {
+    width: 16px;
+    height: 16px;
+    fill: #888;
+}
+
+.role-diary-settings-root {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2600;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.role-diary-settings-root.visible {
+    pointer-events: auto;
+    opacity: 1;
+}
+
+.role-diary-settings-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+}
+
+.role-diary-settings-panel {
+    position: relative;
+    z-index: 1;
+    width: 280px;
+    max-width: calc(100% - 40px);
+    border-radius: 18px;
+    background: #fff;
+    box-shadow: 0 18px 45px rgba(0,0,0,0.35);
+    padding: 14px 14px 12px;
+    font-size: 13px;
+}
+
+.role-diary-settings-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.role-diary-settings-title {
+    font-weight: 600;
+}
+
+.role-diary-settings-close {
+    border: none;
+    background: none;
+    font-size: 18px;
+    line-height: 1;
+    padding: 0 2px;
+    cursor: pointer;
+}
+
+.role-diary-settings-body {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.role-diary-settings-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.role-diary-settings-label {
+    flex: 0 0 92px;
+    color: #555;
+}
+
+.role-diary-settings-input {
+    flex: 1;
+    max-width: 160px;
+    height: 28px;
+    padding: 4px 8px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    font-size: 12px;
+}
+
+.role-diary-settings-color {
+    width: 40px;
+    height: 24px;
+    padding: 0;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+}
+
+.role-diary-settings-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.role-diary-settings-btn {
+    min-width: 68px;
+    height: 28px;
+    border-radius: 999px;
+    border: none;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.role-diary-settings-btn.secondary {
+    background: #f2f2f2;
+}
+
+.role-diary-settings-btn.primary {
+    background: #000;
+    color: #fff;
+}
+
+/* 首页两个图片组件内的白色文本全部隐藏，仅保留图片区域 */
  .anniversary-widget .anniv-title,
  .anniversary-widget .anniv-days,
  .anniversary-widget .anniv-sub,
@@ -9305,7 +10322,7 @@ html, body {
     pointer-events: none;
 
     /* 确保它们有自己的堆叠上下文，并设置基础过渡 */
-    z-index: 100;
+    z-index: 400;
     transition: opacity 0.3s ease-out;
 }
 
